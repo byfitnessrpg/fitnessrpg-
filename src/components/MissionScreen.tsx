@@ -1,0 +1,315 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Exercise } from '../types';
+import { ExerciseSVG } from './ExerciseSVG';
+import { X, Play, Plus, SkipForward, HelpCircle, CheckCircle2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+
+interface MissionScreenProps {
+  exercise: Exercise;
+  targetCount: number;
+  onClose: () => void;
+  onComplete: () => void;
+}
+
+export const MissionScreen: React.FC<MissionScreenProps> = ({
+  exercise,
+  targetCount,
+  onClose,
+  onComplete,
+}) => {
+  const [currentSet, setCurrentSet] = useState(1);
+  const [currentReps, setCurrentReps] = useState(0);
+
+  // Timer states
+  const [timerActive, setTimerActive] = useState(false);
+  const [timerLeft, setTimerLeft] = useState(targetCount);
+  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Rest states
+  const [isResting, setIsResting] = useState(false);
+  const [restLeft, setRestLeft] = useState(30);
+  const restIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Ring calculations
+  const radius = 50;
+  const circumference = 2 * Math.PI * radius;
+
+  // Track progress fraction
+  const getProgressPct = () => {
+    if (exercise.type === 'timer') {
+      const elapsed = targetCount - timerLeft;
+      return Math.min(1, elapsed / targetCount);
+    } else {
+      return Math.min(1, currentReps / targetCount);
+    }
+  };
+
+  const pct = getProgressPct();
+  const offset = circumference * (1 - pct);
+
+  // Timer tick
+  useEffect(() => {
+    if (timerActive && timerLeft > 0) {
+      timerIntervalRef.current = setInterval(() => {
+        setTimerLeft((prev) => {
+          if (prev <= 1) {
+            clearInterval(timerIntervalRef.current!);
+            setTimerActive(false);
+            handleFinishSet();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+    };
+  }, [timerActive, timerLeft]);
+
+  // Rest tick
+  useEffect(() => {
+    if (isResting && restLeft > 0) {
+      restIntervalRef.current = setInterval(() => {
+        setRestLeft((prev) => {
+          if (prev <= 1) {
+            clearInterval(restIntervalRef.current!);
+            handleSkipRest();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (restIntervalRef.current) clearInterval(restIntervalRef.current);
+    };
+  }, [isResting, restLeft]);
+
+  const handleStartTimer = () => {
+    setTimerActive(true);
+  };
+
+  const handleAddRep = () => {
+    if (currentReps + 1 >= targetCount) {
+      handleFinishSet();
+    } else {
+      setCurrentReps((prev) => prev + 1);
+    }
+  };
+
+  const handleFinishSet = () => {
+    if (currentSet < exercise.sets) {
+      // Open rest screen
+      setRestLeft(30);
+      setIsResting(true);
+    } else {
+      // Done with all sets!
+      onComplete();
+    }
+  };
+
+  const handleSkipRest = () => {
+    if (restIntervalRef.current) clearInterval(restIntervalRef.current);
+    setIsResting(false);
+    setCurrentSet((prev) => prev + 1);
+    setCurrentReps(0);
+    setTimerLeft(targetCount);
+    setTimerActive(false);
+  };
+
+  // Circular ring calculations for rest progress
+  const restRadius = 52;
+  const restCircumference = 2 * Math.PI * restRadius;
+  const restOffset = restCircumference * (1 - restLeft / 30);
+
+  return (
+    <div className="fixed inset-0 bg-[#08070c] z-50 flex flex-col justify-between overflow-y-auto no-scrollbar max-w-md mx-auto shadow-2xl">
+      {/* 1. Header with details & close btn */}
+      <div className="px-5 py-4 flex items-center justify-between border-b border-red-950/20 bg-[#12101a]">
+        <div>
+          <h3 className="text-base font-black font-display text-white flex items-center gap-1.5">
+            <span className="text-xl">{exercise.icon}</span> {exercise.name}
+          </h3>
+          <p className="text-xs text-slate-400 font-mono">
+            SÉRIE {currentSet} DE {exercise.sets}
+          </p>
+        </div>
+        <button
+          onClick={onClose}
+          className="w-9 h-9 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition-all active:scale-90"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* 2. Visual Animation Figure illustration */}
+      <div className="flex-1 px-5 py-6 flex flex-col items-center justify-center space-y-6">
+        <div className="w-full flex justify-center py-4 bg-[#12101a]/30 border border-slate-950/40 rounded-3xl relative overflow-hidden">
+          {/* Atmospheric background glow */}
+          <div className="absolute inset-0 bg-radial-gradient from-red-600/5 to-transparent blur-xl pointer-events-none" />
+          <ExerciseSVG pose={exercise.pose} color={exercise.mColor} />
+        </div>
+
+        {/* Muscles tag row */}
+        <div className="flex flex-wrap gap-1 justify-center">
+          {exercise.muscles.map((m) => (
+            <span
+              key={m}
+              className="text-[10px] font-bold font-mono uppercase px-3 py-1 rounded-full"
+              style={{ backgroundColor: `${exercise.mColor}15`, color: exercise.mColor }}
+            >
+              {m}
+            </span>
+          ))}
+        </div>
+
+        {/* Circular Progress widget */}
+        <div className="flex flex-col items-center justify-center pt-2 relative">
+          <svg className="w-36 h-36 transform -rotate-90">
+            <circle cx="72" cy="72" r={radius} className="stroke-slate-900 fill-none" strokeWidth="8" />
+            <motion.circle
+              cx="72"
+              cy="72"
+              r={radius}
+              className="fill-none"
+              style={{ stroke: exercise.mColor }}
+              strokeWidth="8"
+              strokeDasharray={circumference}
+              animate={{ strokeDashoffset: offset }}
+              transition={{ duration: 0.25 }}
+              strokeLinecap="round"
+            />
+          </svg>
+          <div className="absolute inset-0 flex flex-col items-center justify-center leading-none mt-1">
+            <span className="text-3xl font-black font-mono text-white">
+              {exercise.type === 'timer' ? timerLeft : currentReps}
+            </span>
+            <span className="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-widest mt-1">
+              {exercise.type === 'timer' ? 'SEGUNDOS' : `DE ${targetCount}`}
+            </span>
+          </div>
+        </div>
+
+        {/* Series track bars */}
+        <div className="w-full space-y-2 px-3">
+          <span className="text-[10px] font-mono font-bold tracking-wider text-slate-500 uppercase block text-center">
+            Progresso das Séries
+          </span>
+          <div className="flex gap-2 justify-center">
+            {Array.from({ length: exercise.sets }, (_, i) => {
+              const setNum = i + 1;
+              const isDone = setNum < currentSet;
+              const isActive = setNum === currentSet;
+
+              return (
+                <div
+                  key={i}
+                  className={`flex-1 h-2 rounded-full transition-all duration-300 ${
+                    isDone ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]' : isActive ? 'bg-red-600 animate-pulse' : 'bg-slate-900'
+                  }`}
+                />
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Action button area */}
+      <div className="p-5 space-y-6 border-t border-red-950/10 bg-[#12101a]/40">
+        <div className="flex justify-center">
+          {exercise.type === 'reps' ? (
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={handleAddRep}
+              className="w-full py-4.5 bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-extrabold font-mono text-base uppercase rounded-2xl shadow-[0_6px_20px_rgba(220,38,38,0.3)] flex items-center justify-center gap-2 active:scale-95"
+            >
+              <Plus className="w-5 h-5 text-white" />
+              +1 {exercise.unit.split(' ')[0]}
+            </motion.button>
+          ) : (
+            <button
+              onClick={handleStartTimer}
+              disabled={timerActive}
+              className="w-full py-4 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white font-bold font-mono text-xs uppercase tracking-widest rounded-xl shadow-lg shadow-red-900/20 flex items-center justify-center gap-2 transition-all duration-200"
+            >
+              <Play className="w-4 h-4 fill-white" />
+              {timerActive ? 'Timer Ativo' : 'Iniciar Contagem'}
+            </button>
+          )}
+        </div>
+
+        {/* Directions steps */}
+        <div className="space-y-3">
+          <h4 className="text-[10px] font-mono font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+            <HelpCircle className="w-4 h-4 text-red-500" />
+            Como Executar a Série
+          </h4>
+          <ul className="space-y-2">
+            {exercise.steps.map((step, i) => (
+              <li key={i} className="flex gap-2.5 text-[11px] text-slate-400 leading-normal">
+                <span className="w-4.5 h-4.5 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center font-bold text-[9px] text-red-500 shrink-0">
+                  {i + 1}
+                </span>
+                <span>{step}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      {/* 4. Fullscreen rest panel overlay */}
+      <AnimatePresence>
+        {isResting && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-[#08070ca0] backdrop-blur-md z-51 flex flex-col items-center justify-center text-center p-6 max-w-md mx-auto"
+          >
+            <div className="space-y-1 mb-8">
+              <span className="text-3xl">🧘</span>
+              <h3 className="text-2xl font-black font-display text-white">Hora do Descanso</h3>
+              <p className="text-xs text-slate-400">Excelente série! Respire e recupere as energias</p>
+            </div>
+
+            {/* Circular rest countdown circle */}
+            <div className="relative w-36 h-36 flex items-center justify-center mb-10">
+              <svg className="w-36 h-36 transform -rotate-90">
+                <circle cx="72" cy="72" r={restRadius} className="stroke-slate-900 fill-none" strokeWidth="8" />
+                <motion.circle
+                  cx="72"
+                  cy="72"
+                  r={restRadius}
+                  className="stroke-emerald-500 fill-none"
+                  strokeWidth="8"
+                  strokeDasharray={restCircumference}
+                  animate={{ strokeDashoffset: restOffset }}
+                  transition={{ duration: 1, ease: 'linear' }}
+                  strokeLinecap="round"
+                />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center leading-none mt-1">
+                <span className="text-4xl font-black font-mono text-emerald-400">{restLeft}</span>
+                <span className="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-widest mt-1">
+                  SEGUNDOS
+                </span>
+              </div>
+            </div>
+
+            {/* Skip rest trigger */}
+            <button
+              onClick={handleSkipRest}
+              className="px-8 py-3.5 bg-[#12101a] hover:bg-[#1b1829] border border-emerald-500/30 text-emerald-400 font-bold font-mono text-xs uppercase tracking-widest rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5 active:scale-95 shadow-[0_4px_15px_rgba(16,185,129,0.15)]"
+            >
+              <SkipForward className="w-4 h-4 text-emerald-400 fill-emerald-400" />
+              Pular Descanso
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
