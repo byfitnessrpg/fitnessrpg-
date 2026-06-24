@@ -1,5 +1,6 @@
 import React from 'react';
 import { LogOut, Swords, Shield } from 'lucide-react';
+import fitnessRpgLogo from '../assets/images/fitness_rpg_exact_logo_1782332014254.jpg';
 
 interface HeaderProps {
   email: string | null;
@@ -48,9 +49,14 @@ export const Header: React.FC<HeaderProps> = ({ email, onLogout, activeTab }) =>
     <div className="bg-[#000000] border-b border-slate-900/80 pt-4 pb-3 px-5 flex flex-col gap-3 sticky top-0 z-40 relative">
       {/* Upper Brand section */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded bg-black border border-sky-500/30 flex items-center justify-center shadow-[0_0_10px_rgba(14,165,233,0.15)]">
-            <Shield className="w-4.5 h-4.5 text-sky-400" />
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg overflow-hidden border border-sky-500/30 flex items-center justify-center shadow-[0_0_12px_rgba(14,165,233,0.25)] bg-[#050508]">
+            <img 
+              src={fitnessRpgLogo} 
+              alt="Fitness RPG Logo" 
+              className="w-full h-full object-cover" 
+              referrerPolicy="no-referrer" 
+            />
           </div>
           <div>
             <h1 className="text-lg font-black font-display tracking-widest text-white leading-none uppercase">
