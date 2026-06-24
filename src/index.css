@@ -11,48 +11,56 @@
 /* Base resets & styles */
 html, body, #root {
   height: 100%;
-  background-color: #050508;
-  color: #f3f4f6;
+  background-color: #000000;
+  color: #f8fafc;
   font-family: var(--font-sans);
   overflow-x: hidden;
   -webkit-tap-highlight-color: transparent;
   background-image: 
-    radial-gradient(at 0% 0%, rgba(124, 58, 237, 0.08) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.08) 0px, transparent 50%),
-    linear-gradient(rgba(18, 16, 26, 0.4) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(18, 16, 26, 0.4) 1px, transparent 1px);
-  background-size: 100% 100%, 100% 100%, 24px 24px, 24px 24px;
+    radial-gradient(at 50% 0%, rgba(14, 165, 233, 0.08) 0px, transparent 60%),
+    radial-gradient(at 0% 100%, rgba(147, 51, 234, 0.04) 0px, transparent 50%),
+    linear-gradient(rgba(255, 255, 255, 0.003) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.003) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 20px 20px, 20px 20px;
 }
 
 /* Hunter Systems & Neon Glow */
 .neon-border-blue {
-  border: 1px solid rgba(14, 165, 233, 0.4);
-  box-shadow: 0 0 15px rgba(14, 165, 233, 0.15), inset 0 0 15px rgba(14, 165, 233, 0.05);
+  border: 1px solid rgba(14, 165, 233, 0.5);
+  box-shadow: 0 0 20px rgba(14, 165, 233, 0.25), inset 0 0 15px rgba(14, 165, 233, 0.08);
 }
 
 .neon-border-purple {
-  border: 1px solid rgba(168, 85, 247, 0.4);
-  box-shadow: 0 0 15px rgba(168, 85, 247, 0.15), inset 0 0 15px rgba(168, 85, 247, 0.05);
+  border: 1px solid rgba(168, 85, 247, 0.5);
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.25), inset 0 0 15px rgba(168, 85, 247, 0.08);
 }
 
 .neon-border-red {
-  border: 1px solid rgba(239, 68, 68, 0.4);
-  box-shadow: 0 0 15px rgba(239, 68, 68, 0.15), inset 0 0 15px rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.25), inset 0 0 15px rgba(239, 68, 68, 0.08);
 }
 
 .neon-text-blue {
-  text-shadow: 0 0 8px rgba(14, 165, 233, 0.6);
+  color: #00d2ff;
+  text-shadow: 0 0 10px rgba(0, 210, 255, 0.8), 0 0 2px rgba(255, 255, 255, 0.9);
 }
 
 .neon-text-purple {
-  text-shadow: 0 0 8px rgba(168, 85, 247, 0.6);
+  color: #c084fc;
+  text-shadow: 0 0 10px rgba(192, 132, 252, 0.8);
+}
+
+.glow-card-blue {
+  background: linear-gradient(135deg, #09090c 0%, #111116 100%);
+  border: 1px solid rgba(14, 165, 233, 0.3);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.8), 0 0 20px rgba(14, 165, 233, 0.15);
 }
 
 .cyber-grid {
   background-size: 20px 20px;
   background-image: 
-    linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
+    linear-gradient(to right, rgba(255,255,255,0.01) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.01) 1px, transparent 1px);
 }
 
 /* Hide scrollbars but keep functionality */

@@ -125,21 +125,24 @@ export const MissionScreen: React.FC<MissionScreenProps> = ({
   const restCircumference = 2 * Math.PI * restRadius;
   const restOffset = restCircumference * (1 - restLeft / 30);
 
+  // Theme color adaptation: fallback to sky blue if not explicitly high-contrast
+  const themeColor = '#38bdf8'; // Sky-400
+
   return (
-    <div className="fixed inset-0 bg-[#08070c] z-50 flex flex-col justify-between overflow-y-auto no-scrollbar max-w-md mx-auto shadow-2xl">
+    <div className="fixed inset-0 bg-black z-50 flex flex-col justify-between overflow-y-auto no-scrollbar max-w-md mx-auto shadow-2xl">
       {/* 1. Header with details & close btn */}
-      <div className="px-5 py-4 flex items-center justify-between border-b border-red-950/20 bg-[#12101a]">
+      <div className="px-5 py-4 flex items-center justify-between border-b border-slate-900 bg-[#050508]">
         <div>
-          <h3 className="text-base font-black font-display text-white flex items-center gap-1.5">
+          <h3 className="text-sm font-black font-display text-white flex items-center gap-2 uppercase tracking-wider">
             <span className="text-xl">{exercise.icon}</span> {exercise.name}
           </h3>
-          <p className="text-xs text-slate-400 font-mono">
+          <p className="text-[10px] text-sky-400 font-mono font-bold tracking-wider">
             SÉRIE {currentSet} DE {exercise.sets}
           </p>
         </div>
         <button
           onClick={onClose}
-          className="w-9 h-9 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition-all active:scale-90"
+          className="w-9 h-9 rounded-xl bg-slate-950 border border-slate-900 flex items-center justify-center text-slate-400 hover:text-white hover:border-sky-500/30 transition-all active:scale-90"
         >
           <X className="w-4 h-4" />
         </button>
@@ -147,10 +150,10 @@ export const MissionScreen: React.FC<MissionScreenProps> = ({
 
       {/* 2. Visual Animation Figure illustration */}
       <div className="flex-1 px-5 py-6 flex flex-col items-center justify-center space-y-6">
-        <div className="w-full flex justify-center py-4 bg-[#12101a]/30 border border-slate-950/40 rounded-3xl relative overflow-hidden">
+        <div className="w-full flex justify-center py-6 bg-[#030305] border border-slate-900 rounded-3xl relative overflow-hidden">
           {/* Atmospheric background glow */}
-          <div className="absolute inset-0 bg-radial-gradient from-red-600/5 to-transparent blur-xl pointer-events-none" />
-          <ExerciseSVG pose={exercise.pose} color={exercise.mColor} />
+          <div className="absolute inset-0 bg-radial-gradient from-sky-500/5 to-transparent blur-xl pointer-events-none" />
+          <ExerciseSVG pose={exercise.pose} color={themeColor} />
         </div>
 
         {/* Muscles tag row */}
@@ -158,8 +161,7 @@ export const MissionScreen: React.FC<MissionScreenProps> = ({
           {exercise.muscles.map((m) => (
             <span
               key={m}
-              className="text-[10px] font-bold font-mono uppercase px-3 py-1 rounded-full"
-              style={{ backgroundColor: `${exercise.mColor}15`, color: exercise.mColor }}
+              className="text-[9px] font-bold font-mono uppercase px-3 py-1 rounded bg-sky-950/20 text-sky-400 border border-sky-500/10"
             >
               {m}
             </span>
@@ -169,13 +171,13 @@ export const MissionScreen: React.FC<MissionScreenProps> = ({
         {/* Circular Progress widget */}
         <div className="flex flex-col items-center justify-center pt-2 relative">
           <svg className="w-36 h-36 transform -rotate-90">
-            <circle cx="72" cy="72" r={radius} className="stroke-slate-900 fill-none" strokeWidth="8" />
+            <circle cx="72" cy="72" r={radius} className="stroke-slate-950 fill-none" strokeWidth="8" />
             <motion.circle
               cx="72"
               cy="72"
               r={radius}
               className="fill-none"
-              style={{ stroke: exercise.mColor }}
+              style={{ stroke: themeColor }}
               strokeWidth="8"
               strokeDasharray={circumference}
               animate={{ strokeDashoffset: offset }}
@@ -184,10 +186,10 @@ export const MissionScreen: React.FC<MissionScreenProps> = ({
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center leading-none mt-1">
-            <span className="text-3xl font-black font-mono text-white">
+            <span className="text-4xl font-black font-mono text-white">
               {exercise.type === 'timer' ? timerLeft : currentReps}
             </span>
-            <span className="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-widest mt-1">
+            <span className="text-[9px] font-mono font-black text-slate-500 uppercase tracking-widest mt-1.5">
               {exercise.type === 'timer' ? 'SEGUNDOS' : `DE ${targetCount}`}
             </span>
           </div>
@@ -195,7 +197,7 @@ export const MissionScreen: React.FC<MissionScreenProps> = ({
 
         {/* Series track bars */}
         <div className="w-full space-y-2 px-3">
-          <span className="text-[10px] font-mono font-bold tracking-wider text-slate-500 uppercase block text-center">
+          <span className="text-[9px] font-mono font-black tracking-wider text-slate-600 uppercase block text-center">
             Progresso das Séries
           </span>
           <div className="flex gap-2 justify-center">
@@ -207,8 +209,12 @@ export const MissionScreen: React.FC<MissionScreenProps> = ({
               return (
                 <div
                   key={i}
-                  className={`flex-1 h-2 rounded-full transition-all duration-300 ${
-                    isDone ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]' : isActive ? 'bg-red-600 animate-pulse' : 'bg-slate-900'
+                  className={`flex-1 h-1.5 rounded transition-all duration-300 ${
+                    isDone 
+                      ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]' 
+                      : isActive 
+                      ? 'bg-sky-400 animate-pulse shadow-[0_0_10px_rgba(14,165,233,0.5)]' 
+                      : 'bg-slate-900'
                   }`}
                 />
               );
@@ -218,39 +224,39 @@ export const MissionScreen: React.FC<MissionScreenProps> = ({
       </div>
 
       {/* 3. Action button area */}
-      <div className="p-5 space-y-6 border-t border-red-950/10 bg-[#12101a]/40">
+      <div className="p-5 space-y-6 border-t border-slate-900 bg-[#030305]">
         <div className="flex justify-center">
           {exercise.type === 'reps' ? (
             <motion.button
-              whileTap={{ scale: 0.95 }}
+              whileTap={{ scale: 0.97 }}
               onClick={handleAddRep}
-              className="w-full py-4.5 bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-extrabold font-mono text-base uppercase rounded-2xl shadow-[0_6px_20px_rgba(220,38,38,0.3)] flex items-center justify-center gap-2 active:scale-95"
+              className="w-full py-4.5 bg-white hover:bg-slate-200 text-black font-black font-mono text-sm uppercase rounded-2xl shadow-[0_0_20px_rgba(255,255,255,0.2)] flex items-center justify-center gap-2 transition-all active:scale-95"
             >
-              <Plus className="w-5 h-5 text-white" />
+              <Plus className="w-5 h-5 text-black stroke-[3px]" />
               +1 {exercise.unit.split(' ')[0]}
             </motion.button>
           ) : (
             <button
               onClick={handleStartTimer}
               disabled={timerActive}
-              className="w-full py-4 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white font-bold font-mono text-xs uppercase tracking-widest rounded-xl shadow-lg shadow-red-900/20 flex items-center justify-center gap-2 transition-all duration-200"
+              className="w-full py-4.5 bg-white hover:bg-slate-200 disabled:opacity-50 disabled:bg-slate-900 disabled:text-slate-500 text-black font-black font-mono text-sm uppercase rounded-2xl shadow-[0_0_20px_rgba(255,255,255,0.2)] flex items-center justify-center gap-2 transition-all"
             >
-              <Play className="w-4 h-4 fill-white" />
-              {timerActive ? 'Timer Ativo' : 'Iniciar Contagem'}
+              <Play className="w-4 h-4 fill-current text-black" />
+              {timerActive ? 'TIMER ATIVO' : 'INICIAR CONTAGEM'}
             </button>
           )}
         </div>
 
         {/* Directions steps */}
         <div className="space-y-3">
-          <h4 className="text-[10px] font-mono font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
-            <HelpCircle className="w-4 h-4 text-red-500" />
+          <h4 className="text-[9px] font-mono font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+            <HelpCircle className="w-4 h-4 text-sky-400" />
             Como Executar a Série
           </h4>
           <ul className="space-y-2">
             {exercise.steps.map((step, i) => (
-              <li key={i} className="flex gap-2.5 text-[11px] text-slate-400 leading-normal">
-                <span className="w-4.5 h-4.5 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center font-bold text-[9px] text-red-500 shrink-0">
+              <li key={i} className="flex gap-2.5 text-[11px] text-slate-400 leading-relaxed font-mono">
+                <span className="w-4.5 h-4.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-center font-bold text-[9px] text-sky-400 shrink-0 mt-0.5">
                   {i + 1}
                 </span>
                 <span>{step}</span>
@@ -267,23 +273,23 @@ export const MissionScreen: React.FC<MissionScreenProps> = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-[#08070ca0] backdrop-blur-md z-51 flex flex-col items-center justify-center text-center p-6 max-w-md mx-auto"
+            className="fixed inset-0 bg-black/95 backdrop-blur-md z-51 flex flex-col items-center justify-center text-center p-6 max-w-md mx-auto"
           >
             <div className="space-y-1 mb-8">
               <span className="text-3xl">🧘</span>
-              <h3 className="text-2xl font-black font-display text-white">Hora do Descanso</h3>
-              <p className="text-xs text-slate-400">Excelente série! Respire e recupere as energias</p>
+              <h3 className="text-xl font-black font-display text-white uppercase tracking-widest">Hora do Descanso</h3>
+              <p className="text-[10px] text-slate-500 font-mono uppercase tracking-wider">Excelente série! Respire e recupere as energias</p>
             </div>
 
             {/* Circular rest countdown circle */}
             <div className="relative w-36 h-36 flex items-center justify-center mb-10">
               <svg className="w-36 h-36 transform -rotate-90">
-                <circle cx="72" cy="72" r={restRadius} className="stroke-slate-900 fill-none" strokeWidth="8" />
+                <circle cx="72" cy="72" r={restRadius} className="stroke-slate-950 fill-none" strokeWidth="8" />
                 <motion.circle
                   cx="72"
                   cy="72"
                   r={restRadius}
-                  className="stroke-emerald-500 fill-none"
+                  className="stroke-sky-400 fill-none"
                   strokeWidth="8"
                   strokeDasharray={restCircumference}
                   animate={{ strokeDashoffset: restOffset }}
@@ -292,8 +298,8 @@ export const MissionScreen: React.FC<MissionScreenProps> = ({
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center leading-none mt-1">
-                <span className="text-4xl font-black font-mono text-emerald-400">{restLeft}</span>
-                <span className="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-widest mt-1">
+                <span className="text-4xl font-black font-mono text-sky-400">{restLeft}</span>
+                <span className="text-[9px] font-mono font-black text-slate-600 uppercase tracking-widest mt-1.5">
                   SEGUNDOS
                 </span>
               </div>
@@ -302,9 +308,9 @@ export const MissionScreen: React.FC<MissionScreenProps> = ({
             {/* Skip rest trigger */}
             <button
               onClick={handleSkipRest}
-              className="px-8 py-3.5 bg-[#12101a] hover:bg-[#1b1829] border border-emerald-500/30 text-emerald-400 font-bold font-mono text-xs uppercase tracking-widest rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5 active:scale-95 shadow-[0_4px_15px_rgba(16,185,129,0.15)]"
+              className="px-8 py-3.5 bg-black hover:bg-slate-950 border border-sky-400 text-sky-400 font-bold font-mono text-xs uppercase tracking-widest rounded-xl transition-all duration-200 flex items-center justify-center gap-2 active:scale-95 shadow-[0_0_15px_rgba(14,165,233,0.15)]"
             >
-              <SkipForward className="w-4 h-4 text-emerald-400 fill-emerald-400" />
+              <SkipForward className="w-4 h-4 text-sky-400 fill-current" />
               Pular Descanso
             </button>
           </motion.div>

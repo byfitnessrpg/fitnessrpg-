@@ -235,11 +235,17 @@ export default function App() {
     }
   };
 
-  // Scaled exercise target value based on completed total missions
+  // Scaled exercise target value based on completed total missions and consecutive days streak
   const getScaledTarget = (ex: Exercise) => {
     const factor = Math.min(1, gameState.totalMissions / 50);
     const range = ex.max - ex.base;
-    return Math.floor(ex.base + range * factor);
+    const baseTarget = Math.floor(ex.base + range * factor);
+    
+    // A cada 2 dias consecutivos de streak, adiciona 5% de bônus de intensidade
+    const streakSteps = Math.floor((gameState.streak || 0) / 2);
+    const intensityBonusFactor = 1 + streakSteps * 0.05;
+    
+    return Math.floor(baseTarget * intensityBonusFactor);
   };
 
   const showToastMsg = (msg: string, type: 'success' | 'gold' | 'default' = 'default') => {
@@ -541,7 +547,11 @@ export default function App() {
       )}
 
       {/* Primary HUD Headers */}
-      <Header email={user.email} onLogout={handleLogout} />
+      <Header
+        email={user.email}
+        onLogout={handleLogout}
+        activeTab={activeTab}
+      />
 
       <XPBar
         level={gameState.level}

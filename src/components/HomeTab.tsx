@@ -163,69 +163,49 @@ export const HomeTab: React.FC<HomeTabProps> = ({
       />
 
       {/* 1. TOP STATS BAR - SOLO LEVELING HUD PORTRAIT FRAME */}
-      <div className="mx-4 mt-4 bg-gradient-to-b from-[#09080c] to-[#040406] border border-slate-900 rounded-3xl p-5 shadow-2xl relative overflow-hidden">
+      <div className="mx-4 mt-4 bg-gradient-to-b from-[#050508] to-[#000000] border border-slate-900 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
         {/* Glow behind Avatar */}
-        <div className="absolute top-0 left-0 w-36 h-36 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 left-0 w-36 h-36 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute top-0 right-0 w-36 h-36 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Profile Info Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-900">
-          <div className="flex items-center gap-3.5">
-            {/* Avatar Circle with Level Badge */}
-            <div className="relative">
-              <div 
-                onClick={() => document.getElementById('profile-pic-input')?.click()}
-                className="w-16 h-16 rounded-full bg-slate-950 border-2 border-purple-500/80 flex items-center justify-center shadow-[0_0_15px_rgba(168,85,247,0.3)] shrink-0 overflow-hidden relative group cursor-pointer"
-              >
-                {gameState.profilePic ? (
-                  <img src={gameState.profilePic} alt="Portrait" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                ) : (
-                  <span className="select-none filter drop-shadow-[0_2px_8px_rgba(168,85,247,0.5)] text-3xl">👤</span>
-                )}
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                  <Edit2 className="w-4 h-4 text-white" />
-                </div>
-              </div>
-              <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-[#7c3aed] border border-slate-950 flex items-center justify-center font-mono font-black text-white text-xs shadow-[0_2px_8px_rgba(124,58,237,0.6)] z-10 pointer-events-none">
-                {level}
+        <div className="flex flex-col items-center justify-center text-center pb-5">
+          {/* Avatar / Portrait container in a sleek rounded rectangle with double-line neon blue border */}
+          <div className="relative mb-3 group cursor-pointer" onClick={() => document.getElementById('profile-pic-input')?.click()}>
+            <div className="w-24 h-24 rounded-2xl bg-gradient-to-b from-slate-950 to-slate-900 border-2 border-sky-400 p-0.5 shadow-[0_0_20px_rgba(14,165,233,0.35)] relative overflow-hidden flex items-center justify-center">
+              {gameState.profilePic ? (
+                <img src={gameState.profilePic} alt="Portrait" className="w-full h-full object-cover rounded-xl" referrerPolicy="no-referrer" />
+              ) : (
+                <span className="select-none text-4xl filter drop-shadow-[0_2px_8px_rgba(14,165,233,0.5)]">👤</span>
+              )}
+              {/* Hover Edit Overlay */}
+              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity rounded-xl">
+                <Edit2 className="w-4 h-4 text-white" />
               </div>
             </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-[10px] font-mono font-bold text-purple-400 tracking-wider uppercase">
-                  Lv.{level} {charClass}
-                </span>
-                <span className="text-[9px] font-mono font-extrabold px-1.5 py-0.5 rounded bg-purple-950/40 border border-purple-500/30 text-purple-300">
-                  {rank.name}
-                </span>
-              </div>
-              <h2 className="text-xl font-extrabold text-white tracking-tight leading-tight mt-1 flex items-center gap-1.5">
-                {charName || 'Mcfly'}
-                <button 
-                  onClick={() => {
-                    setTempName(charName);
-                    setSelectedClass(charClass);
-                    setShowSettings(!showSettings);
-                  }}
-                  className="text-slate-500 hover:text-white transition-colors"
-                >
-                  <Edit2 className="w-3.5 h-3.5" />
-                </button>
-              </h2>
+            
+            {/* Level Badge placed at bottom corner */}
+            <div className="absolute -bottom-1.5 -right-1.5 w-7 h-7 rounded-full bg-white text-black border border-slate-950 flex items-center justify-center font-mono font-black text-xs shadow-lg">
+              {level}
             </div>
           </div>
 
-          <div className="flex flex-col items-end gap-1.5">
-            {/* XP progress tag */}
-            <span className="text-[10px] font-mono text-slate-500">
-              XP {xp} / {level * 100}
-            </span>
-            {/* Streak Flame Badge */}
-            <div className="bg-amber-950/30 border border-amber-500/30 rounded-full px-3 py-1 flex items-center gap-1 shadow-[0_0_10px_rgba(245,158,11,0.1)]">
-              <Flame className="w-4 h-4 text-amber-500 fill-amber-500 animate-pulse" />
-              <span className="text-xs font-mono font-black text-amber-400">{streak} DIAS</span>
-            </div>
-          </div>
+          {/* Name Display */}
+          <h2 className="text-xl font-extrabold text-white tracking-widest flex items-center gap-2 leading-none">
+            {charName ? charName.toUpperCase() : 'JUNG SINWOO'}
+            <button 
+              onClick={() => {
+                setTempName(charName);
+                setSelectedClass(charClass);
+                setShowSettings(!showSettings);
+              }}
+              className="text-slate-500 hover:text-white transition-colors"
+            >
+              <Edit2 className="w-3.5 h-3.5" />
+            </button>
+          </h2>
+          <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest mt-1 block font-bold">
+            @{charName ? charName.toLowerCase().replace(/\s+/g, '') : 'jungsinwoo'}
+          </span>
         </div>
 
         {/* Inline settings editor panel */}
@@ -235,7 +215,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="mt-4 p-4 rounded-2xl bg-slate-950/75 border border-purple-900/40 space-y-4 overflow-hidden"
+              className="mb-5 p-4 rounded-2xl bg-slate-950/95 border border-sky-500/30 space-y-4 overflow-hidden shadow-[0_0_20px_rgba(14,165,233,0.1)]"
             >
               <div>
                 <label className="block text-[10px] font-mono font-extrabold tracking-widest text-slate-400 uppercase mb-1.5">
@@ -246,7 +226,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                   maxLength={16}
                   value={tempName}
                   onChange={(e) => setTempName(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-500 font-bold"
+                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-sky-500 font-bold"
                   placeholder="Seu nome"
                 />
               </div>
@@ -262,7 +242,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                       onClick={() => setSelectedClass(c)}
                       className={`py-1.5 text-xs font-bold rounded-lg border transition-all ${
                         selectedClass === c
-                          ? 'bg-purple-950/40 border-purple-500 text-purple-300'
+                          ? 'bg-sky-950/40 border-sky-500 text-sky-300'
                           : 'bg-slate-900 border-slate-800/80 text-slate-400 hover:text-white'
                       }`}
                     >
@@ -280,7 +260,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                   <button
                     type="button"
                     onClick={() => document.getElementById('profile-pic-input')?.click()}
-                    className="flex-1 py-2 bg-[#0b0a0e] hover:bg-slate-900 border border-slate-800 rounded-xl text-xs text-purple-400 hover:text-purple-300 transition-all font-bold uppercase tracking-wider"
+                    className="flex-1 py-2 bg-black hover:bg-slate-900 border border-slate-800 rounded-xl text-xs text-sky-400 hover:text-sky-300 transition-all font-bold uppercase tracking-wider"
                   >
                     Selecionar da Galeria
                   </button>
@@ -303,7 +283,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
               <div className="flex gap-2 pt-1">
                 <button
                   onClick={saveSettings}
-                  className="flex-1 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-xs font-bold text-white uppercase tracking-wider rounded-xl transition-all"
+                  className="flex-1 py-2 bg-white hover:bg-slate-200 text-black text-xs font-black uppercase tracking-wider rounded-xl transition-all"
                 >
                   Salvar Alterações
                 </button>
@@ -319,10 +299,10 @@ export const HomeTab: React.FC<HomeTabProps> = ({
         </AnimatePresence>
 
         {/* HP, Mana & Hydration bars exactly styled as Solo Leveling HUD */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* HP Bar */}
           <div className="space-y-1">
-            <div className="flex justify-between items-center text-xs font-mono">
+            <div className="flex justify-between items-center text-[10px] font-mono">
               <span className="font-bold text-red-500 flex items-center gap-1.5 uppercase tracking-wider">
                 <Heart className="w-3.5 h-3.5 fill-red-500 text-red-500" />
                 HP (VIGOR)
@@ -340,9 +320,9 @@ export const HomeTab: React.FC<HomeTabProps> = ({
 
           {/* MP Bar */}
           <div className="space-y-1">
-            <div className="flex justify-between items-center text-xs font-mono">
-              <span className="font-bold text-blue-400 flex items-center gap-1.5 uppercase tracking-wider">
-                <Zap className="w-3.5 h-3.5 fill-blue-400 text-blue-400" />
+            <div className="flex justify-between items-center text-[10px] font-mono">
+              <span className="font-bold text-sky-400 flex items-center gap-1.5 uppercase tracking-wider">
+                <Zap className="w-3.5 h-3.5 fill-sky-400 text-sky-400" />
                 MP (ENERGIA)
               </span>
               <span className="font-black text-slate-300">{currentMP}%</span>
@@ -351,32 +331,18 @@ export const HomeTab: React.FC<HomeTabProps> = ({
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${currentMP}%` }}
-                className="h-full bg-gradient-to-r from-blue-500 to-sky-400 rounded-sm shadow-[0_0_8px_rgba(59,130,246,0.4)]"
+                className="h-full bg-gradient-to-r from-sky-400 to-blue-500 rounded-sm shadow-[0_0_8px_rgba(14,165,233,0.4)]"
               />
             </div>
           </div>
         </div>
 
-        {/* Three Circular Stats Rings - EXACTLY LIKE LEFT PHONE IN IMAGE 2 */}
-        <div className="grid grid-cols-3 gap-3 mt-6 pt-5 border-t border-slate-900">
+        {/* S-Rank circle dial system */}
+        <div className="grid grid-cols-3 gap-3 mt-6 pt-5 border-t border-slate-900/60">
           {/* Stat 1: RANK Dial */}
           <div className="flex flex-col items-center text-center">
-            <div className="w-14 h-14 rounded-full bg-[#050508] border-2 border-slate-800 flex items-center justify-center relative shadow-[inset_0_0_8px_rgba(255,255,255,0.03)]">
-              {/* Inner ring circle path */}
-              <svg className="absolute inset-0 w-full h-full transform -rotate-90">
-                <circle cx="28" cy="28" r="24" fill="transparent" stroke="rgba(255,255,255,0.05)" strokeWidth="2" />
-                <circle
-                  cx="28"
-                  cy="28"
-                  r="24"
-                  fill="transparent"
-                  stroke={totalPower >= 200 ? '#eab308' : '#3b82f6'}
-                  strokeWidth="2"
-                  strokeDasharray={`${2 * Math.PI * 24}`}
-                  strokeDashoffset={`${2 * Math.PI * 24 * (1 - Math.min(1, totalPower / 400))}`}
-                />
-              </svg>
-              <span className="text-lg font-black text-white font-mono tracking-tighter filter drop-shadow-[0_2px_6px_rgba(255,255,255,0.15)]">
+            <div className="w-14 h-14 rounded-full bg-black border-2 border-sky-400 flex items-center justify-center relative shadow-[0_0_12px_rgba(14,165,233,0.25)]">
+              <span className="text-xl font-black text-white font-mono tracking-tighter">
                 {rank.badge}
               </span>
             </div>
@@ -385,21 +351,8 @@ export const HomeTab: React.FC<HomeTabProps> = ({
 
           {/* Stat 2: LEVEL Dial */}
           <div className="flex flex-col items-center text-center">
-            <div className="w-14 h-14 rounded-full bg-[#050508] border-2 border-slate-800 flex items-center justify-center relative shadow-[inset_0_0_8px_rgba(255,255,255,0.03)]">
-              <svg className="absolute inset-0 w-full h-full transform -rotate-90">
-                <circle cx="28" cy="28" r="24" fill="transparent" stroke="rgba(255,255,255,0.05)" strokeWidth="2" />
-                <circle
-                  cx="28"
-                  cy="28"
-                  r="24"
-                  fill="transparent"
-                  stroke="#a855f7"
-                  strokeWidth="2"
-                  strokeDasharray={`${2 * Math.PI * 24}`}
-                  strokeDashoffset={`${2 * Math.PI * 24 * (1 - xp / (level * 100))}`}
-                />
-              </svg>
-              <span className="text-base font-black text-white font-mono">
+            <div className="w-14 h-14 rounded-full bg-[#050508] border border-dashed border-sky-400/60 flex items-center justify-center relative shadow-[0_0_10px_rgba(14,165,233,0.15)]">
+              <span className="text-lg font-black text-white font-mono">
                 {level}
               </span>
             </div>
@@ -408,25 +361,30 @@ export const HomeTab: React.FC<HomeTabProps> = ({
 
           {/* Stat 3: Workouts Completed Dial */}
           <div className="flex flex-col items-center text-center">
-            <div className="w-14 h-14 rounded-full bg-[#050508] border-2 border-slate-800 flex items-center justify-center relative shadow-[inset_0_0_8px_rgba(255,255,255,0.03)]">
-              <svg className="absolute inset-0 w-full h-full transform -rotate-90">
-                <circle cx="28" cy="28" r="24" fill="transparent" stroke="rgba(255,255,255,0.05)" strokeWidth="2" />
-                <circle
-                  cx="28"
-                  cy="28"
-                  r="24"
-                  fill="transparent"
-                  stroke="#10b981"
-                  strokeWidth="2"
-                  strokeDasharray={`${2 * Math.PI * 24}`}
-                  strokeDashoffset={`${2 * Math.PI * 24 * (1 - percentCompleted / 100)}`}
-                />
-              </svg>
-              <span className="text-xs font-black text-white font-mono">
-                {completedCount}<span className="text-[10px] text-slate-500 font-medium">/{totalCount}</span>
+            <div className="w-14 h-14 rounded-full bg-[#050508] border border-dashed border-sky-400/60 flex items-center justify-center relative shadow-[0_0_10px_rgba(14,165,233,0.15)]">
+              <span className="text-base font-black text-white font-mono">
+                {completedCount}
               </span>
             </div>
-            <span className="text-[10px] font-mono font-bold text-slate-500 uppercase mt-2">Quest Hoje</span>
+            <span className="text-[10px] font-mono font-bold text-slate-500 uppercase mt-2">Treinos</span>
+          </div>
+        </div>
+
+        {/* Character Information Sheets List Card */}
+        <div className="bg-black/40 border border-slate-900/80 rounded-2xl p-4.5 mt-5 space-y-3 font-mono text-xs">
+          <div className="flex justify-between items-center pb-2 border-b border-slate-900/40">
+            <span className="text-slate-500">Classe:</span>
+            <span className="text-white font-extrabold">{charClass}</span>
+          </div>
+          <div className="flex justify-between items-center pb-2 border-b border-slate-900/40">
+            <span className="text-slate-500">Título:</span>
+            <span className="text-sky-400 font-extrabold uppercase tracking-wider">
+              {level >= 20 ? 'CAÇADOR DE MONSTROS' : level >= 8 ? 'SOBREVIVENTE' : 'JOGADOR'}
+            </span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-slate-500">ID:</span>
+            <span className="text-slate-600 tracking-widest text-[9px] font-black">■■■■■■■■■</span>
           </div>
         </div>
       </div>
@@ -453,36 +411,35 @@ export const HomeTab: React.FC<HomeTabProps> = ({
       </div>
 
       {/* 3. QUEST INFO NEON CONTAINER - EXACTLY COMPLYING WITH IMAGE 2 AND IMAGE 5 CODES */}
-      <div className="mx-4 bg-[#060609]/95 neon-border-blue rounded-3xl p-6 shadow-2xl relative overflow-hidden">
+      <div className="mx-4 bg-black border-2 border-sky-400 rounded-3xl p-6 shadow-[0_0_25px_rgba(14,165,233,0.3)] relative overflow-hidden">
         {/* Neon blue radial pulse background */}
         <div className="absolute -top-12 -left-12 w-48 h-48 bg-sky-500/5 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
 
         {/* Quest Info Header Tag */}
-        <div className="flex items-center justify-between mb-4 border-b border-sky-950/40 pb-3">
+        <div className="flex items-center justify-between mb-4 border-b border-slate-900 pb-3">
           <div className="flex items-center gap-2">
             <Info className="w-4 h-4 text-sky-400 animate-pulse" />
-            <span className="text-xs font-mono font-bold tracking-widest text-sky-400 uppercase neon-text-blue">
+            <span className="text-sm font-black tracking-widest text-white uppercase font-display">
               QUEST INFO
             </span>
           </div>
           {/* Live countdown timer ticks down to midnight exactly as references show */}
-          <div className="flex items-center gap-1.5 bg-sky-950/30 border border-sky-500/20 rounded-full px-3 py-1 font-mono text-xs font-black text-sky-400 shadow-[0_0_10px_rgba(14,165,233,0.15)]">
-            <span className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-ping" />
+          <div className="font-mono text-xs font-black text-sky-400 bg-sky-950/20 border border-sky-500/20 rounded px-2.5 py-1 tracking-wider">
             {countdown}
           </div>
         </div>
 
         {/* Quest Arc title in display typography */}
-        <h3 className="text-lg font-black text-white tracking-tight text-center sm:text-left hover:text-sky-300 transition-colors">
-          Main Character Training Arc
+        <h3 className="text-base font-black text-white tracking-widest uppercase font-mono">
+          Treino de Sung Jinwoo
         </h3>
-        <p className="text-[11px] text-slate-500 font-mono text-center sm:text-left mt-0.5 mb-5">
-          Desafie os seus limites e conquiste os monstros da arena diária
+        <p className="text-[10px] text-slate-500 font-mono mt-1 mb-5 uppercase tracking-wide">
+          SISTEMA ATIVO DIÁRIO DE ATIVIDADES
         </p>
 
         {/* Quest Items List - Interactive click to start */}
-        <div className="space-y-3.5 my-4">
+        <div className="space-y-2.5 my-4 font-mono text-xs">
           {exercises.map((ex) => {
             const isCompleted = gameState.completedToday.includes(ex.id);
             const target = scaledTarget(ex);
@@ -490,35 +447,26 @@ export const HomeTab: React.FC<HomeTabProps> = ({
               <div
                 key={ex.id}
                 onClick={() => !isCompleted && onStartExercise(ex.id)}
-                className={`flex items-center justify-between p-3.5 rounded-xl border transition-all cursor-pointer ${
+                className={`flex items-center justify-between py-2 px-3 border transition-all cursor-pointer rounded-lg ${
                   isCompleted
-                    ? 'bg-emerald-950/10 border-emerald-500/20 opacity-50'
-                    : 'bg-slate-950/60 border-slate-900 hover:border-sky-500/40 hover:bg-[#0c0c14]'
+                    ? 'bg-emerald-950/10 border-emerald-500/10 opacity-40'
+                    : 'bg-[#07070a] border-slate-900 hover:border-sky-500/40 hover:bg-slate-950'
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center text-xl ${
-                    isCompleted ? 'bg-emerald-950/30 text-emerald-400' : 'bg-slate-900 border border-slate-800'
-                  }`}>
-                    {isCompleted ? '✓' : ex.icon}
-                  </div>
-                  <div>
-                    <h4 className={`text-sm font-bold ${isCompleted ? 'text-slate-400 line-through' : 'text-slate-200'}`}>
-                      {ex.name}
-                    </h4>
-                    <span className="text-[10px] text-slate-400 font-mono uppercase">
-                      Meta: {target} {ex.unit} (1/2 séries)
-                    </span>
-                  </div>
+                <div className="flex items-center gap-2.5">
+                  <span className="text-sm">{ex.icon}</span>
+                  <span className={`font-black tracking-wider ${isCompleted ? 'text-slate-500 line-through' : 'text-white'}`}>
+                    {ex.name.toUpperCase()}
+                  </span>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-mono text-sky-400 bg-sky-950/20 border border-sky-500/10 px-2 py-0.5 rounded">
-                    [{isCompleted ? target : 0} / {target}]
+                  <span className={`font-mono text-[11px] ${isCompleted ? 'text-emerald-500' : 'text-sky-400'}`}>
+                    [{isCompleted ? target : 0}/{target}]
                   </span>
                   {!isCompleted && (
-                    <button className="w-6 h-6 rounded bg-sky-950 hover:bg-sky-500 hover:text-slate-950 border border-sky-500/30 flex items-center justify-center transition-all text-sky-400">
-                      <Play className="w-3 h-3 fill-current" />
+                    <button className="w-5 h-5 rounded bg-sky-950 flex items-center justify-center text-sky-400 border border-sky-500/20 hover:bg-sky-500 hover:text-black hover:border-sky-500 transition-all">
+                      <Play className="w-2.5 h-2.5 fill-current" />
                     </button>
                   )}
                 </div>
@@ -527,11 +475,11 @@ export const HomeTab: React.FC<HomeTabProps> = ({
           })}
         </div>
 
-        {/* Orange Warning Box from Sung Jinwoo quest interface */}
-        <div className="my-5 p-3.5 rounded-xl bg-amber-950/20 border border-amber-500/20 flex gap-2.5 items-start">
-          <AlertTriangle className="w-4.5 h-4.5 text-amber-500 shrink-0 mt-0.5" />
-          <p className="text-[11.5px] leading-relaxed text-amber-400 font-semibold font-mono uppercase">
-            WARNING - O não cumprimento desta quest diária resultará em penalidade grave (Reset do seu multiplicador de streak!).
+        {/* Red Warning Box from Sung Jinwoo quest interface - MATCHES SCREENSHOT EXACTLY */}
+        <div className="my-5 p-4 rounded-xl bg-red-950/15 border border-red-500/25 flex gap-2.5 items-start">
+          <AlertTriangle className="w-4.5 h-4.5 text-red-500 shrink-0 mt-0.5 animate-pulse" />
+          <p className="text-[10px] leading-relaxed text-red-400 font-semibold font-mono uppercase tracking-wider">
+            AVISO - O não cumprimento desta quest dentro do limite de tempo resultará em penalidade apropriada.
           </p>
         </div>
 
@@ -539,14 +487,14 @@ export const HomeTab: React.FC<HomeTabProps> = ({
         {activeQuests.length > 0 ? (
           <button
             onClick={() => onStartExercise(activeQuests[0].id)}
-            className="w-full py-3.5 bg-white hover:bg-slate-100 text-slate-950 font-black font-display text-sm tracking-widest uppercase rounded-xl transition-all shadow-[0_4px_20px_rgba(255,255,255,0.1)] active:scale-98 flex items-center justify-center gap-2"
+            className="w-full py-4 bg-white hover:bg-slate-200 text-black font-black font-display text-xs tracking-widest uppercase rounded-xl transition-all shadow-[0_0_20px_rgba(255,255,255,0.25)] active:scale-98 flex items-center justify-center gap-2"
           >
-            <Play className="w-4 h-4 fill-current" />
-            Iniciar Próxima Quest
+            <Play className="w-4 h-4 fill-current text-black" />
+            Iniciar Quest
           </button>
         ) : (
-          <div className="w-full py-3 bg-emerald-950/20 border border-emerald-500/30 text-emerald-400 font-bold text-center rounded-xl text-xs uppercase tracking-wider">
-            ✓ Todas as quests diárias concluídas!
+          <div className="w-full py-3.5 bg-emerald-950/20 border border-emerald-500/30 text-emerald-400 font-bold text-center rounded-xl text-xs uppercase tracking-wider font-mono">
+            ✓ QUEST COMPLETA COM SUCESSO
           </div>
         )}
       </div>
@@ -557,7 +505,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
           <div>
             <span className="text-[10px] font-mono tracking-wider font-extrabold text-purple-400 uppercase block">AVALIAÇÃO DE SISTEMA</span>
             <h3 className="text-lg font-black text-white flex items-center gap-1.5 tracking-tight font-display">
-              Hunter Stats
+              Atributos do Caçador
             </h3>
           </div>
           {statPoints > 0 && (
@@ -672,50 +620,50 @@ export const HomeTab: React.FC<HomeTabProps> = ({
         </p>
       </div>
 
-      {/* 5. WATER INTAKE TRACKER - FROM THE PRECISE IMAGE 4 DESIGN LAYOUT */}
+      {/* 5. CONTROLE DE HIDRATAÇÃO (ÁGUA) */}
       <div className="mx-4 bg-[#07060a] border border-slate-900 rounded-3xl p-5 shadow-lg space-y-4">
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
-            <span className="text-[10px] font-mono tracking-wider font-extrabold text-cyan-400 uppercase block">META DIÁRIA</span>
+            <span className="text-[10px] font-mono tracking-wider font-extrabold text-sky-400 uppercase block">META DIÁRIA</span>
             <h3 className="text-base font-black text-white font-display">Controle de Hidratação</h3>
           </div>
-          <span className="text-base font-mono font-black text-cyan-400">
+          <span className="text-base font-mono font-black text-sky-400">
             {waterIntake} <span className="text-slate-500 text-xs">/ {waterGoal} ml</span>
           </span>
         </div>
 
-        {/* Water alert banner matching Image 4 text and tone */}
+        {/* Alerta de hidratação */}
         <div className={`p-4 rounded-2xl flex items-center justify-between border transition-all duration-300 ${
           waterIntake >= waterGoal
-            ? 'bg-cyan-950/20 border-cyan-500/30 text-cyan-300'
+            ? 'bg-sky-950/20 border-sky-500/30 text-sky-300'
             : 'bg-slate-950/50 border-slate-900 text-slate-400'
         }`}>
           <div className="space-y-1 max-w-[200px]">
             <span className="text-xs font-bold text-white block">
-              {waterIntake >= waterGoal ? '🎉 Hidratação Concluída!' : 'Você não bateu sua meta de beber água!'}
+              {waterIntake >= waterGoal ? '🎉 Hidratação Concluída!' : 'Mantenha sua hidratação!'}
             </span>
             <span className="text-[10.5px] leading-snug block text-slate-400">
               {waterIntake >= waterGoal 
                 ? 'Excelente! Seu guerreiro está pronto com hidratação de 100%.'
-                : 'Mantenha-se hidratado e viva mais saudável para evoluir seus poderes.'}
+                : 'Beba água regularmente para manter seus atributos em nível máximo durante os treinos.'}
             </span>
           </div>
-          <div className="w-12 h-12 shrink-0 flex items-center justify-center text-3xl filter drop-shadow-[0_2px_8px_rgba(6,182,212,0.4)]">
+          <div className="w-12 h-12 shrink-0 flex items-center justify-center text-3xl filter drop-shadow-[0_2px_8px_rgba(14,165,233,0.4)]">
             💧
           </div>
         </div>
 
-        {/* Action log buttons */}
+        {/* Botões de controle de água */}
         <div className="flex gap-2">
           <button
             onClick={() => addWater(250)}
-            className="flex-1 py-2.5 bg-cyan-950/20 hover:bg-cyan-950/40 border border-cyan-500/20 hover:border-cyan-500/50 text-cyan-400 text-xs font-bold rounded-xl transition-all active:scale-95 flex items-center justify-center gap-1.5"
+            className="flex-1 py-2.5 bg-sky-950/20 hover:bg-sky-950/40 border border-sky-500/20 hover:border-sky-500/50 text-sky-400 text-xs font-bold rounded-xl transition-all active:scale-95 flex items-center justify-center gap-1.5"
           >
             <Plus className="w-3.5 h-3.5" /> 250 ml
           </button>
           <button
             onClick={() => addWater(500)}
-            className="flex-1 py-2.5 bg-cyan-950/20 hover:bg-cyan-950/40 border border-cyan-500/20 hover:border-cyan-500/50 text-cyan-400 text-xs font-bold rounded-xl transition-all active:scale-95 flex items-center justify-center gap-1.5"
+            className="flex-1 py-2.5 bg-sky-950/20 hover:bg-sky-950/40 border border-sky-500/20 hover:border-sky-500/50 text-sky-400 text-xs font-bold rounded-xl transition-all active:scale-95 flex items-center justify-center gap-1.5"
           >
             <Plus className="w-3.5 h-3.5" /> 500 ml
           </button>
