@@ -62,7 +62,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onShowModal }
         if (data?.session) {
           onSuccess(data.user);
         } else {
-          onShowModal('Cadastro realizado com sucesso! Faça login para começar a sua jornada no Arise Workout.');
+          onShowModal('Cadastro realizado com sucesso! Faça login para começar a sua jornada no FitnessRPG.');
           setIsRegistering(false);
         }
       }
@@ -96,7 +96,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onShowModal }
         </motion.div>
 
         <h1 className="text-4xl font-black font-display tracking-widest text-white drop-shadow-[0_0_12px_rgba(255,255,255,0.15)] mb-2 uppercase">
-          ARISE AI
+          FitnessRPG
         </h1>
         <p className="text-slate-400 text-xs font-mono max-w-[280px] uppercase tracking-wider">
           SISTEMA DE TREINAMENTO ATIVO
@@ -249,7 +249,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onShowModal }
       {/* Decorative footer message */}
       <div className="text-center text-[9px] font-mono tracking-widest text-slate-600 flex items-center justify-center gap-1.5 z-10">
         <Sparkles className="w-3 h-3 text-sky-500 animate-pulse" />
-        SESSÃO ATIVA · ARISE WORKOUT SYSTEM
+        SESSÃO ATIVA · SISTEMA FITNESSRPG
       </div>
     </div>
   );
