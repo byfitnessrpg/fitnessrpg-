@@ -65,6 +65,16 @@ export interface GameState {
   earlyBird: boolean;
   trioPerfect: boolean;
   todayCategories: string[];
+  str?: number;
+  agi?: number;
+  sta?: number;
+  int?: number;
+  waterIntake?: number;
+  waterGoal?: number;
+  charClass?: string;
+  charName?: string;
+  statPoints?: number;
+  profilePic?: string;
 }
 
 export interface RankingPlayer {

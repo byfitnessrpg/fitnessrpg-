@@ -39,6 +39,15 @@ const DEFAULT_STATE: GameState = {
   earlyBird: false,
   trioPerfect: false,
   todayCategories: [],
+  str: 10,
+  agi: 10,
+  sta: 10,
+  int: 10,
+  waterIntake: 0,
+  waterGoal: 2000,
+  charClass: 'Caçador',
+  charName: '',
+  statPoints: 0,
 };
 
 export default function App() {
@@ -114,7 +123,7 @@ export default function App() {
         // No profile, create a default one
         const newProfile = {
           id: currentUser.id,
-          nome: currentUser.email?.split('@')[0] || 'Guerreiro',
+          nome: currentUser.user_metadata?.char_name || currentUser.email?.split('@')[0] || 'Guerreiro',
           xp: 0,
           nivel: 1,
           moedas: 0,
@@ -123,6 +132,7 @@ export default function App() {
           max_day_missions: 0,
           last_training_date: null,
           total_xp: 0,
+          profile_pic: null,
         };
 
         const { error: insertError } = await supabase
@@ -143,6 +153,8 @@ export default function App() {
       const mergedState: GameState = {
         ...DEFAULT_STATE,
         ...loadedLocal,
+        charName: profile.nome || loadedLocal.charName || DEFAULT_STATE.charName || '',
+        profilePic: profile.profile_pic || loadedLocal.profilePic || DEFAULT_STATE.profilePic || '',
         xp: profile.xp || 0,
         level: profile.nivel || 1,
         streak: profile.streak || 0,
@@ -207,6 +219,7 @@ export default function App() {
           .from('profiles')
           .upsert({
             id: user.id,
+            nome: updatedState.charName || user.email?.split('@')[0] || 'Guerreiro',
             xp: updatedState.xp,
             nivel: updatedState.level,
             streak: updatedState.streak,
@@ -214,6 +227,7 @@ export default function App() {
             max_day_missions: updatedState.maxDayMissions,
             last_training_date: updatedState.lastTrainingDate,
             total_xp: updatedState.totalXP,
+            profile_pic: updatedState.profilePic || null,
           });
       }
     } catch (e) {
@@ -289,14 +303,18 @@ export default function App() {
     if (ex.id === 'd1') {
       nextState.totalFlexoes += targetVal;
       nextState.weekFlexoes += targetVal;
+      nextState.str = (nextState.str || 10) + 1;
     } else if (ex.id === 'd2') {
       nextState.totalAgacham += targetVal;
+      nextState.sta = (nextState.sta || 10) + 1;
     } else if (ex.id === 'd3') {
       nextState.totalPrancha += targetVal;
+      nextState.int = (nextState.int || 10) + 1;
     }
 
     if (ex.cat === 'cardio') {
       nextState.weekCardio += 1;
+      nextState.agi = (nextState.agi || 10) + 1;
     }
 
     // Days trained weekly streak count
@@ -312,13 +330,19 @@ export default function App() {
     nextState.totalXP += ex.xp;
 
     let leveledUp = false;
+    let gainedPoints = 0;
     while (nextXp >= xpForLevel(prevLevel)) {
       nextXp -= xpForLevel(prevLevel);
       prevLevel += 1;
       leveledUp = true;
+      gainedPoints += 5;
     }
 
     nextState.level = prevLevel;
+    nextState.xp = nextXp;
+    if (leveledUp) {
+      nextState.statPoints = (nextState.statPoints || 0) + gainedPoints;
+    }
     nextState.xp = nextXp;
 
     // 2. Check contract weekly and specials
@@ -421,6 +445,10 @@ export default function App() {
             exercises={EXERCISES}
             onStartExercise={(id) => setActiveExerciseId(id)}
             scaledTarget={getScaledTarget}
+            onUpdateGameState={(newState) => {
+              setGameState(newState);
+              saveProgress(newState);
+            }}
           />
         );
       case 'missions':
@@ -442,6 +470,10 @@ export default function App() {
             gameState={gameState}
             xpNeeded={xpForLevel(gameState.level)}
             onReset={handleReset}
+            onUpdateGameState={(newState) => {
+              setGameState(newState);
+              saveProgress(newState);
+            }}
           />
         );
       default:
