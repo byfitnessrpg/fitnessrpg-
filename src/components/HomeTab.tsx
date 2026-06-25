@@ -15,6 +15,7 @@ interface HomeTabProps {
   onStartExercise: (id: string) => void;
   scaledTarget: (ex: Exercise) => number;
   onUpdateGameState: (newState: GameState) => void;
+  theme?: 'dark' | 'light';
 }
 
 export const HomeTab: React.FC<HomeTabProps> = ({
@@ -23,6 +24,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
   onStartExercise,
   scaledTarget,
   onUpdateGameState,
+  theme = 'dark',
 }) => {
   // Gracefully handle undefined fields from gameState
   const level = gameState.level;
@@ -154,8 +156,14 @@ export const HomeTab: React.FC<HomeTabProps> = ({
     reader.readAsDataURL(file);
   };
 
+  const isLight = theme === 'light';
+
   return (
-    <div className="space-y-6 pb-12 cyber-grid min-h-screen">
+    <div className={`space-y-6 pb-12 min-h-screen transition-colors duration-300 ${
+      isLight 
+        ? 'cyber-grid-light bg-slate-50 text-slate-800' 
+        : 'cyber-grid bg-[#08070c] text-slate-100'
+    }`}>
       {/* Hidden file input for gallery upload */}
       <input
         type="file"
@@ -166,15 +174,27 @@ export const HomeTab: React.FC<HomeTabProps> = ({
       />
 
       {/* 1. TOP STATS BAR - SOLO LEVELING HUD PORTRAIT FRAME */}
-      <div className="mx-4 mt-4 bg-gradient-to-b from-[#050508] to-[#000000] border border-slate-900 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
+      <div className={`mx-4 mt-4 border rounded-3xl p-6 shadow-2xl relative overflow-hidden transition-all duration-300 ${
+        isLight 
+          ? 'bg-white border-slate-200/80 shadow-md' 
+          : 'bg-gradient-to-b from-[#050508] to-[#000000] border-slate-900 shadow-2xl'
+      }`}>
         {/* Glow behind Avatar */}
-        <div className="absolute top-0 left-0 w-36 h-36 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-0 right-0 w-36 h-36 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className={`absolute top-0 left-0 w-36 h-36 rounded-full blur-3xl pointer-events-none ${
+          isLight ? 'bg-sky-500/5' : 'bg-sky-500/10'
+        }`} />
+        <div className={`absolute top-0 right-0 w-36 h-36 rounded-full blur-3xl pointer-events-none ${
+          isLight ? 'bg-blue-500/5' : 'bg-blue-500/10'
+        }`} />
 
         <div className="flex flex-col items-center justify-center text-center pb-5">
           {/* Avatar / Portrait container in a sleek rounded rectangle with double-line neon blue border */}
           <div className="relative mb-3 group cursor-pointer" onClick={() => document.getElementById('profile-pic-input')?.click()}>
-            <div className="w-24 h-24 rounded-2xl bg-gradient-to-b from-slate-950 to-slate-900 border-2 border-sky-400 p-0.5 shadow-[0_0_20px_rgba(14,165,233,0.35)] relative overflow-hidden flex items-center justify-center">
+            <div className={`w-24 h-24 rounded-2xl border-2 p-0.5 relative overflow-hidden flex items-center justify-center transition-all ${
+              isLight
+                ? 'bg-white border-sky-500 shadow-[0_4px_15px_rgba(14,165,233,0.2)]'
+                : 'bg-gradient-to-b from-slate-950 to-slate-900 border-2 border-sky-400 shadow-[0_0_20px_rgba(14,165,233,0.35)]'
+            }`}>
               {gameState.profilePic ? (
                 <img src={gameState.profilePic} alt="Portrait" className="w-full h-full object-cover rounded-xl" referrerPolicy="no-referrer" />
               ) : (
@@ -187,13 +207,19 @@ export const HomeTab: React.FC<HomeTabProps> = ({
             </div>
             
             {/* Level Badge placed at bottom corner */}
-            <div className="absolute -bottom-1.5 -right-1.5 w-7 h-7 rounded-full bg-white text-black border border-slate-950 flex items-center justify-center font-mono font-black text-xs shadow-lg">
+            <div className={`absolute -bottom-1.5 -right-1.5 w-7 h-7 rounded-full flex items-center justify-center font-mono font-black text-xs shadow-lg transition-colors ${
+              isLight 
+                ? 'bg-slate-950 text-white border-slate-800' 
+                : 'bg-white text-black border-slate-950'
+            }`}>
               {level}
             </div>
           </div>
 
           {/* Name Display */}
-          <h2 className="text-xl font-extrabold text-white tracking-widest flex items-center gap-2 leading-none">
+          <h2 className={`text-xl font-extrabold tracking-widest flex items-center gap-2 leading-none transition-colors ${
+            isLight ? 'text-slate-900' : 'text-white'
+          }`}>
             {charName ? charName.toUpperCase() : 'JUNG SINWOO'}
             <button 
               onClick={() => {
@@ -201,12 +227,14 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                 setSelectedClass(charClass);
                 setShowSettings(!showSettings);
               }}
-              className="text-slate-500 hover:text-white transition-colors"
+              className="text-slate-500 hover:text-sky-400 transition-colors"
             >
               <Edit2 className="w-3.5 h-3.5" />
             </button>
           </h2>
-          <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest mt-1 block font-bold">
+          <span className={`text-[10px] font-mono uppercase tracking-widest mt-1 block font-bold transition-colors ${
+            isLight ? 'text-slate-400' : 'text-slate-500'
+          }`}>
             @{charName ? charName.toLowerCase().replace(/\s+/g, '') : 'jungsinwoo'}
           </span>
         </div>
@@ -218,10 +246,16 @@ export const HomeTab: React.FC<HomeTabProps> = ({
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="mb-5 p-4 rounded-2xl bg-slate-950/95 border border-sky-500/30 space-y-4 overflow-hidden shadow-[0_0_20px_rgba(14,165,233,0.1)]"
+              className={`mb-5 p-4 rounded-2xl border space-y-4 overflow-hidden shadow-xl transition-all ${
+                isLight 
+                  ? 'bg-white border-sky-400 text-slate-800' 
+                  : 'bg-slate-950/95 border border-sky-500/30'
+              }`}
             >
               <div>
-                <label className="block text-[10px] font-mono font-extrabold tracking-widest text-slate-400 uppercase mb-1.5">
+                <label className={`block text-[10px] font-mono font-extrabold tracking-widest uppercase mb-1.5 ${
+                  isLight ? 'text-slate-500' : 'text-slate-400'
+                }`}>
                   Nome do Caçador
                 </label>
                 <input
@@ -229,41 +263,56 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                   maxLength={16}
                   value={tempName}
                   onChange={(e) => setTempName(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-sky-500 font-bold"
+                  className={`w-full rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-sky-500 font-bold transition-all ${
+                    isLight 
+                      ? 'bg-slate-50 border border-slate-200 text-slate-950' 
+                      : 'bg-slate-900 border border-slate-800 text-white'
+                  }`}
                   placeholder="Seu nome"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-mono font-extrabold tracking-widest text-slate-400 uppercase mb-1.5">
+                <label className={`block text-[10px] font-mono font-extrabold tracking-widest uppercase mb-1.5 ${
+                  isLight ? 'text-slate-500' : 'text-slate-400'
+                }`}>
                   Selecione sua Classe de RPG
                 </label>
                 <div className="grid grid-cols-3 gap-2">
-                  {['Caçador', 'Arqueiro', 'Guerreiro', 'Mago', 'Assassino'].map((c) => (
-                    <button
-                      key={c}
-                      onClick={() => setSelectedClass(c)}
-                      className={`py-1.5 text-xs font-bold rounded-lg border transition-all ${
-                        selectedClass === c
-                          ? 'bg-sky-950/40 border-sky-500 text-sky-300'
-                          : 'bg-slate-900 border-slate-800/80 text-slate-400 hover:text-white'
-                      }`}
-                    >
-                      {c}
-                    </button>
-                  ))}
+                  {['Caçador', 'Arqueiro', 'Guerreiro', 'Mago', 'Assassino'].map((c) => {
+                    const isSelected = selectedClass === c;
+                    return (
+                      <button
+                        key={c}
+                        onClick={() => setSelectedClass(c)}
+                        className={`py-1.5 text-xs font-bold rounded-lg border transition-all ${
+                          isSelected
+                            ? (isLight ? 'bg-sky-50 border-sky-400 text-sky-600' : 'bg-sky-950/40 border-sky-500 text-sky-300')
+                            : (isLight ? 'bg-white border-slate-200 text-slate-500 hover:text-slate-800' : 'bg-slate-900 border-slate-800/80 text-slate-400 hover:text-white')
+                        }`}
+                      >
+                        {c}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
               <div>
-                <label className="block text-[10px] font-mono font-extrabold tracking-widest text-slate-400 uppercase mb-1.5">
+                <label className={`block text-[10px] font-mono font-extrabold tracking-widest uppercase mb-1.5 ${
+                  isLight ? 'text-slate-500' : 'text-slate-400'
+                }`}>
                   Foto de Perfil (Galeria)
                 </label>
                 <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => document.getElementById('profile-pic-input')?.click()}
-                    className="flex-1 py-2 bg-black hover:bg-slate-900 border border-slate-800 rounded-xl text-xs text-sky-400 hover:text-sky-300 transition-all font-bold uppercase tracking-wider"
+                    className={`flex-1 py-2 border rounded-xl text-xs transition-all font-bold uppercase tracking-wider ${
+                      isLight 
+                        ? 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-sky-600' 
+                        : 'bg-black hover:bg-slate-900 border border-slate-800 text-sky-400 hover:text-sky-300'
+                    }`}
                   >
                     Selecionar da Galeria
                   </button>
@@ -275,7 +324,11 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                         delete updatedState.profilePic;
                         onUpdateGameState(updatedState);
                       }}
-                      className="px-4 py-2 bg-red-950/20 hover:bg-red-950/40 border border-red-900/30 rounded-xl text-xs text-red-400 hover:text-red-300 transition-all font-bold"
+                      className={`px-4 py-2 border rounded-xl text-xs transition-all font-bold ${
+                        isLight
+                          ? 'bg-red-50 hover:bg-red-100 border-red-200 text-red-600'
+                          : 'bg-red-950/20 hover:bg-red-950/40 border-red-900/30 text-red-400 hover:text-red-300'
+                      }`}
                     >
                       Remover Foto
                     </button>
@@ -286,13 +339,21 @@ export const HomeTab: React.FC<HomeTabProps> = ({
               <div className="flex gap-2 pt-1">
                 <button
                   onClick={saveSettings}
-                  className="flex-1 py-2 bg-white hover:bg-slate-200 text-black text-xs font-black uppercase tracking-wider rounded-xl transition-all"
+                  className={`flex-1 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all ${
+                    isLight 
+                      ? 'bg-slate-900 hover:bg-slate-800 text-white' 
+                      : 'bg-white hover:bg-slate-200 text-black'
+                  }`}
                 >
                   Salvar Alterações
                 </button>
                 <button
                   onClick={() => setShowSettings(false)}
-                  className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-xs text-slate-400 hover:text-white rounded-xl transition-all"
+                  className={`px-4 py-2 text-xs rounded-xl transition-all ${
+                    isLight 
+                      ? 'bg-slate-100 hover:bg-slate-200 text-slate-500' 
+                      : 'bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white'
+                  }`}
                 >
                   Cancelar
                 </button>
@@ -310,9 +371,11 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                 <Heart className="w-3.5 h-3.5 fill-red-500 text-red-500" />
                 HP (VIGOR)
               </span>
-              <span className="font-black text-slate-300">{currentHP}%</span>
+              <span className={`font-black transition-colors ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>{currentHP}%</span>
             </div>
-            <div className="w-full h-3 bg-slate-950 border border-slate-900 rounded-md p-[1px] overflow-hidden">
+            <div className={`w-full h-3 rounded-md p-[1px] overflow-hidden border transition-all ${
+              isLight ? 'bg-slate-100 border-slate-200/80' : 'bg-slate-950 border-slate-900'
+            }`}>
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${currentHP}%` }}
@@ -328,9 +391,11 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                 <Zap className="w-3.5 h-3.5 fill-sky-400 text-sky-400" />
                 MP (ENERGIA)
               </span>
-              <span className="font-black text-slate-300">{currentMP}%</span>
+              <span className={`font-black transition-colors ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>{currentMP}%</span>
             </div>
-            <div className="w-full h-3 bg-slate-950 border border-slate-900 rounded-md p-[1px] overflow-hidden">
+            <div className={`w-full h-3 rounded-md p-[1px] overflow-hidden border transition-all ${
+              isLight ? 'bg-slate-100 border-slate-200/80' : 'bg-slate-950 border-slate-900'
+            }`}>
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${currentMP}%` }}
@@ -341,82 +406,114 @@ export const HomeTab: React.FC<HomeTabProps> = ({
         </div>
 
         {/* S-Rank circle dial system */}
-        <div className="grid grid-cols-3 gap-3 mt-6 pt-5 border-t border-slate-900/60">
+        <div className={`grid grid-cols-3 gap-3 mt-6 pt-5 border-t transition-colors ${
+          isLight ? 'border-slate-100' : 'border-slate-900/60'
+        }`}>
           {/* Stat 1: RANK Dial */}
           <div className="flex flex-col items-center text-center">
-            <div className="w-14 h-14 rounded-full bg-black border-2 border-sky-400 flex items-center justify-center relative shadow-[0_0_12px_rgba(14,165,233,0.25)]">
-              <span className="text-xl font-black text-white font-mono tracking-tighter">
+            <div className={`w-14 h-14 rounded-full flex items-center justify-center relative shadow-[0_2px_10px_rgba(14,165,233,0.15)] border-2 transition-all ${
+              isLight 
+                ? 'bg-white border-sky-500 text-slate-950 shadow-[0_3px_12px_rgba(14,165,233,0.15)]' 
+                : 'bg-black border-2 border-sky-400 shadow-[0_0_12px_rgba(14,165,233,0.25)] text-white'
+            }`}>
+              <span className={`text-xl font-black font-mono tracking-tighter ${isLight ? 'text-slate-900' : 'text-white'}`}>
                 {rank.badge}
               </span>
             </div>
-            <span className="text-[10px] font-mono font-bold text-slate-500 uppercase mt-2">Rank</span>
+            <span className={`text-[10px] font-mono font-bold uppercase mt-2 ${isLight ? 'text-slate-400' : 'text-slate-500'}`}>Rank</span>
           </div>
 
           {/* Stat 2: LEVEL Dial */}
           <div className="flex flex-col items-center text-center">
-            <div className="w-14 h-14 rounded-full bg-[#050508] border border-dashed border-sky-400/60 flex items-center justify-center relative shadow-[0_0_10px_rgba(14,165,233,0.15)]">
-              <span className="text-lg font-black text-white font-mono">
+            <div className={`w-14 h-14 rounded-full border border-dashed flex items-center justify-center relative transition-all ${
+              isLight 
+                ? 'bg-slate-50 border-sky-400/60 shadow-[0_2px_8px_rgba(14,165,233,0.08)]' 
+                : 'bg-[#050508] border-sky-400/60 shadow-[0_0_10px_rgba(14,165,233,0.15)]'
+            }`}>
+              <span className={`text-lg font-black font-mono ${isLight ? 'text-slate-900' : 'text-white'}`}>
                 {level}
               </span>
             </div>
-            <span className="text-[10px] font-mono font-bold text-slate-500 uppercase mt-2">Nível</span>
+            <span className={`text-[10px] font-mono font-bold uppercase mt-2 ${isLight ? 'text-slate-400' : 'text-slate-500'}`}>Nível</span>
           </div>
 
           {/* Stat 3: Workouts Completed Dial */}
           <div className="flex flex-col items-center text-center">
-            <div className="w-14 h-14 rounded-full bg-[#050508] border border-dashed border-sky-400/60 flex items-center justify-center relative shadow-[0_0_10px_rgba(14,165,233,0.15)]">
-              <span className="text-base font-black text-white font-mono">
+            <div className={`w-14 h-14 rounded-full border border-dashed flex items-center justify-center relative transition-all ${
+              isLight 
+                ? 'bg-slate-50 border-sky-400/60 shadow-[0_2px_8px_rgba(14,165,233,0.08)]' 
+                : 'bg-[#050508] border-sky-400/60 shadow-[0_0_10px_rgba(14,165,233,0.15)]'
+            }`}>
+              <span className={`text-base font-black font-mono ${isLight ? 'text-slate-900' : 'text-white'}`}>
                 {completedCount}
               </span>
             </div>
-            <span className="text-[10px] font-mono font-bold text-slate-500 uppercase mt-2">Treinos</span>
+            <span className={`text-[10px] font-mono font-bold uppercase mt-2 ${isLight ? 'text-slate-400' : 'text-slate-500'}`}>Treinos</span>
           </div>
         </div>
 
         {/* Character Information Sheets List Card */}
-        <div className="bg-black/40 border border-slate-900/80 rounded-2xl p-4.5 mt-5 space-y-3 font-mono text-xs">
-          <div className="flex justify-between items-center pb-2 border-b border-slate-900/40">
+        <div className={`border rounded-2xl p-4.5 mt-5 space-y-3 font-mono text-xs transition-colors duration-300 ${
+          isLight ? 'bg-slate-50/50 border-slate-200/60 text-slate-800' : 'bg-black/40 border border-slate-900/80 text-slate-300'
+        }`}>
+          <div className={`flex justify-between items-center pb-2 border-b ${isLight ? 'border-slate-200/60' : 'border-slate-900/40'}`}>
             <span className="text-slate-500">Classe:</span>
-            <span className="text-white font-extrabold">{charClass}</span>
+            <span className={`font-extrabold ${isLight ? 'text-slate-900' : 'text-white'}`}>{charClass}</span>
           </div>
-          <div className="flex justify-between items-center pb-2 border-b border-slate-900/40">
+          <div className={`flex justify-between items-center pb-2 border-b ${isLight ? 'border-slate-200/60' : 'border-slate-900/40'}`}>
             <span className="text-slate-500">Título:</span>
-            <span className="text-sky-400 font-extrabold uppercase tracking-wider">
+            <span className="text-sky-500 font-extrabold uppercase tracking-wider">
               {level >= 20 ? 'CAÇADOR DE MONSTROS' : level >= 8 ? 'SOBREVIVENTE' : 'JOGADOR'}
             </span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-slate-500">ID:</span>
-            <span className="text-slate-600 tracking-widest text-[9px] font-black">■■■■■■■■■</span>
+            <span className="text-slate-400 tracking-widest text-[9px] font-black">■■■■■■■■■</span>
           </div>
         </div>
       </div>
 
       {/* 3. QUEST INFO NEON CONTAINER - EXACTLY COMPLYING WITH IMAGE 2 AND IMAGE 5 CODES */}
-      <div className="mx-4 bg-black border-2 border-sky-400 rounded-3xl p-6 shadow-[0_0_25px_rgba(14,165,233,0.3)] relative overflow-hidden">
+      <div className={`mx-4 border-2 rounded-3xl p-6 relative overflow-hidden transition-all duration-300 ${
+        isLight 
+          ? 'bg-white border-sky-500 shadow-[0_4px_25px_rgba(14,165,233,0.15)]' 
+          : 'bg-black border-2 border-sky-400 shadow-[0_0_25px_rgba(14,165,233,0.3)]'
+      }`}>
         {/* Neon blue radial pulse background */}
         <div className="absolute -top-12 -left-12 w-48 h-48 bg-sky-500/5 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
 
         {/* Quest Info Header Tag */}
-        <div className="flex items-center justify-between mb-4 border-b border-slate-900 pb-3">
+        <div className={`flex items-center justify-between mb-4 border-b pb-3 transition-colors ${
+          isLight ? 'border-slate-200/80' : 'border-slate-900'
+        }`}>
           <div className="flex items-center gap-2">
-            <Info className="w-4 h-4 text-sky-400 animate-pulse" />
-            <span className="text-sm font-black tracking-widest text-white uppercase font-display">
+            <Info className="w-4 h-4 text-sky-500 animate-pulse" />
+            <span className={`text-sm font-black tracking-widest uppercase font-display ${
+              isLight ? 'text-slate-800' : 'text-white'
+            }`}>
               QUEST INFO
             </span>
           </div>
-          {/* Live countdown timer ticks down to midnight exactly as references show */}
-          <div className="font-mono text-xs font-black text-sky-400 bg-sky-950/20 border border-sky-500/20 rounded px-2.5 py-1 tracking-wider">
+          {/* Live countdown timer */}
+          <div className={`font-mono text-xs font-black px-2.5 py-1 tracking-wider border rounded transition-all ${
+            isLight 
+              ? 'text-sky-600 bg-sky-50 border-sky-200' 
+              : 'text-sky-400 bg-sky-950/20 border-sky-500/20'
+          }`}>
             {countdown}
           </div>
         </div>
 
         {/* Quest Arc title in display typography */}
-        <h3 className="text-base font-black text-white tracking-widest uppercase font-mono">
+        <h3 className={`text-base font-black tracking-widest uppercase font-mono ${
+          isLight ? 'text-slate-950' : 'text-white'
+        }`}>
           Treino de Sung Jinwoo
         </h3>
-        <p className="text-[10px] text-slate-500 font-mono mt-1 mb-5 uppercase tracking-wide">
+        <p className={`text-[10px] font-mono mt-1 mb-5 uppercase tracking-wide ${
+          isLight ? 'text-slate-400 font-bold' : 'text-slate-500'
+        }`}>
           SISTEMA ATIVO DIÁRIO DE ATIVIDADES
         </p>
 
@@ -431,23 +528,35 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                 onClick={() => !isCompleted && onStartExercise(ex.id)}
                 className={`flex items-center justify-between py-2 px-3 border transition-all cursor-pointer rounded-lg ${
                   isCompleted
-                    ? 'bg-emerald-950/10 border-emerald-500/10 opacity-40'
-                    : 'bg-[#07070a] border-slate-900 hover:border-sky-500/40 hover:bg-slate-950'
+                    ? (isLight ? 'bg-emerald-50 border-emerald-200/60 opacity-50' : 'bg-emerald-950/10 border-emerald-500/10 opacity-40')
+                    : (isLight ? 'bg-slate-50/80 border-slate-200 hover:border-sky-400/40 hover:bg-sky-50/25' : 'bg-[#07070a] border-slate-900 hover:border-sky-500/40 hover:bg-slate-950')
                 }`}
               >
                 <div className="flex items-center gap-2.5">
-                  <ExerciseIcon pose={ex.pose} size="sm" />
-                  <span className={`font-black tracking-wider ${isCompleted ? 'text-slate-500 line-through' : 'text-white'}`}>
+                  <ExerciseIcon pose={ex.pose} size="sm" theme={theme} />
+                  <span className={`font-black tracking-wider ${
+                    isCompleted 
+                      ? (isLight ? 'text-slate-400 line-through' : 'text-slate-500 line-through') 
+                      : (isLight ? 'text-slate-800' : 'text-white')
+                  }`}>
                     {ex.name.toUpperCase()}
                   </span>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className={`font-mono text-[11px] ${isCompleted ? 'text-emerald-500' : 'text-sky-400'}`}>
+                  <span className={`font-mono text-[11px] ${
+                    isCompleted 
+                      ? (isLight ? 'text-emerald-600 font-bold' : 'text-emerald-500') 
+                      : (isLight ? 'text-sky-600 font-extrabold' : 'text-sky-400')
+                  }`}>
                     [{isCompleted ? target : 0}/{target}]
                   </span>
                   {!isCompleted && (
-                    <button className="w-5 h-5 rounded bg-sky-950 flex items-center justify-center text-sky-400 border border-sky-500/20 hover:bg-sky-500 hover:text-black hover:border-sky-500 transition-all">
+                    <button className={`w-5 h-5 rounded flex items-center justify-center transition-all border ${
+                      isLight 
+                        ? 'bg-sky-50 hover:bg-sky-500 hover:text-white hover:border-sky-500 text-sky-600 border-sky-200 shadow-sm' 
+                        : 'bg-sky-950 text-sky-400 border-sky-500/20 hover:bg-sky-500 hover:text-black hover:border-sky-500'
+                    }`}>
                       <Play className="w-2.5 h-2.5 fill-current" />
                     </button>
                   )}
@@ -457,25 +566,37 @@ export const HomeTab: React.FC<HomeTabProps> = ({
           })}
         </div>
 
-        {/* Red Warning Box from Sung Jinwoo quest interface - MATCHES SCREENSHOT EXACTLY */}
-        <div className="my-5 p-4 rounded-xl bg-red-950/15 border border-red-500/25 flex gap-2.5 items-start">
+        {/* Red Warning Box from Sung Jinwoo quest interface */}
+        <div className={`my-5 p-4 rounded-xl flex gap-2.5 items-start border transition-colors ${
+          isLight 
+            ? 'bg-red-50 border-red-200 text-red-700' 
+            : 'bg-red-950/15 border border-red-500/25 text-red-400'
+        }`}>
           <AlertTriangle className="w-4.5 h-4.5 text-red-500 shrink-0 mt-0.5 animate-pulse" />
-          <p className="text-[10px] leading-relaxed text-red-400 font-semibold font-mono uppercase tracking-wider">
+          <p className="text-[10px] leading-relaxed font-semibold font-mono uppercase tracking-wider">
             AVISO - O não cumprimento desta quest dentro do limite de tempo resultará em penalidade apropriada.
           </p>
         </div>
 
-        {/* Big high-contrast action button */}
+        {/* Big action button */}
         {activeQuests.length > 0 ? (
           <button
             onClick={() => onStartExercise(activeQuests[0].id)}
-            className="w-full py-4 bg-white hover:bg-slate-200 text-black font-black font-display text-xs tracking-widest uppercase rounded-xl transition-all shadow-[0_0_20px_rgba(255,255,255,0.25)] active:scale-98 flex items-center justify-center gap-2"
+            className={`w-full py-4 font-black font-display text-xs tracking-widest uppercase rounded-xl transition-all shadow-[0_2px_15px_rgba(0,0,0,0.1)] active:scale-98 flex items-center justify-center gap-2 ${
+              isLight 
+                ? 'bg-slate-950 hover:bg-slate-800 text-white shadow-[0_4px_12px_rgba(15,23,42,0.15)]' 
+                : 'bg-white hover:bg-slate-200 text-black shadow-[0_0_20px_rgba(255,255,255,0.25)]'
+            }`}
           >
-            <Play className="w-4 h-4 fill-current text-black" />
+            <Play className="w-4 h-4 fill-current" />
             Iniciar Quest
           </button>
         ) : (
-          <div className="w-full py-3.5 bg-emerald-950/20 border border-emerald-500/30 text-emerald-400 font-bold text-center rounded-xl text-xs uppercase tracking-wider font-mono">
+          <div className={`w-full py-3.5 text-center rounded-xl text-xs uppercase tracking-wider font-mono border transition-all ${
+            isLight 
+              ? 'bg-emerald-50 border-emerald-300 text-emerald-700 font-bold' 
+              : 'bg-emerald-950/20 border-emerald-500/30 text-emerald-400'
+          }`}>
             ✓ QUEST COMPLETA COM SUCESSO
           </div>
         )}
@@ -486,34 +607,52 @@ export const HomeTab: React.FC<HomeTabProps> = ({
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mx-4 bg-gradient-to-r from-amber-950/20 via-amber-900/10 to-transparent border border-amber-500/20 rounded-2xl p-4 shadow-lg relative overflow-hidden"
+          className={`mx-4 border rounded-2xl p-4 shadow-sm relative overflow-hidden transition-all duration-300 ${
+            isLight 
+              ? 'bg-gradient-to-r from-amber-50 to-orange-50/20 border-amber-200 shadow-sm' 
+              : 'bg-gradient-to-r from-amber-950/20 via-amber-900/10 to-transparent border-amber-500/20'
+          }`}
         >
           <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
           
-          <div className="flex items-center gap-2 text-amber-500 mb-2 border-b border-amber-500/10 pb-2">
+          <div className={`flex items-center gap-2 mb-2 border-b pb-2 transition-colors ${
+            isLight ? 'border-amber-200/60 text-amber-700' : 'border-amber-500/10 text-amber-500'
+          }`}>
             <span className="text-lg">{activeOath.icon}</span>
             <div className="flex-1 flex justify-between items-center">
               <span className="text-[10px] font-mono font-black tracking-widest uppercase">
                 JURAMENTO: {activeOath.title.toUpperCase()}
               </span>
-              <span className="text-[8px] px-1.5 py-0.5 rounded-md font-mono font-bold bg-amber-500/10 text-amber-400">
+              <span className={`text-[8px] px-1.5 py-0.5 rounded-md font-mono font-bold transition-all ${
+                isLight ? 'bg-amber-100 text-amber-800' : 'bg-amber-500/10 text-amber-400'
+              }`}>
                 {activeOath.effect.toUpperCase()}
               </span>
             </div>
           </div>
           
-          <p className="text-[10.5px] text-slate-300 leading-relaxed italic font-medium">
+          <p className={`text-[10.5px] leading-relaxed italic font-medium transition-colors ${
+            isLight ? 'text-slate-600' : 'text-slate-300'
+          }`}>
             "{activeOath.quote}"
           </p>
         </motion.div>
       )}
 
       {/* 2. DYNAMIC POWER LEVEL RATING RAMP - SOLO LEVELING TOTAL COMBAT RATING */}
-      <div className="mx-4 bg-gradient-to-r from-[#07060a] via-[#0d0a14] to-[#07060a] border border-slate-900 rounded-2xl p-4 flex items-center justify-between shadow-md relative overflow-hidden">
+      <div className={`mx-4 border rounded-2xl p-4 flex items-center justify-between relative overflow-hidden transition-all duration-300 ${
+        isLight 
+          ? 'bg-white border-slate-200/80 shadow-sm' 
+          : 'bg-gradient-to-r from-[#07060a] via-[#0d0a14] to-[#07060a] border-slate-900 shadow-md'
+      }`}>
         <div className="absolute right-0 top-0 w-24 h-24 bg-purple-500/5 rounded-full blur-xl pointer-events-none" />
         <div className="space-y-0.5">
-          <span className="text-[10px] font-mono font-extrabold tracking-widest text-purple-400 uppercase">PODER TOTAL DO CAÇADOR</span>
-          <p className="text-xs text-slate-400 font-medium">Desenvolva seus status treinando diariamente</p>
+          <span className={`text-[10px] font-mono font-extrabold tracking-widest uppercase transition-colors ${
+            isLight ? 'text-purple-700' : 'text-purple-400'
+          }`}>PODER TOTAL DO CAÇADOR</span>
+          <p className={`text-xs transition-colors ${isLight ? 'text-slate-500 font-medium' : 'text-slate-400'}`}>
+            Desenvolva seus status treinando diariamente
+          </p>
         </div>
         <div className="text-right">
           <motion.div
@@ -521,7 +660,11 @@ export const HomeTab: React.FC<HomeTabProps> = ({
             initial={{ scale: 0.95 }}
             animate={{ scale: [1, 1.1, 1] }}
             transition={{ duration: 0.3 }}
-            className="text-4xl font-extrabold font-display bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(245,158,11,0.25)] tracking-tight font-mono leading-none"
+            className={`text-4xl font-extrabold font-display bg-clip-text text-transparent tracking-tight font-mono leading-none ${
+              isLight 
+                ? 'bg-gradient-to-r from-amber-600 via-yellow-500 to-amber-700' 
+                : 'bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 drop-shadow-[0_0_12px_rgba(245,158,11,0.25)]'
+            }`}
           >
             {totalPower}
           </motion.div>
@@ -530,28 +673,34 @@ export const HomeTab: React.FC<HomeTabProps> = ({
       </div>
 
       {/* 5. CONTROLE DE HIDRATAÇÃO (ÁGUA) */}
-      <div className="mx-4 bg-[#07060a] border border-slate-900 rounded-3xl p-5 shadow-lg space-y-4">
+      <div className={`mx-4 rounded-3xl p-5 space-y-4 border transition-all duration-300 ${
+        isLight 
+          ? 'bg-white border-slate-200/80 shadow-md' 
+          : 'bg-[#07060a] border border-slate-900 shadow-lg'
+      }`}>
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
-            <span className="text-[10px] font-mono tracking-wider font-extrabold text-sky-400 uppercase block">META DIÁRIA</span>
-            <h3 className="text-base font-black text-white font-display">Controle de Hidratação</h3>
+            <span className="text-[10px] font-mono tracking-wider font-extrabold text-sky-500 uppercase block">META DIÁRIA</span>
+            <h3 className={`text-base font-black font-display transition-colors ${
+              isLight ? 'text-slate-900' : 'text-white'
+            }`}>Controle de Hidratação</h3>
           </div>
-          <span className="text-base font-mono font-black text-sky-400">
-            {waterIntake} <span className="text-slate-500 text-xs">/ {waterGoal} ml</span>
+          <span className="text-base font-mono font-black text-sky-500">
+            {waterIntake} <span className="text-slate-400 text-xs">/ {waterGoal} ml</span>
           </span>
         </div>
 
         {/* Alerta de hidratação */}
         <div className={`p-4 rounded-2xl flex items-center justify-between border transition-all duration-300 ${
           waterIntake >= waterGoal
-            ? 'bg-sky-950/20 border-sky-500/30 text-sky-300'
-            : 'bg-slate-950/50 border-slate-900 text-slate-400'
+            ? (isLight ? 'bg-sky-50 border-sky-200 text-sky-700' : 'bg-sky-950/20 border-sky-500/30 text-sky-300')
+            : (isLight ? 'bg-slate-50 border-slate-200 text-slate-500' : 'bg-slate-950/50 border-slate-900 text-slate-400')
         }`}>
           <div className="space-y-1 max-w-[200px]">
-            <span className="text-xs font-bold text-white block">
+            <span className={`text-xs font-bold block ${isLight ? 'text-slate-800' : 'text-white'}`}>
               {waterIntake >= waterGoal ? '🎉 Hidratação Concluída!' : 'Mantenha sua hidratação!'}
             </span>
-            <span className="text-[10.5px] leading-snug block text-slate-400">
+            <span className={`text-[10.5px] leading-snug block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
               {waterIntake >= waterGoal 
                 ? 'Excelente! Seu guerreiro está pronto com hidratação de 100%.'
                 : 'Beba água regularmente para manter seus atributos em nível máximo durante os treinos.'}
@@ -566,20 +715,32 @@ export const HomeTab: React.FC<HomeTabProps> = ({
         <div className="flex gap-2">
           <button
             onClick={() => addWater(250)}
-            className="flex-1 py-2.5 bg-sky-950/20 hover:bg-sky-950/40 border border-sky-500/20 hover:border-sky-500/50 text-sky-400 text-xs font-bold rounded-xl transition-all active:scale-95 flex items-center justify-center gap-1.5"
+            className={`flex-1 py-2.5 text-xs font-bold rounded-xl border transition-all active:scale-95 flex items-center justify-center gap-1.5 ${
+              isLight 
+                ? 'bg-sky-50/60 hover:bg-sky-100 border-sky-200 text-sky-600 hover:border-sky-400' 
+                : 'bg-sky-950/20 hover:bg-sky-950/40 border border-sky-500/20 hover:border-sky-500/50 text-sky-400'
+            }`}
           >
             <Plus className="w-3.5 h-3.5" /> 250 ml
           </button>
           <button
             onClick={() => addWater(500)}
-            className="flex-1 py-2.5 bg-sky-950/20 hover:bg-sky-950/40 border border-sky-500/20 hover:border-sky-500/50 text-sky-400 text-xs font-bold rounded-xl transition-all active:scale-95 flex items-center justify-center gap-1.5"
+            className={`flex-1 py-2.5 text-xs font-bold rounded-xl border transition-all active:scale-95 flex items-center justify-center gap-1.5 ${
+              isLight 
+                ? 'bg-sky-50/60 hover:bg-sky-100 border-sky-200 text-sky-600 hover:border-sky-400' 
+                : 'bg-sky-950/20 hover:bg-sky-950/40 border border-sky-500/20 hover:border-sky-500/50 text-sky-400'
+            }`}
           >
             <Plus className="w-3.5 h-3.5" /> 500 ml
           </button>
           <button
             onClick={resetWater}
             title="Resetar contador"
-            className="px-3 py-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-500 hover:text-slate-300 rounded-xl transition-all active:scale-95 flex items-center justify-center"
+            className={`px-3 py-2.5 rounded-xl border transition-all active:scale-95 flex items-center justify-center ${
+              isLight 
+                ? 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-500 hover:text-slate-800' 
+                : 'bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-500 hover:text-slate-300'
+            }`}
           >
             <RotateCcw className="w-4 h-4" />
           </button>

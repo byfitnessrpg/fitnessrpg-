@@ -169,6 +169,17 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<string>('home');
   const [activeExerciseId, setActiveExerciseId] = useState<string | null>(null);
   const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    return (localStorage.getItem('fitnessRPG_theme') as 'dark' | 'light') || 'dark';
+  });
+
+  const toggleTheme = () => {
+    setTheme(prev => {
+      const next = prev === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('fitnessRPG_theme', next);
+      return next;
+    });
+  };
 
   // Overlay Notification States
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'gold' | 'default' } | null>(null);
@@ -714,6 +725,7 @@ export default function App() {
               setGameState(newState);
               saveProgress(newState);
             }}
+            theme={theme}
           />
         );
       case 'missions':
@@ -723,6 +735,7 @@ export default function App() {
             exercises={EXERCISES}
             onStartExercise={(id) => setActiveExerciseId(id)}
             scaledTarget={getScaledTarget}
+            theme={theme}
           />
         );
       case 'achievements':
@@ -814,7 +827,9 @@ export default function App() {
   const activeExercise = EXERCISES.find((e) => e.id === activeExerciseId);
 
   return (
-    <div className="min-h-screen bg-[#08070c] text-slate-100 flex flex-col justify-between max-w-md mx-auto font-sans relative pb-20 select-none">
+    <div className={`min-h-screen flex flex-col justify-between max-w-md mx-auto font-sans relative pb-20 select-none transition-colors duration-300 ${
+      theme === 'light' ? 'bg-slate-50 text-slate-900' : 'bg-[#08070c] text-slate-100'
+    }`}>
       {/* Offline Status Tracker */}
       {!isOnline && (
         <div className="bg-red-600 text-white text-center py-2 px-4 text-xs font-mono font-bold tracking-wider flex items-center justify-center gap-1.5 sticky top-0 z-50">
@@ -828,6 +843,8 @@ export default function App() {
         email={user.email}
         onLogout={handleLogout}
         activeTab={activeTab}
+        theme={theme}
+        onToggleTheme={toggleTheme}
       />
 
       <XPBar
@@ -835,6 +852,7 @@ export default function App() {
         xp={gameState.xp}
         xpNeeded={xpForLevel(gameState.level)}
         streak={gameState.streak}
+        theme={theme}
       />
 
       {/* Main Tab Switchboard */}
@@ -853,7 +871,7 @@ export default function App() {
       </main>
 
       {/* Modern navigation panel */}
-      <BottomNav activeTab={activeTab} onTabChange={(tab) => setActiveTab(tab)} />
+      <BottomNav activeTab={activeTab} onTabChange={(tab) => setActiveTab(tab)} theme={theme} />
 
       {/* Active workout screen modal */}
       <AnimatePresence>

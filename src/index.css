@@ -63,6 +63,13 @@ html, body, #root {
     linear-gradient(to bottom, rgba(255,255,255,0.01) 1px, transparent 1px);
 }
 
+.cyber-grid-light {
+  background-size: 20px 20px;
+  background-image: 
+    linear-gradient(to right, rgba(14, 165, 233, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(14, 165, 233, 0.04) 1px, transparent 1px);
+}
+
 /* Hide scrollbars but keep functionality */
 .no-scrollbar::-webkit-scrollbar {
   display: none;

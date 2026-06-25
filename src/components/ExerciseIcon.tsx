@@ -12,6 +12,7 @@ interface ExerciseIconProps {
   pose: 'pushup' | 'squat' | 'plank' | 'jumpingjack' | 'crunch' | 'lunge' | 'glute' | 'dip' | string;
   className?: string;
   size?: 'sm' | 'md' | 'lg';
+  theme?: 'dark' | 'light';
 }
 
 const imageMap: Record<string, string> = {
@@ -25,7 +26,7 @@ const imageMap: Record<string, string> = {
   dip: dipImg,
 };
 
-export const ExerciseIcon: React.FC<ExerciseIconProps> = ({ pose, className = '', size = 'md' }) => {
+export const ExerciseIcon: React.FC<ExerciseIconProps> = ({ pose, className = '', size = 'md', theme = 'dark' }) => {
   const imgUrl = imageMap[pose] || imageMap.pushup;
 
   const sizeClasses = {
@@ -34,26 +35,50 @@ export const ExerciseIcon: React.FC<ExerciseIconProps> = ({ pose, className = ''
     lg: 'w-16 h-16 rounded-2xl',
   };
 
+  const isLight = theme === 'light';
+
   return (
     <div 
-      className={`relative flex items-center justify-center overflow-hidden border border-sky-500/20 bg-black/60 shadow-[0_0_8px_rgba(14,165,233,0.1)] shrink-0 ${sizeClasses[size]} ${className}`}
+      className={`relative flex items-center justify-center overflow-hidden border shrink-0 ${sizeClasses[size]} ${
+        isLight 
+          ? 'border-slate-200 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.04)]' 
+          : 'border-sky-500/20 bg-black/60 shadow-[0_0_8px_rgba(14,165,233,0.1)]'
+      } ${className}`}
     >
-      <img
-        src={imgUrl}
-        alt={`${pose} diagram`}
-        className="w-[90%] h-[90%] object-contain select-none transition-all duration-300"
-        style={{
-          // Expert CSS Filter:
-          // 1. Inverts the colors (white background -> black, black lines -> white)
-          // 2. Sepia turns it warm yellow/brown
-          // 3. Saturate increases the intensity
-          // 4. Hue-rotate shifts the color to a beautiful cybernetic neon cyan/sky-blue
-          filter: 'invert(1) sepia(1) saturate(8) hue-rotate(170deg) brightness(0.9) contrast(1.1)',
-        }}
-        referrerPolicy="no-referrer"
-      />
+      <div className={`relative w-[90%] h-[90%] flex items-center justify-center ${isLight ? 'bg-white' : 'bg-black'}`}>
+        <img
+          src={imgUrl}
+          alt={`${pose} diagram`}
+          className="w-full h-full object-contain select-none transition-all duration-300"
+          style={{
+            filter: isLight
+              ? 'grayscale(100%) contrast(300%)' // Converts red highlights and black lines to solid black outlines on white background
+              : 'grayscale(100%) contrast(300%) invert(1)', // Converts red and outlines to crisp white outlines on black background
+          }}
+          referrerPolicy="no-referrer"
+        />
+        {isLight ? (
+          <div 
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              backgroundColor: '#1e3a8a', // Deep intense dark blue (blue-900) to make the outlines perfectly solid, clear dark blue
+              mixBlendMode: 'screen',
+            }}
+          />
+        ) : (
+          <div 
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              backgroundColor: '#00d8ff', // Bright, intense Solo Leveling style neon cyan-blue
+              mixBlendMode: 'multiply',
+            }}
+          />
+        )}
+      </div>
       {/* Dynamic tech grid or border element to enhance the RPG aesthetics */}
-      <div className="absolute inset-0 border border-sky-500/10 pointer-events-none rounded-inherit" />
+      <div className={`absolute inset-0 border pointer-events-none rounded-inherit ${
+        isLight ? 'border-sky-500/5' : 'border-sky-500/10'
+      }`} />
     </div>
   );
 };
