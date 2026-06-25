@@ -76,6 +76,37 @@ export interface GameState {
   statPoints?: number;
   profilePic?: string;
   chosenOath?: string;
+  weight?: number;
+  weightHistory?: { date: string; value: number }[];
+  friendCode?: string;
+  friends?: Friend[];
+  weeklyXP?: number;
+  friendChallenges?: FriendChallenge[];
+  lastWeeklyResetDate?: string;
+  recruitsCount?: number;
+  invitedBy?: string;
+}
+
+export interface Friend {
+  code: string;
+  name: string;
+  avatar: string;
+  level: number;
+  weeklyXP: number;
+  streak: number;
+}
+
+export interface FriendChallenge {
+  id: string;
+  title: string;
+  target: number;
+  exerciseType: 'flexoes' | 'agachamentos' | 'prancha';
+  creatorCode: string;
+  participants: {
+    code: string;
+    name: string;
+    progress: number;
+  }[];
 }
 
 export interface RankingPlayer {

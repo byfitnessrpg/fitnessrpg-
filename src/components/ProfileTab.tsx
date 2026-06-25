@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { GameState } from '../types';
-import { Award, Zap, Flame, Shield, RotateCcw, Edit2, Download, Check } from 'lucide-react';
+import { Award, Zap, Flame, Shield, RotateCcw, Edit2, Download, Check, Share2, Copy, Users, CheckCircle2, Sparkles } from 'lucide-react';
 import { motion } from 'motion/react';
 import * as htmlToImage from 'html-to-image';
 
@@ -16,6 +16,8 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ gameState, xpNeeded, onR
   const cardRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [exportSuccess, setExportSuccess] = useState(false);
+  const [copiedInviteCode, setCopiedInviteCode] = useState(false);
+  const [sharedInvite, setSharedInvite] = useState(false);
 
   // Circular ring calculations
   const radius = 44;
@@ -253,6 +255,160 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ gameState, xpNeeded, onR
         <p className="text-[10px] text-slate-500 font-mono pt-1 uppercase tracking-wider">
           Mande para seus amigos e desafie eles a subirem de nível!
         </p>
+      </div>
+
+      {/* SEÇÃO COMPANHEIROS DE JORNADA */}
+      <div className="px-5 space-y-4">
+        <div className="bg-[#07060a] border border-slate-900 rounded-3xl p-5 shadow-lg space-y-5">
+          <div className="flex items-center gap-2 border-b border-slate-900/60 pb-3">
+            <div className="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400">
+              <Users className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="text-[9px] font-mono font-black text-sky-400 tracking-wider block uppercase">CRESCIMENTO CONJUNTO</span>
+              <h3 className="text-sm font-black text-white uppercase tracking-tight font-display">🤝 Companheiros de Jornada</h3>
+            </div>
+          </div>
+
+          <p className="text-[11px] text-slate-400 leading-relaxed">
+            Convide amigos para treinar no FitnessRPG. Fortaleça sua consistência e evoluam juntos, sem recompensas materiais – apenas o poder da comunidade e do progresso mútuo.
+          </p>
+
+          {/* Código de Convite */}
+          <div className="bg-[#030205] border border-slate-900 rounded-2xl p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-[9px] font-mono font-bold text-slate-500 uppercase block">SEU CÓDIGO DE CONVITE</span>
+                <span className="text-lg font-black font-mono text-sky-400 tracking-wider block mt-0.5">
+                  {gameState.friendCode || 'FIT-CACADOR'}
+                </span>
+              </div>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(gameState.friendCode || 'FIT-CACADOR');
+                  setCopiedInviteCode(true);
+                  setTimeout(() => setCopiedInviteCode(false), 2000);
+                }}
+                className={`px-3 py-2 rounded-xl border font-mono text-[10px] font-extrabold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  copiedInviteCode 
+                    ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400' 
+                    : 'bg-sky-500/5 hover:bg-sky-500/15 border-sky-500/30 text-sky-400'
+                }`}
+              >
+                {copiedInviteCode ? <Check className="w-3 h-3 stroke-[3px]" /> : <Copy className="w-3 h-3" />}
+                {copiedInviteCode ? 'COPIADO!' : 'COPIAR'}
+              </button>
+            </div>
+          </div>
+
+          {/* Compartilhamento e Estatística Motivacional */}
+          <div className="space-y-3">
+            {/* Mensagem Motivacional baseada em recrutamento */}
+            <div className="bg-sky-500/5 border border-sky-500/10 rounded-2xl p-3.5 flex items-start gap-2.5">
+              <Sparkles className="w-4 h-4 text-sky-400 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-xs font-mono font-bold text-white uppercase">Incentivo Comunitário</p>
+                {(gameState.recruitsCount || 0) > 0 ? (
+                  <p className="text-[11px] text-slate-300 mt-1 leading-relaxed">
+                    "Você inspirou <span className="text-sky-400 font-extrabold">{(gameState.recruitsCount || 0)}</span> {((gameState.recruitsCount || 0) === 1) ? 'pessoa' : 'pessoas'} a iniciar sua jornada."
+                  </p>
+                ) : (
+                  <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                    Convide amigos para iniciar sua jornada juntos.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Botão de Compartilhar */}
+            <button
+              onClick={() => {
+                const inviteCode = gameState.friendCode || 'FIT-CACADOR';
+                const inviteLink = `https://fitnessrpg.app?ref=${inviteCode}`;
+                const shareText = `Estou evoluindo no FitnessRPG. Venha iniciar sua jornada comigo.\nLink: ${inviteLink}\nCódigo de Convite: ${inviteCode}`;
+                
+                if (navigator.share) {
+                  navigator.share({
+                    title: 'FitnessRPG',
+                    text: shareText,
+                    url: inviteLink,
+                  }).then(() => {
+                    setSharedInvite(true);
+                    setTimeout(() => setSharedInvite(false), 3000);
+                  }).catch(() => {
+                    navigator.clipboard.writeText(shareText);
+                    setSharedInvite(true);
+                    setTimeout(() => setSharedInvite(false), 3000);
+                  });
+                } else {
+                  navigator.clipboard.writeText(shareText);
+                  setSharedInvite(true);
+                  setTimeout(() => setSharedInvite(false), 3000);
+                }
+              }}
+              className="w-full py-3 bg-sky-500 hover:bg-sky-400 text-black font-mono text-xs font-black tracking-widest uppercase rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95 shadow-[0_4px_12px_rgba(14,165,233,0.15)]"
+            >
+              <Share2 className="w-4 h-4 stroke-[3px]" />
+              {sharedInvite ? 'CONVITE COPIADO!' : 'CONVIDAR AMIGOS'}
+            </button>
+          </div>
+
+          {/* Seção de Marcos de Recrutamento */}
+          <div className="space-y-3 pt-2">
+            <div className="flex justify-between items-center">
+              <span className="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-wide">MARCOS DE RECRUTAMENTO</span>
+              <div className="flex items-center gap-1.5 bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-900">
+                <span className="text-[10px] font-mono text-slate-400 font-bold">Convidados:</span>
+                <span className="text-[11px] font-mono font-black text-sky-400">{(gameState.recruitsCount || 0)}</span>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              {[
+                { target: 1, label: 'Primeiro Companheiro' },
+                { target: 3, label: 'Líder de Equipe' },
+                { target: 5, label: 'Inspirador' },
+                { target: 10, label: 'Mentor' },
+                { target: 25, label: 'Lenda da Comunidade' }
+              ].map((m) => {
+                const isUnlocked = (gameState.recruitsCount || 0) >= m.target;
+                return (
+                  <div 
+                    key={m.target}
+                    className={`p-3 rounded-2xl border flex items-center justify-between transition-colors duration-200 ${
+                      isUnlocked 
+                        ? 'bg-sky-950/10 border-sky-500/20' 
+                        : 'bg-black/40 border-slate-900/60 opacity-60'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs border ${
+                        isUnlocked 
+                          ? 'bg-sky-400/10 border-sky-400/30 text-sky-400' 
+                          : 'bg-slate-950 border-slate-900 text-slate-600'
+                      }`}>
+                        {m.target}
+                      </div>
+                      <div>
+                        <h5 className={`text-xs font-black uppercase ${isUnlocked ? 'text-sky-300' : 'text-slate-500'}`}>
+                          {m.label}
+                        </h5>
+                        <p className="text-[9px] text-slate-500 font-mono uppercase tracking-wider">
+                          Requer {m.target} {m.target === 1 ? 'amigo' : 'amigos'}
+                        </p>
+                      </div>
+                    </div>
+                    {isUnlocked ? (
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    ) : (
+                      <div className="w-4 h-4 rounded-full border border-slate-800 shrink-0" />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Danger Zone Controls */}

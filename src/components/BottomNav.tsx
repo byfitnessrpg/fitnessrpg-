@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Swords, Trophy, BarChart3, User } from 'lucide-react';
+import { Home, Swords, Trophy, BarChart3, User, TrendingUp, Users } from 'lucide-react';
 
 interface BottomNavProps {
   activeTab: string;
@@ -10,8 +10,9 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange }) 
   const navItems = [
     { id: 'home', label: 'Início', icon: Home },
     { id: 'missions', label: 'Missões', icon: Swords },
+    { id: 'evolution', label: 'Evolução', icon: TrendingUp },
     { id: 'achievements', label: 'Conquistas', icon: Trophy },
-    { id: 'ranking', label: 'Ranking', icon: BarChart3 },
+    { id: 'ranking', label: 'Amigos', icon: Users },
     { id: 'profile', label: 'Perfil', icon: User },
   ];
 

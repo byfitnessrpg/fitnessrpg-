@@ -37,7 +37,7 @@ export const Header: React.FC<HeaderProps> = ({ email, onLogout, activeTab }) =>
       case 'achievements':
         return 'CONQUISTAS';
       case 'ranking':
-        return 'CLASSIFICAÇÃO';
+        return 'LIGA DOS AMIGOS';
       case 'profile':
         return 'PERFIL DO CAÇADOR';
       default:

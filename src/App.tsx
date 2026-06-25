@@ -10,6 +10,7 @@ import { MissionsTab } from './components/MissionsTab';
 import { AchievementsTab } from './components/AchievementsTab';
 import { RankingTab } from './components/RankingTab';
 import { ProfileTab } from './components/ProfileTab';
+import { EvolutionTab } from './components/EvolutionTab';
 import { MissionScreen } from './components/MissionScreen';
 import { AuthScreen } from './components/AuthScreen';
 import { Trophy, Star, Sparkles, WifiOff, AlertTriangle, ShieldCheck, Flame, Scroll } from 'lucide-react';
@@ -38,6 +39,88 @@ export const OATH_OPTIONS = [
     effect: 'Pacto da Força Verdadeira'
   }
 ];
+
+const generateFriendCode = (name?: string) => {
+  if (name && name.trim().length >= 3) {
+    const clean = name.trim().replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 5);
+    const num = Math.floor(100 + Math.random() * 900);
+    return `${clean}-${num}`;
+  }
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let result = 'FIT-';
+  for (let i = 0; i < 4; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+};
+
+const ensureFriendSystemState = (state: GameState): GameState => {
+  const updated = { ...state };
+  if (!updated.friendCode) {
+    updated.friendCode = generateFriendCode(updated.charName || 'CAÇADOR');
+  }
+  
+  // Start with empty friends or filter out the mock ones to clean up the existing local state
+  if (updated.friends) {
+    updated.friends = updated.friends.filter(f => f.code !== 'JOAO-73' && f.code !== 'PEDRO-42' && f.code !== 'ANA-91');
+  } else {
+    updated.friends = [];
+  }
+
+  if (updated.weeklyXP === undefined) {
+    updated.weeklyXP = Math.min(1820, updated.totalXP || 0);
+  }
+
+  if (!updated.friendChallenges || updated.friendChallenges.length === 0) {
+    updated.friendChallenges = [
+      {
+        id: 'ch-1',
+        title: 'Desafio de Flexões',
+        target: 100,
+        exerciseType: 'flexoes',
+        creatorCode: updated.friendCode || 'YOU-CODE',
+        participants: [
+          { code: 'YOU-CODE', name: 'Você', progress: 0 }
+        ]
+      },
+      {
+        id: 'ch-2',
+        title: 'Super Agachamentos',
+        target: 150,
+        exerciseType: 'agachamentos',
+        creatorCode: updated.friendCode || 'YOU-CODE',
+        participants: [
+          { code: 'YOU-CODE', name: 'Você', progress: 0 }
+        ]
+      }
+    ];
+  } else {
+    // Filter out the mock participants from existing challenges too
+    updated.friendChallenges = updated.friendChallenges.map(ch => ({
+      ...ch,
+      participants: ch.participants.filter(p => p.code !== 'JOAO-73' && p.code !== 'PEDRO-42' && p.code !== 'ANA-91')
+    }));
+  }
+
+  // Bind proper user friendCode and name inside active challenges
+  if (updated.friendChallenges) {
+    updated.friendChallenges = updated.friendChallenges.map(ch => ({
+      ...ch,
+      participants: ch.participants.map(p => {
+        if (p.code === 'YOU-CODE' || p.name === 'Você') {
+          return { ...p, code: updated.friendCode || 'YOU-CODE', name: updated.charName || 'Você' };
+        }
+        return p;
+      })
+    }));
+  }
+
+  if (updated.recruitsCount === undefined) {
+    updated.recruitsCount = 0;
+  }
+
+  return updated;
+};
 
 const DEFAULT_STATE: GameState = {
   level: 1,
@@ -73,6 +156,11 @@ const DEFAULT_STATE: GameState = {
   charName: '',
   statPoints: 0,
   chosenOath: '',
+  friendCode: '',
+  friends: [],
+  weeklyXP: 0,
+  friendChallenges: [],
+  recruitsCount: 0,
 };
 
 export default function App() {
@@ -95,13 +183,20 @@ export default function App() {
     return Math.floor(100 * Math.pow(lv, 1.5));
   };
 
-  // 1. Connectivity Status listeners
+  // 1. Connectivity Status & Referral listeners
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
+
+    // Save referral code from URL parameters
+    const params = new URLSearchParams(window.location.search);
+    const refCode = params.get('ref');
+    if (refCode) {
+      localStorage.setItem('fitnessRPG_referrer', refCode.trim().toUpperCase());
+    }
 
     return () => {
       window.removeEventListener('online', handleOnline);
@@ -186,12 +281,82 @@ export default function App() {
       const cached = localStorage.getItem('fitnessRPG_state');
       const loadedLocal = cached ? JSON.parse(cached) : {};
 
+      // Parse metadata from profile_pic JSON
+      let rawProfilePic = profile.profile_pic || '';
+      let parsedProfilePic = '';
+      let dbFriendCode = '';
+      let dbInvitedBy = '';
+
+      if (rawProfilePic && rawProfilePic.startsWith('{')) {
+        try {
+          const parsed = JSON.parse(rawProfilePic);
+          parsedProfilePic = parsed.image || '';
+          dbFriendCode = parsed.friendCode || '';
+          dbInvitedBy = parsed.invitedBy || '';
+        } catch (e) {
+          console.warn("Failed to parse profilePic metadata JSON from database", e);
+          parsedProfilePic = rawProfilePic;
+        }
+      } else {
+        parsedProfilePic = rawProfilePic;
+      }
+
+      // Resolving codes and referrers
+      let resolvedFriendCode = dbFriendCode || loadedLocal.friendCode || '';
+      if (!resolvedFriendCode) {
+        resolvedFriendCode = generateFriendCode(profile.nome || loadedLocal.charName || 'CAÇADOR');
+      }
+
+      let resolvedInvitedBy = dbInvitedBy || loadedLocal.invitedBy || '';
+      const localReferrer = localStorage.getItem('fitnessRPG_referrer');
+
+      if (!resolvedInvitedBy && localReferrer) {
+        const cleanReferrer = localReferrer.trim().toUpperCase();
+        // 1. Prevent self-referral
+        if (cleanReferrer !== resolvedFriendCode) {
+          // 2. Validate that the referrer actually exists in DB
+          try {
+            const { data: refCheck } = await supabase
+              .from('profiles')
+              .select('id')
+              .like('profile_pic', `%friendCode":"${cleanReferrer}%`)
+              .limit(1);
+
+            if (refCheck && refCheck.length > 0) {
+              resolvedInvitedBy = cleanReferrer;
+              localStorage.removeItem('fitnessRPG_referrer');
+            } else {
+              console.warn(`Referral code ${cleanReferrer} does not exist in DB.`);
+            }
+          } catch (e) {
+            console.error("Failed to validate referral code", e);
+          }
+        } else {
+          console.warn("Self-referral is not allowed.");
+          localStorage.removeItem('fitnessRPG_referrer');
+        }
+      }
+
+      // Fetch real recruits count from the DB
+      let recruits = 0;
+      if (resolvedFriendCode) {
+        try {
+          const { data: recruitsData } = await supabase
+            .from('profiles')
+            .select('profile_pic')
+            .like('profile_pic', `%invitedBy":"${resolvedFriendCode}%`);
+          recruits = recruitsData ? recruitsData.length : 0;
+        } catch (e) {
+          console.error("Failed to fetch recruits count", e);
+        }
+      }
+
       // Merging profile & local storage data securely
       const mergedState: GameState = {
         ...DEFAULT_STATE,
         ...loadedLocal,
         charName: profile.nome || loadedLocal.charName || DEFAULT_STATE.charName || '',
-        profilePic: profile.profile_pic || loadedLocal.profilePic || DEFAULT_STATE.profilePic || '',
+        profilePic: parsedProfilePic || loadedLocal.profilePic || DEFAULT_STATE.profilePic || '',
         xp: profile.xp || 0,
         level: profile.nivel || 1,
         streak: profile.streak || 0,
@@ -200,19 +365,30 @@ export default function App() {
         lastTrainingDate: profile.last_training_date || null,
         totalXP: profile.total_xp || profile.xp || 0,
         chosenOath: loadedLocal.chosenOath || DEFAULT_STATE.chosenOath || '',
+        friendCode: resolvedFriendCode,
+        invitedBy: resolvedInvitedBy,
+        recruitsCount: recruits,
       };
 
       // Check day reset
       const checkedState = checkDayReset(mergedState);
-      setGameState(checkedState);
-      localStorage.setItem('fitnessRPG_state', JSON.stringify(checkedState));
+      const finalizedState = ensureFriendSystemState(checkedState);
+      setGameState(finalizedState);
+      localStorage.setItem('fitnessRPG_state', JSON.stringify(finalizedState));
+
+      // Trigger progress save immediately if resolved new values to update DB
+      if (resolvedFriendCode !== dbFriendCode || resolvedInvitedBy !== dbInvitedBy) {
+        await saveProgress(finalizedState);
+      }
 
     } catch (e) {
       console.warn('Erro ao carregar dados do Supabase. Carregando dados locais...', e);
       const cached = localStorage.getItem('fitnessRPG_state');
       if (cached) {
         const parsed = JSON.parse(cached);
-        setGameState(checkDayReset(parsed));
+        const checked = checkDayReset(parsed);
+        const finalized = ensureFriendSystemState(checked);
+        setGameState(finalized);
       }
     }
   };
@@ -253,6 +429,13 @@ export default function App() {
       localStorage.setItem('fitnessRPG_state', JSON.stringify(updatedState));
 
       if (user) {
+        // Bundled metadata inside the profile_pic column
+        const metaPayload = JSON.stringify({
+          image: updatedState.profilePic || '',
+          friendCode: updatedState.friendCode || '',
+          invitedBy: updatedState.invitedBy || '',
+        });
+
         await supabase
           .from('profiles')
           .upsert({
@@ -265,7 +448,7 @@ export default function App() {
             max_day_missions: updatedState.maxDayMissions,
             last_training_date: updatedState.lastTrainingDate,
             total_xp: updatedState.totalXP,
-            profile_pic: updatedState.profilePic || null,
+            profile_pic: metaPayload,
           });
       }
     } catch (e) {
@@ -364,6 +547,33 @@ export default function App() {
       nextState.int = (nextState.int || 10) + 1;
     }
 
+    // Update active friend challenges progress dynamically based on completed reps
+    if (nextState.friendChallenges && nextState.friendChallenges.length > 0) {
+      nextState.friendChallenges = nextState.friendChallenges.map(challenge => {
+        let addedProgress = 0;
+        if (challenge.exerciseType === 'flexoes' && ex.id === 'd1') {
+          addedProgress = targetVal;
+        } else if (challenge.exerciseType === 'agachamentos' && ex.id === 'd2') {
+          addedProgress = targetVal;
+        } else if (challenge.exerciseType === 'prancha' && ex.id === 'd3') {
+          addedProgress = targetVal;
+        }
+
+        if (addedProgress > 0) {
+          return {
+            ...challenge,
+            participants: challenge.participants.map(p => {
+              if (p.code === nextState.friendCode || p.name === 'Você') {
+                return { ...p, progress: Math.min(challenge.target, p.progress + addedProgress) };
+              }
+              return p;
+            })
+          };
+        }
+        return challenge;
+      });
+    }
+
     if (ex.cat === 'cardio') {
       nextState.weekCardio += 1;
       nextState.agi = (nextState.agi || 10) + 1;
@@ -380,6 +590,7 @@ export default function App() {
     let prevLevel = nextState.level;
     let nextXp = nextState.xp + ex.xp;
     nextState.totalXP += ex.xp;
+    nextState.weeklyXP = (nextState.weeklyXP || 0) + ex.xp;
 
     let leveledUp = false;
     let gainedPoints = 0;
@@ -435,6 +646,7 @@ export default function App() {
           updated.completedWeekly = [...updated.completedWeekly, m.id];
           updated.xp += m.xp;
           updated.totalXP += m.xp;
+          updated.weeklyXP = (updated.weeklyXP || 0) + m.xp;
           showToastMsg(`🏆 Missão semanal "${m.title}" completa! +${m.xp} XP`, 'gold');
         }
       }
@@ -458,6 +670,7 @@ export default function App() {
           updated.completedSpecial = [...updated.completedSpecial, m.id];
           updated.xp += m.xp;
           updated.totalXP += m.xp;
+          updated.weeklyXP = (updated.weeklyXP || 0) + m.xp;
           showToastMsg(`⭐ Missão especial "${m.title}" completa! +${m.xp} XP`, 'gold');
         }
       }
@@ -515,7 +728,25 @@ export default function App() {
       case 'achievements':
         return <AchievementsTab gameState={gameState} />;
       case 'ranking':
-        return <RankingTab gameState={gameState} />;
+        return (
+          <RankingTab
+            gameState={gameState}
+            onUpdateGameState={(newState) => {
+              setGameState(newState);
+              saveProgress(newState);
+            }}
+          />
+        );
+      case 'evolution':
+        return (
+          <EvolutionTab
+            gameState={gameState}
+            onUpdateGameState={(newState) => {
+              setGameState(newState);
+              saveProgress(newState);
+            }}
+          />
+        );
       case 'profile':
         return (
           <ProfileTab
