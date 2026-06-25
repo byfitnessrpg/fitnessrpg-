@@ -6,6 +6,7 @@ import {
   AlertTriangle, FlameKindling, Info
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { OATH_OPTIONS } from '../App';
 
 interface HomeTabProps {
   gameState: GameState;
@@ -69,6 +70,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
   };
 
   const rank = getRank(totalPower);
+  const activeOath = OATH_OPTIONS.find((opt) => opt.id === gameState.chosenOath);
 
   // Live Timer till Midnight
   const [countdown, setCountdown] = useState('06:00:00');
@@ -388,6 +390,33 @@ export const HomeTab: React.FC<HomeTabProps> = ({
           </div>
         </div>
       </div>
+
+      {/* 1.5. ACTIVE OATH / PACT FROM THE GAME MASTER */}
+      {activeOath && (
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mx-4 bg-gradient-to-r from-amber-950/20 via-amber-900/10 to-transparent border border-amber-500/20 rounded-2xl p-4 shadow-lg relative overflow-hidden"
+        >
+          <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
+          
+          <div className="flex items-center gap-2 text-amber-500 mb-2 border-b border-amber-500/10 pb-2">
+            <span className="text-lg">{activeOath.icon}</span>
+            <div className="flex-1 flex justify-between items-center">
+              <span className="text-[10px] font-mono font-black tracking-widest uppercase">
+                JURAMENTO: {activeOath.title.toUpperCase()}
+              </span>
+              <span className="text-[8px] px-1.5 py-0.5 rounded-md font-mono font-bold bg-amber-500/10 text-amber-400">
+                {activeOath.effect.toUpperCase()}
+              </span>
+            </div>
+          </div>
+          
+          <p className="text-[10.5px] text-slate-300 leading-relaxed italic font-medium">
+            "{activeOath.quote}"
+          </p>
+        </motion.div>
+      )}
 
       {/* 2. DYNAMIC POWER LEVEL RATING RAMP - SOLO LEVELING TOTAL COMBAT RATING */}
       <div className="mx-4 bg-gradient-to-r from-[#07060a] via-[#0d0a14] to-[#07060a] border border-slate-900 rounded-2xl p-4 flex items-center justify-between shadow-md relative overflow-hidden">

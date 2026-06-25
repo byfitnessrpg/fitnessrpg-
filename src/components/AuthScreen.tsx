@@ -141,7 +141,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onShowModal }
       </div>
 
       {/* 3. SLEEK OBSIDIAN FORM CARD */}
-      <div className="flex-1 flex items-center justify-center p-4 relative z-10">
+      <div className="flex-1 flex flex-col items-center justify-start p-4 relative z-10 mt-8">
         <motion.div
           initial={{ y: 25, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -283,6 +283,26 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onShowModal }
               )}
             </div>
           </form>
+        </motion.div>
+
+        {/* Game Master warning decree */}
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.25, duration: 0.5 }}
+          className="w-full max-w-sm mt-4 bg-amber-400 border border-amber-500 rounded-2xl p-3.5 text-center relative overflow-hidden shadow-[0_6px_20px_rgba(245,158,11,0.15)]"
+        >
+          <div className="absolute top-0 right-0 w-20 h-20 bg-white/20 rounded-full blur-[30px] pointer-events-none" />
+          
+          <div className="flex items-center justify-center gap-1.5 text-amber-950 mb-1">
+            <Shield className="w-3.5 h-3.5 animate-pulse text-amber-950" />
+            <span className="text-[9px] font-black font-mono tracking-wider uppercase">
+              DIRETRIZ DO MESTRE DO JOGO
+            </span>
+          </div>
+          <p className="text-[10.5px] text-slate-950 font-bold leading-relaxed">
+            "Sua força na vida real é o que move seu personagem. Trapacear clicando sem treinar é sabotar sua própria evolução legítima. Treine de verdade, vença de verdade!"
+          </p>
         </motion.div>
       </div>
 

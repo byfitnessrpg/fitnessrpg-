@@ -75,6 +75,7 @@ export interface GameState {
   charName?: string;
   statPoints?: number;
   profilePic?: string;
+  chosenOath?: string;
 }
 
 export interface RankingPlayer {
