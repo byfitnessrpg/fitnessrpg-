@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { OATH_OPTIONS } from '../App';
+import { ExerciseIcon } from './ExerciseIcon';
 
 interface HomeTabProps {
   gameState: GameState;
@@ -483,7 +484,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                 }`}
               >
                 <div className="flex items-center gap-2.5">
-                  <span className="text-sm">{ex.icon}</span>
+                  <ExerciseIcon pose={ex.pose} size="sm" />
                   <span className={`font-black tracking-wider ${isCompleted ? 'text-slate-500 line-through' : 'text-white'}`}>
                     {ex.name.toUpperCase()}
                   </span>

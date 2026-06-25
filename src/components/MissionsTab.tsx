@@ -3,6 +3,7 @@ import { Exercise, GameState } from '../types';
 import { WEEKLY_MISSIONS, SPECIAL_MISSIONS } from '../data';
 import { Target, Trophy, Clock, Check, ChevronDown, ChevronUp, Play, Zap, Shield } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { ExerciseIcon } from './ExerciseIcon';
 
 interface MissionsTabProps {
   gameState: GameState;
@@ -102,7 +103,7 @@ export const MissionsTab: React.FC<MissionsTabProps> = ({
                     className="p-4 flex items-center justify-between cursor-pointer"
                   >
                     <div className="flex items-center gap-3">
-                      <span className="text-2xl">{ex.icon}</span>
+                      <ExerciseIcon pose={ex.pose} size="md" />
                       <div>
                         <h4 className={`text-sm font-black tracking-wide ${done ? 'text-slate-500 line-through' : 'text-slate-200'}`}>
                           {ex.name.toUpperCase()}

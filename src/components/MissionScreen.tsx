@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Exercise } from '../types';
 import { ExerciseSVG } from './ExerciseSVG';
+import { ExerciseIcon } from './ExerciseIcon';
 import { X, Play, Plus, SkipForward, HelpCircle, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -134,7 +135,7 @@ export const MissionScreen: React.FC<MissionScreenProps> = ({
       <div className="px-5 py-4 flex items-center justify-between border-b border-slate-900 bg-[#050508]">
         <div>
           <h3 className="text-sm font-black font-display text-white flex items-center gap-2 uppercase tracking-wider">
-            <span className="text-xl">{exercise.icon}</span> {exercise.name}
+            <ExerciseIcon pose={exercise.pose} size="sm" /> {exercise.name}
           </h3>
           <p className="text-[10px] text-sky-400 font-mono font-bold tracking-wider">
             SÉRIE {currentSet} DE {exercise.sets}
