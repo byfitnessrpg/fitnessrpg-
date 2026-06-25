@@ -392,54 +392,6 @@ export const HomeTab: React.FC<HomeTabProps> = ({
         </div>
       </div>
 
-      {/* 1.5. ACTIVE OATH / PACT FROM THE GAME MASTER */}
-      {activeOath && (
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mx-4 bg-gradient-to-r from-amber-950/20 via-amber-900/10 to-transparent border border-amber-500/20 rounded-2xl p-4 shadow-lg relative overflow-hidden"
-        >
-          <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
-          
-          <div className="flex items-center gap-2 text-amber-500 mb-2 border-b border-amber-500/10 pb-2">
-            <span className="text-lg">{activeOath.icon}</span>
-            <div className="flex-1 flex justify-between items-center">
-              <span className="text-[10px] font-mono font-black tracking-widest uppercase">
-                JURAMENTO: {activeOath.title.toUpperCase()}
-              </span>
-              <span className="text-[8px] px-1.5 py-0.5 rounded-md font-mono font-bold bg-amber-500/10 text-amber-400">
-                {activeOath.effect.toUpperCase()}
-              </span>
-            </div>
-          </div>
-          
-          <p className="text-[10.5px] text-slate-300 leading-relaxed italic font-medium">
-            "{activeOath.quote}"
-          </p>
-        </motion.div>
-      )}
-
-      {/* 2. DYNAMIC POWER LEVEL RATING RAMP - SOLO LEVELING TOTAL COMBAT RATING */}
-      <div className="mx-4 bg-gradient-to-r from-[#07060a] via-[#0d0a14] to-[#07060a] border border-slate-900 rounded-2xl p-4 flex items-center justify-between shadow-md relative overflow-hidden">
-        <div className="absolute right-0 top-0 w-24 h-24 bg-purple-500/5 rounded-full blur-xl pointer-events-none" />
-        <div className="space-y-0.5">
-          <span className="text-[10px] font-mono font-extrabold tracking-widest text-purple-400 uppercase">PODER TOTAL DO CAÇADOR</span>
-          <p className="text-xs text-slate-400 font-medium">Desenvolva seus status treinando diariamente</p>
-        </div>
-        <div className="text-right">
-          <motion.div
-            key={totalPower}
-            initial={{ scale: 0.95 }}
-            animate={{ scale: [1, 1.1, 1] }}
-            transition={{ duration: 0.3 }}
-            className="text-4xl font-extrabold font-display bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(245,158,11,0.25)] tracking-tight font-mono leading-none"
-          >
-            {totalPower}
-          </motion.div>
-          <span className="text-[9px] font-mono font-extrabold text-amber-500 tracking-wider">PODER DE COMBATE</span>
-        </div>
-      </div>
-
       {/* 3. QUEST INFO NEON CONTAINER - EXACTLY COMPLYING WITH IMAGE 2 AND IMAGE 5 CODES */}
       <div className="mx-4 bg-black border-2 border-sky-400 rounded-3xl p-6 shadow-[0_0_25px_rgba(14,165,233,0.3)] relative overflow-hidden">
         {/* Neon blue radial pulse background */}
@@ -527,6 +479,54 @@ export const HomeTab: React.FC<HomeTabProps> = ({
             ✓ QUEST COMPLETA COM SUCESSO
           </div>
         )}
+      </div>
+
+      {/* 1.5. ACTIVE OATH / PACT FROM THE GAME MASTER */}
+      {activeOath && (
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mx-4 bg-gradient-to-r from-amber-950/20 via-amber-900/10 to-transparent border border-amber-500/20 rounded-2xl p-4 shadow-lg relative overflow-hidden"
+        >
+          <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
+          
+          <div className="flex items-center gap-2 text-amber-500 mb-2 border-b border-amber-500/10 pb-2">
+            <span className="text-lg">{activeOath.icon}</span>
+            <div className="flex-1 flex justify-between items-center">
+              <span className="text-[10px] font-mono font-black tracking-widest uppercase">
+                JURAMENTO: {activeOath.title.toUpperCase()}
+              </span>
+              <span className="text-[8px] px-1.5 py-0.5 rounded-md font-mono font-bold bg-amber-500/10 text-amber-400">
+                {activeOath.effect.toUpperCase()}
+              </span>
+            </div>
+          </div>
+          
+          <p className="text-[10.5px] text-slate-300 leading-relaxed italic font-medium">
+            "{activeOath.quote}"
+          </p>
+        </motion.div>
+      )}
+
+      {/* 2. DYNAMIC POWER LEVEL RATING RAMP - SOLO LEVELING TOTAL COMBAT RATING */}
+      <div className="mx-4 bg-gradient-to-r from-[#07060a] via-[#0d0a14] to-[#07060a] border border-slate-900 rounded-2xl p-4 flex items-center justify-between shadow-md relative overflow-hidden">
+        <div className="absolute right-0 top-0 w-24 h-24 bg-purple-500/5 rounded-full blur-xl pointer-events-none" />
+        <div className="space-y-0.5">
+          <span className="text-[10px] font-mono font-extrabold tracking-widest text-purple-400 uppercase">PODER TOTAL DO CAÇADOR</span>
+          <p className="text-xs text-slate-400 font-medium">Desenvolva seus status treinando diariamente</p>
+        </div>
+        <div className="text-right">
+          <motion.div
+            key={totalPower}
+            initial={{ scale: 0.95 }}
+            animate={{ scale: [1, 1.1, 1] }}
+            transition={{ duration: 0.3 }}
+            className="text-4xl font-extrabold font-display bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(245,158,11,0.25)] tracking-tight font-mono leading-none"
+          >
+            {totalPower}
+          </motion.div>
+          <span className="text-[9px] font-mono font-extrabold text-amber-500 tracking-wider">PODER DE COMBATE</span>
+        </div>
       </div>
 
       {/* 5. CONTROLE DE HIDRATAÇÃO (ÁGUA) */}
