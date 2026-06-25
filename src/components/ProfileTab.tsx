@@ -165,7 +165,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ gameState, xpNeeded, onR
               {/* Portrait or Level display */}
               <div className="w-20 h-20 rounded-full overflow-hidden bg-slate-950 border border-slate-900 flex flex-col items-center justify-center leading-none relative">
                 {gameState.profilePic ? (
-                  <img src={gameState.profilePic} alt="Portrait" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                  <img src={gameState.profilePic} alt="Portrait" className="w-full h-full object-cover" referrerPolicy="no-referrer" crossOrigin="anonymous" />
                 ) : (
                   <>
                     <span className="text-3xl font-black font-mono text-white leading-none">{gameState.level}</span>
@@ -276,11 +276,13 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ gameState, xpNeeded, onR
 
           {/* Código de Convite */}
           <div className="bg-[#030205] border border-slate-900 rounded-2xl p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex items-center justify-between gap-2 min-w-0">
+              <div className="min-w-0 flex-1">
                 <span className="text-[9px] font-mono font-bold text-slate-500 uppercase block">SEU CÓDIGO DE CONVITE</span>
-                <span className="text-lg font-black font-mono text-sky-400 tracking-wider block mt-0.5">
-                  {gameState.friendCode || 'FIT-CACADOR'}
+                <span className="text-lg font-black font-mono text-sky-400 tracking-wider block mt-0.5 truncate" title={gameState.friendCode || 'FIT-CACADOR'}>
+                  {gameState.friendCode && gameState.friendCode.length > 12 
+                    ? `${gameState.friendCode.substring(0, 10)}...` 
+                    : (gameState.friendCode || 'FIT-CACADOR')}
                 </span>
               </div>
               <button
@@ -289,7 +291,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ gameState, xpNeeded, onR
                   setCopiedInviteCode(true);
                   setTimeout(() => setCopiedInviteCode(false), 2000);
                 }}
-                className={`px-3 py-2 rounded-xl border font-mono text-[10px] font-extrabold flex items-center gap-1.5 transition-all cursor-pointer ${
+                className={`px-3 py-2 rounded-xl border font-mono text-[10px] font-extrabold flex items-center gap-1.5 transition-all cursor-pointer shrink-0 ${
                   copiedInviteCode 
                     ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400' 
                     : 'bg-sky-500/5 hover:bg-sky-500/15 border-sky-500/30 text-sky-400'
@@ -324,7 +326,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ gameState, xpNeeded, onR
             <button
               onClick={() => {
                 const inviteCode = gameState.friendCode || 'FIT-CACADOR';
-                const inviteLink = `https://fitnessrpg.app?ref=${inviteCode}`;
+                const inviteLink = `https://fitnessrpg.vercel.app?ref=${inviteCode}`;
                 const shareText = `Estou evoluindo no FitnessRPG. Venha iniciar sua jornada comigo.\nLink: ${inviteLink}\nCódigo de Convite: ${inviteCode}`;
                 
                 if (navigator.share) {

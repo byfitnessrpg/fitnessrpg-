@@ -303,14 +303,16 @@ export const RankingTab: React.FC<RankingTabProps> = ({ gameState, onUpdateGameS
         </div>
 
         {/* Display My Code */}
-        <div className="bg-[#030205] border border-slate-900 rounded-2xl p-4 flex items-center justify-between">
-          <div>
+        <div className="bg-[#030205] border border-slate-900 rounded-2xl p-4 flex items-center justify-between gap-3 min-w-0">
+          <div className="min-w-0 flex-1">
             <span className="text-[9px] font-mono font-bold text-slate-500 uppercase block">SEU CÓDIGO DE CAÇADOR</span>
-            <span className="text-lg font-black font-mono text-sky-400 tracking-wider block mt-0.5">{myCode}</span>
+            <span className="text-lg font-black font-mono text-sky-400 tracking-wider block mt-0.5 truncate" title={myCode}>
+              {myCode && myCode.length > 12 ? `${myCode.substring(0, 10)}...` : myCode}
+            </span>
           </div>
           <button
             onClick={handleCopyCode}
-            className={`px-4 py-2.5 rounded-xl border font-mono text-xs font-extrabold flex items-center gap-2 transition-all cursor-pointer ${
+            className={`px-4 py-2.5 rounded-xl border font-mono text-xs font-extrabold flex items-center gap-2 transition-all cursor-pointer shrink-0 ${
               copied 
                 ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400' 
                 : 'bg-sky-500/5 hover:bg-sky-500/15 border-sky-500/30 text-sky-400'
@@ -438,21 +440,33 @@ export const RankingTab: React.FC<RankingTabProps> = ({ gameState, onUpdateGameS
                   </div>
 
                   {/* Avatar Icon */}
-                  <div className="w-9 h-9 rounded-xl bg-slate-950 border border-slate-900 flex items-center justify-center text-base shrink-0">
-                    {player.avatar}
+                  <div className="w-9 h-9 rounded-xl bg-slate-950 border border-slate-900 flex items-center justify-center text-base shrink-0 overflow-hidden">
+                    {player.avatar && (player.avatar.startsWith('http') || player.avatar.startsWith('data:')) ? (
+                      <img src={player.avatar} alt={player.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" crossOrigin="anonymous" />
+                    ) : (
+                      player.avatar
+                    )}
                   </div>
 
                   {/* Profile detail */}
-                  <div>
-                    <h4 className={`text-xs font-black flex items-center gap-1 uppercase ${isMe ? 'text-sky-400' : 'text-slate-200'}`}>
-                      {player.name} 
+                  <div className="min-w-0 flex-1">
+                    <h4 className={`text-xs font-black flex items-center gap-1 uppercase ${isMe ? 'text-sky-400' : 'text-slate-200'} truncate`}>
+                      <span className="truncate max-w-[110px] block" title={player.name}>{player.name}</span>
                       {isMe && (
-                        <span className="text-[8px] font-mono uppercase bg-white text-black font-black px-1.5 py-0.5 rounded ml-1 tracking-wider">
+                        <span className="text-[8px] font-mono uppercase bg-white text-black font-black px-1.5 py-0.5 rounded ml-1 tracking-wider shrink-0">
                           Você
                         </span>
                       )}
                     </h4>
-                    <p className="text-[9px] text-slate-500 font-mono">Level {player.level} · {player.streak}🔥 dias</p>
+                    <p className="text-[9px] text-slate-500 font-mono flex items-center gap-1 flex-wrap">
+                      <span>Lv {player.level}</span>
+                      <span>·</span>
+                      <span>{player.streak}🔥</span>
+                      <span>·</span>
+                      <span className="text-[8px] text-slate-400 font-bold bg-slate-900/50 px-1 py-0.5 rounded tracking-wide max-w-[70px] truncate" title={player.code}>
+                        ID: {player.code && player.code.length > 6 ? player.code.substring(0, 6) : player.code}
+                      </span>
+                    </p>
                   </div>
                 </div>
 
@@ -694,18 +708,26 @@ export const RankingTab: React.FC<RankingTabProps> = ({ gameState, onUpdateGameS
                 key={player.code + '-group'}
                 className="bg-[#030205] border border-slate-900/60 rounded-2xl p-3 flex items-center justify-between hover:border-slate-800 transition-colors"
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-slate-950 border border-slate-900/80 flex items-center justify-center text-sm">
-                    {player.avatar}
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className="w-8 h-8 rounded-lg bg-slate-950 border border-slate-900/80 flex items-center justify-center text-sm shrink-0 overflow-hidden">
+                    {player.avatar && (player.avatar.startsWith('http') || player.avatar.startsWith('data:')) ? (
+                      <img src={player.avatar} alt={player.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" crossOrigin="anonymous" />
+                    ) : (
+                      player.avatar
+                    )}
                   </div>
-                  <div>
-                    <h5 className={`text-xs font-black uppercase ${isPlayerMe ? 'text-sky-400' : 'text-slate-300'}`}>
-                      {player.name} {isPlayerMe && <span className="text-[8px] font-normal text-slate-500 lowercase">(me)</span>}
+                  <div className="min-w-0 flex-1">
+                    <h5 className={`text-xs font-black uppercase ${isPlayerMe ? 'text-sky-400' : 'text-slate-300'} truncate flex items-center gap-1.5`}>
+                      <span className="truncate max-w-[110px] block" title={player.name}>{player.name}</span>
+                      {isPlayerMe && <span className="text-[8px] font-normal text-slate-500 lowercase shrink-0">(me)</span>}
                     </h5>
-                    <div className="flex items-center gap-1 mt-0.5">
-                      <span className="text-[10px] font-mono font-extrabold text-orange-400 flex items-center gap-0.5">
-                        <Flame className="w-3.5 h-3.5 fill-orange-500 text-orange-500" />
-                        {player.streak} dias seguidos
+                    <div className="flex items-center gap-1.5 mt-0.5 text-[10px] font-mono flex-wrap">
+                      <span className="font-extrabold text-orange-400 flex items-center gap-0.5 shrink-0">
+                        <Flame className="w-3.5 h-3.5 fill-orange-500 text-orange-500 animate-pulse" />
+                        {player.streak} dias
+                      </span>
+                      <span className="text-[8px] text-slate-400 font-bold bg-slate-900/50 px-1 py-0.5 rounded tracking-wide max-w-[70px] truncate" title={player.code}>
+                        ID: {player.code && player.code.length > 6 ? player.code.substring(0, 6) : player.code}
                       </span>
                     </div>
                   </div>

@@ -196,7 +196,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                 : 'bg-gradient-to-b from-slate-950 to-slate-900 border-2 border-sky-400 shadow-[0_0_20px_rgba(14,165,233,0.35)]'
             }`}>
               {gameState.profilePic ? (
-                <img src={gameState.profilePic} alt="Portrait" className="w-full h-full object-cover rounded-xl" referrerPolicy="no-referrer" />
+                <img src={gameState.profilePic} alt="Portrait" className="w-full h-full object-cover rounded-xl" referrerPolicy="no-referrer" crossOrigin="anonymous" />
               ) : (
                 <span className="select-none text-4xl filter drop-shadow-[0_2px_8px_rgba(14,165,233,0.5)]">👤</span>
               )}
