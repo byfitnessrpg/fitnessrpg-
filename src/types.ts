@@ -103,6 +103,9 @@ export interface GameState {
     agachamentos: number;
     prancha: number;
   };
+  cronograma_dias?: string[];
+  cronograma_janela?: string;
+  completedRecoveryToday?: string[];
 }
 
 export interface Friend {

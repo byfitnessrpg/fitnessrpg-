@@ -19,7 +19,8 @@ import {
   User,
   Activity,
   Heart,
-  HelpCircle
+  HelpCircle,
+  Fingerprint
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -52,6 +53,12 @@ export const AssessmentScreen: React.FC<AssessmentScreenProps> = ({
   const [flexoes, setFlexoes] = useState<number>(0);
   const [agachamentos, setAgachamentos] = useState<number>(0);
   const [prancha, setPrancha] = useState<number>(0);
+
+  const [cronogramaDias, setCronogramaDias] = useState<string[]>(['Seg', 'Qua', 'Sex']);
+  const [cronogramaJanela, setCronogramaJanela] = useState<string>('Manhã');
+  
+  const [isScanning, setIsScanning] = useState<boolean>(false);
+  const [scanProgress, setScanProgress] = useState<number>(0);
   
   const [errors, setErrors] = useState<Record<string, string>>({});
   
@@ -65,6 +72,42 @@ export const AssessmentScreen: React.FC<AssessmentScreenProps> = ({
   } | null>(null);
 
   const [showMestreMessage, setShowMestreMessage] = useState<boolean>(false);
+
+  React.useEffect(() => {
+    let interval: any = null;
+    if (isScanning && step === 7) {
+      interval = setInterval(() => {
+        setScanProgress((prev) => {
+          if (prev >= 100) {
+            clearInterval(interval);
+            setIsScanning(false);
+            // Trigger transition to results after a short delay
+            setTimeout(() => {
+              calculateResults();
+              setStep(8);
+            }, 600);
+            return 100;
+          }
+          return prev + 2;
+        });
+      }, 50);
+    } else {
+      if (interval) clearInterval(interval);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isScanning, step]);
+
+  const getScanMessage = (progress: number): string => {
+    if (progress === 0) return 'AGUARDANDO BIOMETRIA...';
+    if (progress < 20) return 'INICIALIZANDO PROTOCOLO BIOMÉTRICO...';
+    if (progress < 40) return 'CONECTANDO AO BANCO DE DADOS DO SISTEMA...';
+    if (progress < 65) return 'ANALISANDO DADOS DO JOGADOR...';
+    if (progress < 85) return 'CALIBRANDO RANK DE CAÇADOR...';
+    if (progress < 100) return 'SISTEMA GERANDO CRONOGRAMA...';
+    return 'AVALIAÇÃO CONCLUÍDA!';
+  };
 
   // Objective choices
   const OBJETIVOS = [
@@ -136,8 +179,20 @@ export const AssessmentScreen: React.FC<AssessmentScreenProps> = ({
     setErrors({});
 
     if (step === 5) {
-      calculateResults();
       setStep(6);
+    } else if (step === 6) {
+      if (cronogramaDias.length === 0) {
+        newErrors.cronogramaDias = 'Selecione pelo menos 1 dia de atividade para seu cronograma.';
+        setErrors(newErrors);
+        return;
+      }
+      setScanProgress(0);
+      setIsScanning(false);
+      setStep(7);
+    } else if (step === 7) {
+      // Step 7 is biometrics, normally completes automatically but just in case:
+      calculateResults();
+      setStep(8);
     } else {
       setStep(prev => prev + 1);
     }
@@ -145,6 +200,8 @@ export const AssessmentScreen: React.FC<AssessmentScreenProps> = ({
 
   const handlePrevStep = () => {
     setErrors({});
+    setIsScanning(false);
+    setScanProgress(0);
     setStep(prev => Math.max(1, prev - 1));
   };
 
@@ -235,6 +292,8 @@ export const AssessmentScreen: React.FC<AssessmentScreenProps> = ({
         agachamentos: computedProfile.agachamentos,
         prancha: computedProfile.prancha,
       },
+      cronograma_dias: cronogramaDias,
+      cronograma_janela: cronogramaJanela,
       weight: parseFloat(peso),
       weightHistory: [
         ...(gameState.weightHistory || []),
@@ -270,7 +329,7 @@ export const AssessmentScreen: React.FC<AssessmentScreenProps> = ({
       )}
 
       {/* Top progress bar with back button inline */}
-      {step > 1 && step < 6 && (
+      {step > 1 && step < 8 && (
         <div className="w-full flex items-center gap-4 pt-2 pb-6 z-10 shrink-0">
           <button 
             id="btn-back-step"
@@ -283,7 +342,7 @@ export const AssessmentScreen: React.FC<AssessmentScreenProps> = ({
           <div className="flex-1 h-1 bg-[#121016] border border-slate-900 rounded-full overflow-hidden relative">
             <div 
               className="h-full bg-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.8)] transition-all duration-300 rounded-full"
-              style={{ width: `${((step - 1) / 4) * 100}%` }}
+              style={{ width: `${((step - 1) / 6) * 100}%` }}
             />
           </div>
 
@@ -811,12 +870,189 @@ export const AssessmentScreen: React.FC<AssessmentScreenProps> = ({
               onClick={handleNextStep}
               className="w-full py-4 bg-cyan-400 hover:bg-cyan-300 text-black font-display font-black tracking-[0.2em] uppercase rounded-none shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all duration-200 flex items-center justify-center gap-2 active:scale-95 cursor-pointer text-sm z-10 mt-4"
             >
-              CONCLUIR ANÁLISE
+              CONTINUAR
             </button>
           </motion.div>
         )}
 
-        {step === 6 && !showMestreMessage && (
+        {step === 6 && (
+          <motion.div
+            key="step6"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            className="flex-1 flex flex-col justify-between py-4 z-10 w-full"
+          >
+            <div className="space-y-6">
+              {/* Header */}
+              <div className="text-center space-y-1">
+                <h2 className="text-2xl font-black font-display text-white tracking-widest uppercase neon-text-blue">
+                  CRONOGRAMA
+                </h2>
+                <p className="text-xs text-slate-400 font-mono">Defina sua rotina de caça</p>
+              </div>
+
+              {/* Dias de Atividade */}
+              <div className="space-y-3">
+                <label className="text-xs font-black font-mono text-cyan-400 uppercase tracking-wider block">
+                  Dias de Atividade
+                </label>
+                <div className="flex justify-between gap-1.5">
+                  {[
+                    { id: 'Seg', label: 'S' },
+                    { id: 'Ter', label: 'T' },
+                    { id: 'Qua', label: 'Q' },
+                    { id: 'Qui', label: 'Q' },
+                    { id: 'Sex', label: 'S' },
+                    { id: 'Sab', label: 'S' },
+                    { id: 'Dom', label: 'D' }
+                  ].map((day) => {
+                    const isSelected = cronogramaDias.includes(day.id);
+                    return (
+                      <button
+                        key={day.id}
+                        type="button"
+                        onClick={() => {
+                          if (isSelected) {
+                            setCronogramaDias(cronogramaDias.filter(d => d !== day.id));
+                          } else {
+                            setCronogramaDias([...cronogramaDias, day.id]);
+                          }
+                        }}
+                        className={`w-11 h-11 border font-mono font-bold text-sm flex items-center justify-center transition-all cursor-pointer rounded-lg ${
+                          isSelected
+                            ? 'bg-[#040a12]/40 border-cyan-400 text-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.3)]'
+                            : 'bg-[#0c0a0f]/80 border-slate-900 text-slate-500 hover:border-slate-800'
+                        }`}
+                      >
+                        {day.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                {errors.cronogramaDias && (
+                  <span className="text-[#ff3e6c] text-[10px] font-mono font-bold flex items-center gap-1 mt-1">
+                    <ShieldAlert className="w-3.5 h-3.5" /> {errors.cronogramaDias}
+                  </span>
+                )}
+              </div>
+
+              {/* Janela de Treino */}
+              <div className="space-y-3">
+                <label className="text-xs font-black font-mono text-cyan-400 uppercase tracking-wider block">
+                  Janela de Treino
+                </label>
+                <div className="grid grid-cols-2 gap-4">
+                  {['Manhã', 'Tarde', 'Noite', 'Madrugada'].map((windowName) => {
+                    const isSelected = cronogramaJanela === windowName;
+                    return (
+                      <button
+                        key={windowName}
+                        type="button"
+                        onClick={() => setCronogramaJanela(windowName)}
+                        className={`relative py-8 px-4 border text-center transition-all duration-200 cursor-pointer flex items-center justify-center min-h-[110px] rounded-2xl ${
+                          isSelected
+                            ? 'bg-[#040a12]/40 border-cyan-400 text-white shadow-[0_0_15px_rgba(6,182,212,0.35)] ring-2 ring-cyan-400/50'
+                            : 'bg-[#0c0a0f]/80 border-slate-900 text-slate-400 hover:border-slate-800'
+                        }`}
+                      >
+                        {isSelected && (
+                          <div className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full bg-cyan-400 flex items-center justify-center shadow-[0_0_8px_rgba(6,182,212,0.6)]">
+                            <Check className="w-3.5 h-3.5 text-black stroke-[3]" />
+                          </div>
+                        )}
+                        <span className={`text-sm font-bold uppercase tracking-wider block ${isSelected ? 'text-cyan-400 font-extrabold' : 'text-slate-500'}`}>
+                          {windowName}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            <button
+              id="btn-step6-next"
+              onClick={handleNextStep}
+              className="w-full py-4 bg-cyan-400 hover:bg-cyan-300 text-black font-display font-black tracking-[0.2em] uppercase rounded-none shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all duration-200 flex items-center justify-center gap-2 active:scale-95 cursor-pointer text-sm z-10 mt-6"
+            >
+              CONTINUAR
+            </button>
+          </motion.div>
+        )}
+
+        {step === 7 && (
+          <motion.div
+            key="step7"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            className="flex-1 flex flex-col justify-between py-4 z-10 w-full"
+          >
+            <div className="space-y-6">
+              {/* Header */}
+              <div className="text-center space-y-1">
+                <h2 className="text-xl font-black font-display text-white tracking-widest uppercase neon-text-blue">
+                  PROCEDIMENTO DE AVALIAÇÃO OBRIGATÓRIO
+                </h2>
+                <p className="text-[11px] text-slate-400 font-mono">
+                  Pressione a biometria para iniciar a avaliação do Sistema
+                </p>
+              </div>
+
+              {/* Progress and status message */}
+              <div className="space-y-3 pt-12">
+                <span className="text-[10px] font-black font-mono text-cyan-400 uppercase tracking-widest block animate-pulse">
+                  {getScanMessage(scanProgress)}
+                </span>
+                
+                {/* Thin custom progress loading bar matching the design */}
+                <div className="w-full h-1 bg-[#121016] border border-slate-900 rounded-full overflow-hidden relative">
+                  <div 
+                    className="h-full bg-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.8)] transition-all duration-100 rounded-full"
+                    style={{ width: `${scanProgress}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Fingerprint touch target container */}
+            <div className="flex flex-col items-center justify-center mt-auto pb-12 gap-3">
+              <button
+                type="button"
+                onMouseDown={() => setIsScanning(true)}
+                onMouseUp={() => setIsScanning(false)}
+                onMouseLeave={() => setIsScanning(false)}
+                onTouchStart={() => setIsScanning(true)}
+                onTouchEnd={() => setIsScanning(false)}
+                onClick={() => {
+                  if (!isScanning) {
+                    setIsScanning(true);
+                  }
+                }}
+                className={`w-28 h-28 rounded-full border flex items-center justify-center transition-all duration-300 relative outline-none focus:outline-none cursor-pointer ${
+                  isScanning 
+                    ? 'bg-cyan-500/10 border-cyan-400 shadow-[0_0_30px_rgba(6,182,212,0.5)] scale-95' 
+                    : 'bg-[#0c0a0f]/80 border-slate-900 hover:border-slate-800 hover:shadow-[0_0_15px_rgba(255,255,255,0.05)]'
+                }`}
+              >
+                {/* Ping wave animation while holding */}
+                {isScanning && (
+                  <span className="absolute inset-0 rounded-full border border-cyan-400 animate-ping opacity-75 pointer-events-none" />
+                )}
+                <Fingerprint className={`w-14 h-14 transition-colors duration-300 ${
+                  isScanning ? 'text-cyan-400' : 'text-slate-500'
+                }`} />
+              </button>
+              
+              <span className="text-[9px] font-mono font-bold text-slate-500 uppercase tracking-widest leading-none mt-2">
+                {isScanning ? 'MANTENHA PRESSIONADO' : 'TOQUE OU SEGURE PARA ESCANEAR'}
+              </span>
+            </div>
+          </motion.div>
+        )}
+
+        {step === 8 && !showMestreMessage && (
           <motion.div
             key="results"
             initial={{ opacity: 0, scale: 0.95 }}

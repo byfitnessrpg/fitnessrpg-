@@ -132,6 +132,7 @@ const DEFAULT_STATE: GameState = {
   lastTrainingDate: null,
   totalMissions: 0,
   completedToday: [],
+  completedRecoveryToday: [],
   weekDaysTraining: 0,
   weekFlexoes: 0,
   weekCardio: 0,
@@ -441,27 +442,54 @@ export default function App() {
     }
   };
 
+  const isScheduledTrainingDay = (date: Date, cronogramaDias?: string[]): boolean => {
+    if (!cronogramaDias || cronogramaDias.length === 0) return true; // Default to all days if not configured
+    const DAYS_MAP = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
+    const dayAbbrev = DAYS_MAP[date.getDay()];
+    return cronogramaDias.includes(dayAbbrev);
+  };
+
   // Check and perform midnight date resets
   const checkDayReset = (stateVal: GameState): GameState => {
     const today = new Date().toDateString();
-    if (stateVal.lastTrainingDate !== today) {
+    if (stateVal.lastTrainingDate && stateVal.lastTrainingDate !== today) {
       let updatedState = { ...stateVal };
 
-      if (stateVal.completedToday.length > 0) {
-        // Was training yesterday?
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
+      // Parse dates to check for missed training days
+      const lastDate = new Date(stateVal.lastTrainingDate);
+      const currentDate = new Date(today);
+      
+      // Calculate days difference
+      const diffTime = Math.abs(currentDate.getTime() - lastDate.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-        if (stateVal.lastTrainingDate === yesterday.toDateString()) {
+      let missedTrainingDays = 0;
+      // Check each day between lastTrainingDate and yesterday (exclusive)
+      for (let i = 1; i < diffDays; i++) {
+        const checkDate = new Date(lastDate);
+        checkDate.setDate(checkDate.getDate() + i);
+        if (isScheduledTrainingDay(checkDate, stateVal.cronograma_dias)) {
+          missedTrainingDays++;
+        }
+      }
+
+      if (stateVal.completedToday.length > 0) {
+        if (missedTrainingDays === 0) {
           updatedState.streak = (updatedState.streak || 0) + 1;
         } else {
-          updatedState.streak = 1; // Start brand new streak
+          updatedState.streak = 1; // start new streak since they completed today but missed days
         }
-
         updatedState.maxDayMissions = Math.max(updatedState.maxDayMissions, stateVal.completedToday.length);
+      } else {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        if (isScheduledTrainingDay(yesterday, stateVal.cronograma_dias) || missedTrainingDays > 0) {
+          updatedState.streak = 0;
+        }
       }
 
       updatedState.completedToday = [];
+      updatedState.completedRecoveryToday = [];
       updatedState.todayCategories = [];
       updatedState.earlyBird = false;
       updatedState.trioPerfect = false;
@@ -707,6 +735,51 @@ export default function App() {
     }
   };
 
+  const handleCompleteRecoveryActivity = (activityId: string, xpReward: number, name: string) => {
+    const nextState = { ...gameState };
+    if (!nextState.completedRecoveryToday) {
+      nextState.completedRecoveryToday = [];
+    }
+    if (nextState.completedRecoveryToday.includes(activityId)) return;
+    
+    nextState.completedRecoveryToday = [...nextState.completedRecoveryToday, activityId];
+    
+    // Grant XP & Calculate level up
+    let prevLevel = nextState.level;
+    let nextXp = nextState.xp + xpReward;
+    nextState.totalXP += xpReward;
+    nextState.weeklyXP = (nextState.weeklyXP || 0) + xpReward;
+
+    let leveledUp = false;
+    let gainedPoints = 0;
+    while (nextXp >= xpForLevel(prevLevel)) {
+      nextXp -= xpForLevel(prevLevel);
+      prevLevel += 1;
+      leveledUp = true;
+      gainedPoints += 5;
+    }
+
+    nextState.level = prevLevel;
+    nextState.xp = nextXp;
+    if (leveledUp) {
+      nextState.statPoints = (nextState.statPoints || 0) + gainedPoints;
+    }
+
+    // Check achievements
+    let updatedState = checkAchievements(nextState);
+
+    setGameState(updatedState);
+    saveProgress(updatedState);
+
+    showToastMsg(`🛌 ${name} completo! +${xpReward} XP`, 'success');
+
+    if (leveledUp) {
+      setTimeout(() => {
+        setLevelUpShow(prevLevel);
+      }, 700);
+    }
+  };
+
   const checkWeeklyContracts = (stateVal: GameState): GameState => {
     let updated = { ...stateVal };
     const getProgress = (id: string) => {
@@ -791,6 +864,7 @@ export default function App() {
               setGameState(newState);
               saveProgress(newState);
             }}
+            onCompleteRecoveryActivity={handleCompleteRecoveryActivity}
             theme={theme}
           />
         );
@@ -801,6 +875,7 @@ export default function App() {
             exercises={EXERCISES}
             onStartExercise={(id) => setActiveExerciseId(id)}
             scaledTarget={getScaledTarget}
+            onCompleteRecoveryActivity={handleCompleteRecoveryActivity}
             theme={theme}
           />
         );

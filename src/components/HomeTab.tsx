@@ -9,12 +9,40 @@ import { motion, AnimatePresence } from 'motion/react';
 import { OATH_OPTIONS } from '../App';
 import { ExerciseIcon } from './ExerciseIcon';
 
+export const RECOVERY_ACTIVITIES = [
+  {
+    id: 'rec_walk',
+    name: 'Caminhada Leve',
+    desc: 'Caminhada leve de 15-20 minutos para manter a circulação ativa e regenerar.',
+    icon: '🚶',
+    xp: 25,
+    tag: 'OPCIONAL'
+  },
+  {
+    id: 'rec_stretch',
+    name: 'Alongamento Suave',
+    desc: 'Alongue-se suavemente por 5 minutos para aliviar as tensões corporais.',
+    icon: '🧘',
+    xp: 20,
+    tag: 'OPCIONAL'
+  },
+  {
+    id: 'rec_hydrate',
+    name: 'Super Hidratação',
+    desc: 'Complete sua meta de água para lubrificar as articulações e recuperar fibras.',
+    icon: '💧',
+    xp: 15,
+    tag: 'RECOMENDADO'
+  }
+];
+
 interface HomeTabProps {
   gameState: GameState;
   exercises: Exercise[];
   onStartExercise: (id: string) => void;
   scaledTarget: (ex: Exercise) => number;
   onUpdateGameState: (newState: GameState) => void;
+  onCompleteRecoveryActivity?: (activityId: string, xpReward: number, name: string) => void;
   theme?: 'dark' | 'light';
 }
 
@@ -24,6 +52,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
   onStartExercise,
   scaledTarget,
   onUpdateGameState,
+  onCompleteRecoveryActivity,
   theme = 'dark',
 }) => {
   // Gracefully handle undefined fields from gameState
@@ -40,17 +69,30 @@ export const HomeTab: React.FC<HomeTabProps> = ({
   const charName = gameState.charName || 'Mcfly';
   const statPoints = gameState.statPoints || 0;
 
+  // Rest day detection based on Cronograma
+  const DAYS_MAP = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
+  const todayAbbrev = DAYS_MAP[new Date().getDay()];
+  const isTrainingDay = !gameState.cronograma_dias || gameState.cronograma_dias.includes(todayAbbrev);
+
   // Local settings toggle state
   const [showSettings, setShowSettings] = useState(false);
   const [tempName, setTempName] = useState(charName);
   const [selectedClass, setSelectedClass] = useState(charClass);
 
-  const completedCount = gameState.completedToday.length;
-  const totalCount = exercises.length;
+  const completedCount = isTrainingDay 
+    ? gameState.completedToday.length 
+    : (gameState.completedRecoveryToday || []).length;
+  const totalCount = isTrainingDay 
+    ? exercises.length 
+    : RECOVERY_ACTIVITIES.length;
   const percentCompleted = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
-  const activeQuests = exercises.filter((e) => !gameState.completedToday.includes(e.id));
-  const completedQuests = exercises.filter((e) => gameState.completedToday.includes(e.id));
+  const activeQuests = isTrainingDay 
+    ? exercises.filter((e) => !gameState.completedToday.includes(e.id)) 
+    : RECOVERY_ACTIVITIES.filter((r) => !(gameState.completedRecoveryToday || []).includes(r.id));
+  const completedQuests = isTrainingDay 
+    ? exercises.filter((e) => gameState.completedToday.includes(e.id)) 
+    : RECOVERY_ACTIVITIES.filter((r) => (gameState.completedRecoveryToday || []).includes(r.id));
 
   // HP and Mana dynamic calculation
   // Starts at 50% HP and goes up 15% with each quest completed
@@ -492,7 +534,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
             <span className={`text-sm font-black tracking-widest uppercase font-display ${
               isLight ? 'text-slate-800' : 'text-white'
             }`}>
-              QUEST INFO
+              {isTrainingDay ? '⚔️ MISSÃO PROGRAMADA' : '🛌 MISSÃO DE RECUPERAÇÃO'}
             </span>
           </div>
           {/* Live countdown timer */}
@@ -509,96 +551,210 @@ export const HomeTab: React.FC<HomeTabProps> = ({
         <h3 className={`text-base font-black tracking-widest uppercase font-mono ${
           isLight ? 'text-slate-950' : 'text-white'
         }`}>
-          Treino de Sung Jinwoo
+          {isTrainingDay ? `Treino de ${charName}` : `Recuperação de ${charName}`}
         </h3>
         <p className={`text-[10px] font-mono mt-1 mb-5 uppercase tracking-wide ${
           isLight ? 'text-slate-400 font-bold' : 'text-slate-500'
         }`}>
-          SISTEMA ATIVO DIÁRIO DE ATIVIDADES
+          {isTrainingDay ? 'SISTEMA ATIVO DE MISSÕES PROGRAMADAS' : 'SISTEMA ATIVO DE REGENERAÇÃO'}
         </p>
 
         {/* Quest Items List - Interactive click to start */}
-        <div className="space-y-2.5 my-4 font-mono text-xs">
-          {exercises.map((ex) => {
-            const isCompleted = gameState.completedToday.includes(ex.id);
-            const target = scaledTarget(ex);
-            return (
-              <div
-                key={ex.id}
-                onClick={() => !isCompleted && onStartExercise(ex.id)}
-                className={`flex items-center justify-between py-2 px-3 border transition-all cursor-pointer rounded-lg ${
-                  isCompleted
-                    ? (isLight ? 'bg-emerald-50 border-emerald-200/60 opacity-50' : 'bg-emerald-950/10 border-emerald-500/10 opacity-40')
-                    : (isLight ? 'bg-slate-50/80 border-slate-200 hover:border-sky-400/40 hover:bg-sky-50/25' : 'bg-[#07070a] border-slate-900 hover:border-sky-500/40 hover:bg-slate-950')
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <ExerciseIcon pose={ex.pose} size="sm" theme={theme} />
-                  <span className={`font-black tracking-wider ${
-                    isCompleted 
-                      ? (isLight ? 'text-slate-400 line-through' : 'text-slate-500 line-through') 
-                      : (isLight ? 'text-slate-800' : 'text-white')
-                  }`}>
-                    {ex.name.toUpperCase()}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span className={`font-mono text-[11px] ${
-                    isCompleted 
-                      ? (isLight ? 'text-emerald-600 font-bold' : 'text-emerald-500') 
-                      : (isLight ? 'text-sky-600 font-extrabold' : 'text-sky-400')
-                  }`}>
-                    [{isCompleted ? target : 0}/{target}]
-                  </span>
-                  {!isCompleted && (
-                    <button className={`w-5 h-5 rounded flex items-center justify-center transition-all border ${
-                      isLight 
-                        ? 'bg-sky-50 hover:bg-sky-500 hover:text-white hover:border-sky-500 text-sky-600 border-sky-200 shadow-sm' 
-                        : 'bg-sky-950 text-sky-400 border-sky-500/20 hover:bg-sky-500 hover:text-black hover:border-sky-500'
-                    }`}>
-                      <Play className="w-2.5 h-2.5 fill-current" />
-                    </button>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Red Warning Box from Sung Jinwoo quest interface */}
-        <div className={`my-5 p-4 rounded-xl flex gap-2.5 items-start border transition-colors ${
-          isLight 
-            ? 'bg-red-50 border-red-200 text-red-700' 
-            : 'bg-red-950/15 border border-red-500/25 text-red-400'
-        }`}>
-          <AlertTriangle className="w-4.5 h-4.5 text-red-500 shrink-0 mt-0.5 animate-pulse" />
-          <p className="text-[10px] leading-relaxed font-semibold font-mono uppercase tracking-wider">
-            AVISO - O não cumprimento desta quest dentro do limite de tempo resultará em penalidade apropriada.
-          </p>
-        </div>
-
-        {/* Big action button */}
-        {activeQuests.length > 0 ? (
-          <button
-            onClick={() => onStartExercise(activeQuests[0].id)}
-            className={`w-full py-4 font-black font-display text-xs tracking-widest uppercase rounded-xl transition-all shadow-[0_2px_15px_rgba(0,0,0,0.1)] active:scale-98 flex items-center justify-center gap-2 ${
-              isLight 
-                ? 'bg-slate-950 hover:bg-slate-800 text-white shadow-[0_4px_12px_rgba(15,23,42,0.15)]' 
-                : 'bg-white hover:bg-slate-200 text-black shadow-[0_0_20px_rgba(255,255,255,0.25)]'
-            }`}
-          >
-            <Play className="w-4 h-4 fill-current" />
-            Iniciar Quest
-          </button>
-        ) : (
-          <div className={`w-full py-3.5 text-center rounded-xl text-xs uppercase tracking-wider font-mono border transition-all ${
+        {!isTrainingDay && (
+          <div className={`p-4.5 rounded-xl mb-4.5 border transition-all flex flex-col gap-2 ${
             isLight 
-              ? 'bg-emerald-50 border-emerald-300 text-emerald-700 font-bold' 
-              : 'bg-emerald-950/20 border-emerald-500/30 text-emerald-400'
+              ? 'bg-amber-50/60 border-amber-300 text-amber-900' 
+              : 'bg-gradient-to-r from-amber-950/20 via-[#07060a] to-[#07060a] border-amber-500/20 text-slate-300'
           }`}>
-            ✓ QUEST COMPLETA COM SUCESSO
+            <div className="flex items-center gap-2.5">
+              <span className="text-xl filter drop-shadow-[0_2px_8px_rgba(245,158,11,0.3)]">🛌</span>
+              <div>
+                <span className="text-[10px] font-mono font-black text-amber-500 uppercase tracking-widest block leading-none">SISTEMA DE RECUPERAÇÃO ATIVO</span>
+                <span className={`text-xs font-black font-display uppercase tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>DIA DE DESCANSO DETECTADO</span>
+              </div>
+            </div>
+            <p className="text-[10.5px] font-mono leading-relaxed text-slate-400">
+              Hoje é seu dia de descanso programado! O descanso é fundamental para a recuperação e reconstrução muscular. Aproveite para descansar e se manter hidratado!
+            </p>
+            <span className="text-[9.5px] font-mono font-black text-amber-500 block uppercase italic leading-none mt-1">
+              "Treinar sem descanso é o caminho para a falha física." — SISTEMA
+            </span>
           </div>
+        )}
+
+        {/* Quest Items List */}
+        <div className="space-y-2.5 my-4 font-mono text-xs">
+          {isTrainingDay ? (
+            exercises.map((ex) => {
+              const isCompleted = gameState.completedToday.includes(ex.id);
+              const target = scaledTarget(ex);
+              return (
+                <div
+                  key={ex.id}
+                  onClick={() => !isCompleted && onStartExercise(ex.id)}
+                  className={`flex items-center justify-between py-2 px-3 border transition-all cursor-pointer rounded-lg ${
+                    isCompleted
+                      ? (isLight ? 'bg-emerald-50 border-emerald-200/60 opacity-50' : 'bg-emerald-950/10 border-emerald-500/10 opacity-40')
+                      : (isLight ? 'bg-slate-50/80 border-slate-200 hover:border-sky-400/40 hover:bg-sky-50/25' : 'bg-[#07070a] border-slate-900 hover:border-sky-500/40 hover:bg-slate-950')
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <ExerciseIcon pose={ex.pose} size="sm" theme={theme} />
+                    <span className={`font-black tracking-wider ${
+                      isCompleted 
+                        ? (isLight ? 'text-slate-400 line-through' : 'text-slate-500 line-through') 
+                        : (isLight ? 'text-slate-800' : 'text-white')
+                    }`}>
+                      {ex.name.toUpperCase()}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className={`font-mono text-[11px] ${
+                      isCompleted 
+                        ? (isLight ? 'text-emerald-600 font-bold' : 'text-emerald-500') 
+                        : (isLight ? 'text-sky-600 font-extrabold' : 'text-sky-400')
+                    }`}>
+                      [{isCompleted ? target : 0}/{target}]
+                    </span>
+                    {!isCompleted && (
+                      <button className={`w-5 h-5 rounded flex items-center justify-center transition-all border ${
+                        isLight 
+                          ? 'bg-sky-50 hover:bg-sky-500 hover:text-white hover:border-sky-500 text-sky-600 border-sky-200 shadow-sm' 
+                          : 'bg-sky-950 text-sky-400 border-sky-500/20 hover:bg-sky-500 hover:text-black hover:border-sky-500'
+                      }`}>
+                        <Play className="w-2.5 h-2.5 fill-current" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            RECOVERY_ACTIVITIES.map((rec) => {
+              const isCompleted = (gameState.completedRecoveryToday || []).includes(rec.id);
+              return (
+                <div
+                  key={rec.id}
+                  onClick={() => !isCompleted && onCompleteRecoveryActivity?.(rec.id, rec.xp, rec.name)}
+                  className={`flex items-center justify-between py-2.5 px-3 border transition-all cursor-pointer rounded-lg ${
+                    isCompleted
+                      ? (isLight ? 'bg-emerald-50 border-emerald-200/60 opacity-50' : 'bg-emerald-950/10 border-emerald-500/10 opacity-40')
+                      : (isLight ? 'bg-slate-50/80 border-slate-200 hover:border-emerald-400/40 hover:bg-emerald-50/25' : 'bg-[#07070a] border-slate-900 hover:border-emerald-500/40 hover:bg-slate-950')
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span className="text-xl w-6 text-center filter drop-shadow-[0_1px_4px_rgba(0,0,0,0.2)]">
+                      {rec.icon}
+                    </span>
+                    <div className="flex flex-col min-w-0">
+                      <span className={`font-black tracking-wider text-[11px] truncate ${
+                        isCompleted 
+                          ? (isLight ? 'text-slate-400 line-through' : 'text-slate-500 line-through') 
+                          : (isLight ? 'text-slate-800' : 'text-white')
+                      }`}>
+                        {rec.name.toUpperCase()}
+                      </span>
+                      <span className={`text-[9px] leading-tight font-medium font-mono truncate max-w-[190px] md:max-w-[400px] ${
+                        isCompleted 
+                          ? 'text-slate-500/80' 
+                          : (isLight ? 'text-slate-400 font-bold' : 'text-slate-500')
+                      }`}>
+                        {rec.desc}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className={`font-mono text-[10px] font-bold ${
+                      isCompleted 
+                        ? 'text-emerald-500' 
+                        : (isLight ? 'text-slate-500' : 'text-slate-400')
+                    }`}>
+                      {isCompleted ? '✓ COMPLETADO' : `+${rec.xp} XP`}
+                    </span>
+                    {!isCompleted && (
+                      <button className={`w-5 h-5 rounded flex items-center justify-center transition-all border ${
+                        isLight 
+                          ? 'bg-emerald-50 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 text-emerald-600 border-emerald-200 shadow-sm' 
+                          : 'bg-[#0a120d] text-emerald-400 border-emerald-500/20 hover:bg-emerald-500 hover:text-black hover:border-emerald-500'
+                      }`}>
+                        <Check className="w-3 h-3 stroke-[3]" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Warning / System Note Box */}
+        {isTrainingDay ? (
+          <div className={`my-5 p-4 rounded-xl flex gap-2.5 items-start border transition-colors ${
+            isLight 
+              ? 'bg-red-50 border-red-200 text-red-700' 
+              : 'bg-red-950/15 border border-red-500/25 text-red-400'
+          }`}>
+            <AlertTriangle className="w-4.5 h-4.5 text-red-500 shrink-0 mt-0.5 animate-pulse" />
+            <p className="text-[10px] leading-relaxed font-semibold font-mono uppercase tracking-wider">
+              AVISO - O não cumprimento desta quest dentro do limite de tempo resultará em penalidade apropriada.
+            </p>
+          </div>
+        ) : (
+          <div className={`my-5 p-4 rounded-xl flex gap-2.5 items-start border transition-colors ${
+            isLight 
+              ? 'bg-emerald-50/60 border-emerald-200 text-emerald-700' 
+              : 'bg-emerald-950/10 border border-emerald-500/15 text-emerald-400'
+          }`}>
+            <Sparkles className="w-4.5 h-4.5 text-emerald-500 shrink-0 mt-0.5 animate-pulse" />
+            <p className="text-[10px] leading-relaxed font-semibold font-mono uppercase tracking-wider">
+              SISTEMA: Protocolo de recuperação ativo. Realize atividades leves opcionais para manter sua integridade muscular e acumular bônus de regeneração física.
+            </p>
+          </div>
+        )}
+
+        {/* Big action button / Quest complete feedback */}
+        {isTrainingDay ? (
+          activeQuests.length > 0 ? (
+            <button
+              onClick={() => onStartExercise((activeQuests[0] as Exercise).id)}
+              className={`w-full py-4 font-black font-display text-xs tracking-widest uppercase rounded-xl transition-all shadow-[0_2px_15px_rgba(0,0,0,0.1)] active:scale-98 flex items-center justify-center gap-2 ${
+                isLight 
+                  ? 'bg-slate-950 hover:bg-slate-800 text-white shadow-[0_4px_12px_rgba(15,23,42,0.15)]' 
+                  : 'bg-white hover:bg-slate-200 text-black shadow-[0_0_20px_rgba(255,255,255,0.25)]'
+              }`}
+            >
+              <Play className="w-4 h-4 fill-current" />
+              Iniciar Quest
+            </button>
+          ) : (
+            <div className={`w-full py-3.5 text-center rounded-xl text-xs uppercase tracking-wider font-mono border transition-all ${
+              isLight 
+                ? 'bg-emerald-50 border-emerald-300 text-emerald-700 font-bold' 
+                : 'bg-emerald-950/20 border-emerald-500/30 text-emerald-400'
+            }`}>
+              ✓ QUEST COMPLETA COM SUCESSO
+            </div>
+          )
+        ) : (
+          activeQuests.length > 0 ? (
+            <div className={`w-full py-3.5 text-center rounded-xl text-xs uppercase tracking-wider font-mono border transition-all ${
+              isLight 
+                ? 'bg-sky-50 border-sky-300 text-sky-700 font-bold' 
+                : 'bg-sky-950/15 border-sky-500/20 text-sky-400'
+            }`}>
+              🛌 DIA DE DESCANSO E REGENERAÇÃO ATIVO
+            </div>
+          ) : (
+            <div className={`w-full py-3.5 text-center rounded-xl text-xs uppercase tracking-wider font-mono border transition-all ${
+              isLight 
+                ? 'bg-emerald-50 border-emerald-300 text-emerald-700 font-bold' 
+                : 'bg-emerald-950/20 border-emerald-500/30 text-emerald-400'
+            }`}>
+              ✓ REGENERAÇÃO COMPLETA COM SUCESSO
+            </div>
+          )
         )}
       </div>
 
