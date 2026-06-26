@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { GameState } from '../types';
-import { Award, Zap, Flame, Shield, RotateCcw, Edit2, Download, Check, Share2, Copy, Users, CheckCircle2, Sparkles } from 'lucide-react';
+import { Award, Zap, Flame, Shield, RotateCcw, Edit2, Download, Check, Share2, Copy, Users, CheckCircle2, Sparkles, Lock } from 'lucide-react';
 import { motion } from 'motion/react';
 import * as htmlToImage from 'html-to-image';
 
@@ -9,15 +9,75 @@ interface ProfileTabProps {
   xpNeeded: number;
   onReset: () => void;
   onUpdateGameState: (newState: GameState) => void;
+  onTriggerReassessment?: () => void;
+  user?: any;
+  onLogout?: () => void;
+  onLoginTrigger?: () => void;
 }
 
-export const ProfileTab: React.FC<ProfileTabProps> = ({ gameState, xpNeeded, onReset, onUpdateGameState }) => {
+export const ProfileTab: React.FC<ProfileTabProps> = ({
+  gameState,
+  xpNeeded,
+  onReset,
+  onUpdateGameState,
+  onTriggerReassessment,
+  user,
+  onLogout,
+  onLoginTrigger,
+}) => {
   const pct = Math.min(100, Math.round((gameState.xp / xpNeeded) * 100));
   const cardRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [exportSuccess, setExportSuccess] = useState(false);
   const [copiedInviteCode, setCopiedInviteCode] = useState(false);
   const [sharedInvite, setSharedInvite] = useState(false);
+
+  const [reassessmentCountdown, setReassessmentCountdown] = useState<string>('');
+  const [isReassessmentLocked, setIsReassessmentLocked] = useState<boolean>(false);
+
+  React.useEffect(() => {
+    const updateCountdown = () => {
+      if (!gameState.proxima_reavaliacao) {
+        setIsReassessmentLocked(false);
+        setReassessmentCountdown('');
+        return;
+      }
+      const nextDate = new Date(gameState.proxima_reavaliacao);
+      if (isNaN(nextDate.getTime())) {
+        setIsReassessmentLocked(false);
+        setReassessmentCountdown('');
+        return;
+      }
+      const now = new Date();
+      const diffTime = nextDate.getTime() - now.getTime();
+
+      if (diffTime <= 0) {
+        setIsReassessmentLocked(false);
+        setReassessmentCountdown('');
+      } else {
+        setIsReassessmentLocked(true);
+        const totalSecs = Math.floor(diffTime / 1000);
+        const days = Math.floor(totalSecs / (3600 * 24));
+        const hours = Math.floor((totalSecs % (3600 * 24)) / 3600);
+        const mins = Math.floor((totalSecs % 3600) / 60);
+        const secs = totalSecs % 60;
+
+        const formattedSecs = String(secs).padStart(2, '0');
+        const formattedMins = String(mins).padStart(2, '0');
+        const formattedHours = String(hours).padStart(2, '0');
+
+        if (days > 0) {
+          setReassessmentCountdown(`${days}d ${formattedHours}:${formattedMins}`);
+        } else {
+          setReassessmentCountdown(`${formattedHours}:${formattedMins}:${formattedSecs}`);
+        }
+      }
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, [gameState.proxima_reavaliacao]);
 
   // Circular ring calculations
   const radius = 44;
@@ -257,6 +317,86 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ gameState, xpNeeded, onR
         </p>
       </div>
 
+      {/* SEÇÃO AVALIAÇÃO FÍSICA & EVOLUÇÃO */}
+      {!gameState.avaliacao_concluida && (
+        <div className="px-5 space-y-4 animate-in fade-in-50 duration-300">
+          <div className="bg-[#07060a] border-2 border-dashed border-slate-800 rounded-3xl p-6 text-center space-y-4">
+            <div className="w-12 h-12 rounded-full bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mx-auto">
+              <Award className="w-6 h-6 animate-pulse" />
+            </div>
+            <div className="space-y-1">
+              <span className="text-[9px] font-mono font-black text-cyan-400 tracking-wider block uppercase">ATUALIZAÇÃO DE SISTEMA DISPONÍVEL</span>
+              <h3 className="text-sm font-black text-white uppercase tracking-tight font-display">Aptidão Física Geral</h3>
+              <p className="text-[11px] text-slate-400 leading-relaxed max-w-xs mx-auto">
+                Realize sua primeira avaliação física para calcular seu Rank de Caçador (E-Rank até S-Rank) e calibrar suas missões diárias de acordo com seu corpo!
+              </p>
+            </div>
+            <button
+              onClick={() => onTriggerReassessment ? onTriggerReassessment() : null}
+              className="w-full py-3 bg-cyan-400 hover:bg-cyan-300 text-black font-mono text-xs font-black tracking-widest uppercase rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95 shadow-[0_0_15px_rgba(6,182,212,0.25)]"
+            >
+              ⚔️ REALIZAR AVALIAÇÃO AGORA
+            </button>
+          </div>
+        </div>
+      )}
+
+      {gameState.avaliacao_concluida && (
+        <div className="px-5 space-y-4 animate-in fade-in-50 duration-300">
+          <div className="bg-[#07060a] border border-slate-900 rounded-3xl p-5 shadow-lg space-y-4">
+            <div className="flex items-center gap-2 border-b border-slate-900/60 pb-3">
+              <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-500">
+                <Award className="w-4 h-4 text-amber-500" />
+              </div>
+              <div>
+                <span className="text-[9px] font-mono font-black text-amber-500 tracking-wider block uppercase">ANÁLISE DE EVOLUÇÃO</span>
+                <h3 className="text-sm font-black text-white uppercase tracking-tight font-display">📊 Avaliação Física</h3>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div className="bg-[#030205] p-3 rounded-xl border border-slate-900">
+                <span className="text-slate-500 font-mono block text-[9px] uppercase">Perfil Fitness</span>
+                <span className="text-sm font-black text-amber-400 block mt-1">🏅 {gameState.nivel_fitness || 'Não definido'}</span>
+              </div>
+              <div className="bg-[#030205] p-3 rounded-xl border border-slate-900">
+                <span className="text-slate-500 font-mono block text-[9px] uppercase">Próxima Reavaliação</span>
+                <span className={`text-xs font-bold block mt-1 ${isReassessmentLocked ? 'text-amber-500 font-mono' : 'text-emerald-400'}`}>
+                  {isReassessmentLocked ? reassessmentCountdown : '✓ Disponível agora!'}
+                </span>
+              </div>
+            </div>
+
+            {gameState.missao_personalizada && (
+              <div className="bg-[#030205]/60 p-4 rounded-2xl border border-slate-900 space-y-2">
+                <span className="text-slate-400 font-mono text-[9px] uppercase block tracking-wider">Missão Personalizada Ativa</span>
+                <div className="flex justify-between text-xs font-mono text-slate-300">
+                  <span>💪 Flexões: <strong className="text-white">{gameState.missao_personalizada.flexoes}</strong></span>
+                  <span>🦵 Agacham: <strong className="text-white">{gameState.missao_personalizada.agachamentos}</strong></span>
+                  <span>🔥 Prancha: <strong className="text-white">{gameState.missao_personalizada.prancha}s</strong></span>
+                </div>
+              </div>
+            )}
+
+            {isReassessmentLocked ? (
+              <div className="w-full py-3 bg-[#0c0a0f] border border-slate-900/60 text-slate-500 font-mono text-xs font-bold tracking-wider uppercase rounded-xl flex flex-col items-center justify-center gap-1 shadow-inner select-none">
+                <span className="flex items-center gap-1.5 text-[9px] font-black text-amber-500/80 uppercase tracking-widest">
+                  <Lock className="w-3.5 h-3.5 text-amber-500/80" /> Reavaliação Bloqueada
+                </span>
+                <span className="text-sm font-black text-slate-300 font-mono tracking-widest mt-0.5">{reassessmentCountdown}</span>
+              </div>
+            ) : (
+              <button
+                onClick={onTriggerReassessment}
+                className="w-full py-3 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white font-mono text-xs font-black tracking-widest uppercase rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95 shadow-[0_4px_12px_rgba(245,158,11,0.1)]"
+              >
+                🔄 Realizar Reavaliação Agora
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* SEÇÃO COMPANHEIROS DE JORNADA */}
       <div className="px-5 space-y-4">
         <div className="bg-[#07060a] border border-slate-900 rounded-3xl p-5 shadow-lg space-y-5">
@@ -414,10 +554,26 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ gameState, xpNeeded, onR
       </div>
 
       {/* Danger Zone Controls */}
-      <div className="px-5 pt-2">
+      <div className="px-5 pt-2 space-y-3">
+        {user ? (
+          <button
+            onClick={onLogout}
+            className="w-full py-3.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 font-bold font-mono tracking-wider text-xs uppercase rounded-xl flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer"
+          >
+            Sair da Conta (Logout)
+          </button>
+        ) : (
+          <button
+            onClick={onLoginTrigger}
+            className="w-full py-3.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-black font-mono tracking-wider text-xs uppercase rounded-xl flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer shadow-[0_4px_15px_rgba(6,182,212,0.25)]"
+          >
+            Conectar Conta / Fazer Login
+          </button>
+        )}
+
         <button
           onClick={onReset}
-          className="w-full py-3.5 bg-red-950/10 hover:bg-red-950/30 border border-red-900/20 text-red-400 font-bold font-mono tracking-wider text-xs uppercase rounded-xl flex items-center justify-center gap-2 transition-all duration-200"
+          className="w-full py-3.5 bg-red-950/10 hover:bg-red-950/30 border border-red-900/20 text-red-400 font-bold font-mono tracking-wider text-xs uppercase rounded-xl flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer"
         >
           <RotateCcw className="w-4 h-4" />
           Zerar Histórico de Treino

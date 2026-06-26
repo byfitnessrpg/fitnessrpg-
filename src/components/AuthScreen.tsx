@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { Shield, Mail, Lock, Flame, Sparkles, User } from 'lucide-react';
+import { Shield, Mail, Lock, Flame, Sparkles, User, ArrowLeft } from 'lucide-react';
 import { motion } from 'motion/react';
 import fitnessRpgLogo from '../assets/images/fitness_rpg_exact_logo_1782332014254.jpg';
 
 interface AuthScreenProps {
   onSuccess: (user: any) => void;
   onShowModal: (msg: string) => void;
+  onBack?: () => void;
 }
 
-export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onShowModal }) => {
+export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onShowModal, onBack }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [charName, setCharName] = useState('');
@@ -76,6 +77,16 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onShowModal }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#f8fafc] via-[#f1f5f9] to-[#e2e8f0] text-slate-800 flex flex-col justify-between overflow-hidden relative font-sans">
+      {onBack && (
+        <button
+          type="button"
+          onClick={onBack}
+          className="absolute top-4 left-4 z-50 p-2 rounded-full bg-[#0a0f18]/90 border border-sky-400/30 text-sky-400 hover:text-sky-300 transition-all active:scale-95 cursor-pointer shadow-[0_0_12px_rgba(34,211,238,0.2)] flex items-center justify-center"
+          title="Voltar para a Avaliação"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </button>
+      )}
       {/* Decorative background grid and soft glows */}
       <div className="absolute inset-0 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:16px_16px] opacity-70 pointer-events-none" />
       <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-sky-400/10 rounded-full blur-[120px] pointer-events-none" />
@@ -154,7 +165,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onShowModal }
             {isRegistering ? 'REGISTRAR NOVO HERÓI' : 'ACESSAR JORNADA'}
           </div>
 
-          <form className="space-y-4 pt-2">
+          <form onSubmit={isRegistering ? handleRegister : handleLogin} className="space-y-4 pt-2">
             {isRegistering && (
               <motion.div
                 initial={{ opacity: 0, y: -8 }}
@@ -226,7 +237,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onShowModal }
                 <>
                   <button
                     type="submit"
-                    onClick={handleLogin}
                     disabled={loading}
                     className="w-full py-3 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-black font-mono text-xs tracking-widest uppercase rounded-xl shadow-[0_4px_15px_rgba(14,165,233,0.35)] active:scale-95 transition-all duration-200 flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer"
                   >
@@ -255,7 +265,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onShowModal }
                 <>
                   <button
                     type="submit"
-                    onClick={handleRegister}
                     disabled={loading}
                     className="w-full py-3 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-black font-mono text-xs tracking-widest uppercase rounded-xl shadow-[0_4px_15px_rgba(14,165,233,0.35)] active:scale-95 transition-all duration-200 flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer"
                   >

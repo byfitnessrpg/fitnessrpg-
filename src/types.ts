@@ -85,6 +85,24 @@ export interface GameState {
   lastWeeklyResetDate?: string;
   recruitsCount?: number;
   invitedBy?: string;
+  avaliacao_concluida?: boolean;
+  idade?: number;
+  sexo?: string;
+  altura?: number;
+  peso?: number;
+  objetivo?: string;
+  frequencia_treino?: string;
+  flexoes_inicial?: number;
+  agachamentos_inicial?: number;
+  prancha_inicial?: number;
+  ultima_avaliacao?: string;
+  proxima_reavaliacao?: string;
+  nivel_fitness?: string;
+  missao_personalizada?: {
+    flexoes: number;
+    agachamentos: number;
+    prancha: number;
+  };
 }
 
 export interface Friend {

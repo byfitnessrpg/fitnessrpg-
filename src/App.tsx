@@ -13,6 +13,8 @@ import { ProfileTab } from './components/ProfileTab';
 import { EvolutionTab } from './components/EvolutionTab';
 import { MissionScreen } from './components/MissionScreen';
 import { AuthScreen } from './components/AuthScreen';
+import { AssessmentScreen } from './components/AssessmentScreen';
+import { ReassessmentModal } from './components/ReassessmentModal';
 import { Trophy, Star, Sparkles, WifiOff, AlertTriangle, ShieldCheck, Flame, Scroll } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -161,10 +163,12 @@ const DEFAULT_STATE: GameState = {
   weeklyXP: 0,
   friendChallenges: [],
   recruitsCount: 0,
+  avaliacao_concluida: false,
 };
 
 export default function App() {
   const [user, setUser] = useState<any>(null);
+  const [viewingAuth, setViewingAuth] = useState<boolean>(false);
   const [gameState, setGameState] = useState<GameState>(DEFAULT_STATE);
   const [activeTab, setActiveTab] = useState<string>('home');
   const [activeExerciseId, setActiveExerciseId] = useState<string | null>(null);
@@ -187,7 +191,12 @@ export default function App() {
   const [achievementFlash, setAchievementFlash] = useState<Achievement | null>(null);
   const [customModal, setCustomModal] = useState<{ show: boolean; msg: string }>({ show: false, msg: '' });
   const [showGMModal, setShowGMModal] = useState<boolean>(false);
+  const [showReassessment, setShowReassessment] = useState<boolean>(false);
   const [selectedOathId, setSelectedOathId] = useState<string>('soul_mirror');
+  const [showAssessment, setShowAssessment] = useState<boolean>(false);
+  const [showAssessmentAnnouncement, setShowAssessmentAnnouncement] = useState<boolean>(() => {
+    return localStorage.getItem('fitnessRPG_dismissedAssessment') !== 'true';
+  });
 
   // Formula matching exactly: Math.floor(100 * Math.pow(lv, 1.5))
   const xpForLevel = (lv: number) => {
@@ -214,6 +223,17 @@ export default function App() {
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
+
+  // 1b. Automatic Reassessment Check
+  useEffect(() => {
+    if (gameState.avaliacao_concluida && gameState.proxima_reavaliacao) {
+      const nextDate = new Date(gameState.proxima_reavaliacao);
+      const now = new Date();
+      if (now >= nextDate) {
+        setShowReassessment(true);
+      }
+    }
+  }, [gameState.avaliacao_concluida, gameState.proxima_reavaliacao]);
 
   // 2. Auth State Changed listeners
   useEffect(() => {
@@ -297,6 +317,7 @@ export default function App() {
       let parsedProfilePic = '';
       let dbFriendCode = '';
       let dbInvitedBy = '';
+      let parsedAssessment: Partial<GameState> = {};
 
       if (rawProfilePic && rawProfilePic.startsWith('{')) {
         try {
@@ -304,6 +325,21 @@ export default function App() {
           parsedProfilePic = parsed.image || '';
           dbFriendCode = parsed.friendCode || '';
           dbInvitedBy = parsed.invitedBy || '';
+          
+          if (parsed.avaliacao_concluida !== undefined) parsedAssessment.avaliacao_concluida = parsed.avaliacao_concluida;
+          if (parsed.idade !== undefined) parsedAssessment.idade = parsed.idade;
+          if (parsed.sexo !== undefined) parsedAssessment.sexo = parsed.sexo;
+          if (parsed.altura !== undefined) parsedAssessment.altura = parsed.altura;
+          if (parsed.peso !== undefined) parsedAssessment.peso = parsed.peso;
+          if (parsed.objetivo !== undefined) parsedAssessment.objetivo = parsed.objetivo;
+          if (parsed.frequencia_treino !== undefined) parsedAssessment.frequencia_treino = parsed.frequencia_treino;
+          if (parsed.flexoes_inicial !== undefined) parsedAssessment.flexoes_inicial = parsed.flexoes_inicial;
+          if (parsed.agachamentos_inicial !== undefined) parsedAssessment.agachamentos_inicial = parsed.agachamentos_inicial;
+          if (parsed.prancha_inicial !== undefined) parsedAssessment.prancha_inicial = parsed.prancha_inicial;
+          if (parsed.ultima_avaliacao !== undefined) parsedAssessment.ultima_avaliacao = parsed.ultima_avaliacao;
+          if (parsed.proxima_reavaliacao !== undefined) parsedAssessment.proxima_reavaliacao = parsed.proxima_reavaliacao;
+          if (parsed.nivel_fitness !== undefined) parsedAssessment.nivel_fitness = parsed.nivel_fitness;
+          if (parsed.missao_personalizada !== undefined) parsedAssessment.missao_personalizada = parsed.missao_personalizada;
         } catch (e) {
           console.warn("Failed to parse profilePic metadata JSON from database", e);
           parsedProfilePic = rawProfilePic;
@@ -366,6 +402,7 @@ export default function App() {
       const mergedState: GameState = {
         ...DEFAULT_STATE,
         ...loadedLocal,
+        ...parsedAssessment,
         charName: profile.nome || loadedLocal.charName || DEFAULT_STATE.charName || '',
         profilePic: parsedProfilePic || loadedLocal.profilePic || DEFAULT_STATE.profilePic || '',
         xp: profile.xp || 0,
@@ -445,6 +482,20 @@ export default function App() {
           image: updatedState.profilePic || '',
           friendCode: updatedState.friendCode || '',
           invitedBy: updatedState.invitedBy || '',
+          avaliacao_concluida: updatedState.avaliacao_concluida,
+          idade: updatedState.idade,
+          sexo: updatedState.sexo,
+          altura: updatedState.altura,
+          peso: updatedState.peso,
+          objetivo: updatedState.objetivo,
+          frequencia_treino: updatedState.frequencia_treino,
+          flexoes_inicial: updatedState.flexoes_inicial,
+          agachamentos_inicial: updatedState.agachamentos_inicial,
+          prancha_inicial: updatedState.prancha_inicial,
+          ultima_avaliacao: updatedState.ultima_avaliacao,
+          proxima_reavaliacao: updatedState.proxima_reavaliacao,
+          nivel_fitness: updatedState.nivel_fitness,
+          missao_personalizada: updatedState.missao_personalizada,
         });
 
         await supabase
@@ -469,9 +520,24 @@ export default function App() {
 
   // Scaled exercise target value based on completed total missions and consecutive days streak
   const getScaledTarget = (ex: Exercise) => {
-    const factor = Math.min(1, gameState.totalMissions / 50);
-    const range = ex.max - ex.base;
-    const baseTarget = Math.floor(ex.base + range * factor);
+    let baseTarget = ex.base;
+    if (gameState.missao_personalizada) {
+      if (ex.id === 'd1' && gameState.missao_personalizada.flexoes) {
+        baseTarget = gameState.missao_personalizada.flexoes;
+      } else if (ex.id === 'd2' && gameState.missao_personalizada.agachamentos) {
+        baseTarget = gameState.missao_personalizada.agachamentos;
+      } else if (ex.id === 'd3' && gameState.missao_personalizada.prancha) {
+        baseTarget = gameState.missao_personalizada.prancha;
+      } else {
+        const factor = Math.min(1, gameState.totalMissions / 50);
+        const range = ex.max - ex.base;
+        baseTarget = Math.floor(ex.base + range * factor);
+      }
+    } else {
+      const factor = Math.min(1, gameState.totalMissions / 50);
+      const range = ex.max - ex.base;
+      baseTarget = Math.floor(ex.base + range * factor);
+    }
     
     // A cada 2 dias consecutivos de streak, adiciona 5% de bônus de intensidade
     const streakSteps = Math.floor((gameState.streak || 0) / 2);
@@ -770,6 +836,10 @@ export default function App() {
               setGameState(newState);
               saveProgress(newState);
             }}
+            onTriggerReassessment={() => setShowReassessment(true)}
+            user={user}
+            onLogout={handleLogout}
+            onLoginTrigger={() => setViewingAuth(true)}
           />
         );
       default:
@@ -777,16 +847,21 @@ export default function App() {
     }
   };
 
-  // If user is not authenticated, render Auth screen
-  if (!user) {
+  // If user is not authenticated and they explicitly want to see auth, OR they finished the assessment and want to register
+  if (!user && viewingAuth) {
+    // A brand new user who just finished the assessment but hasn't registered yet must NOT be allowed to bypass AuthScreen
+    const isNewUserNoAuth = gameState.totalMissions === 0 && gameState.avaliacao_concluida;
+
     return (
       <>
         <AuthScreen
           onSuccess={(u) => {
             setUser(u);
+            setViewingAuth(false);
             loadProgress(u);
           }}
           onShowModal={(msg) => setCustomModal({ show: true, msg })}
+          onBack={isNewUserNoAuth ? undefined : () => setViewingAuth(false)}
         />
 
         {/* Custom dialog modal portal */}
@@ -823,6 +898,46 @@ export default function App() {
     );
   }
 
+  // Force evaluation for brand new users (no evaluation yet and zero missions) before they can see the app
+  if (!gameState.avaliacao_concluida && gameState.totalMissions === 0) {
+    return (
+      <AssessmentScreen
+        gameState={gameState}
+        onComplete={(updatedState) => {
+          const stateWithCompletedAssessment = {
+            ...updatedState,
+            avaliacao_concluida: true
+          };
+          setGameState(stateWithCompletedAssessment);
+          saveProgress(stateWithCompletedAssessment);
+          
+          // Force new user to pass by the registration/signup flow
+          if (!user) {
+            setViewingAuth(true);
+          }
+        }}
+        theme={theme}
+      />
+    );
+  }
+
+  // Render AssessmentScreen if actively triggered by the user
+  if (showAssessment) {
+    return (
+      <AssessmentScreen
+        gameState={gameState}
+        onComplete={(updatedState) => {
+          setGameState(updatedState);
+          saveProgress(updatedState);
+          setShowAssessment(false);
+        }}
+        onClose={() => setShowAssessment(false)}
+        onLogout={user ? handleLogout : () => setViewingAuth(true)}
+        theme={theme}
+      />
+    );
+  }
+
   // Active workout quest
   const activeExercise = EXERCISES.find((e) => e.id === activeExerciseId);
 
@@ -840,7 +955,7 @@ export default function App() {
 
       {/* Primary HUD Headers */}
       <Header
-        email={user.email}
+        email={user?.email || null}
         onLogout={handleLogout}
         activeTab={activeTab}
         theme={theme}
@@ -854,6 +969,75 @@ export default function App() {
         streak={gameState.streak}
         theme={theme}
       />
+
+      {/* ⚠️ NOTIFICAÇÕES GERAIS DE SISTEMA / CAIXAS DE ALERTA DO JOGO */}
+      <AnimatePresence>
+        {gameState.avaliacao_concluida && !user && (
+          <motion.div
+            initial={{ opacity: 0, y: -10, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: 'auto' }}
+            exit={{ opacity: 0, y: -10, height: 0 }}
+            className="mx-4 mt-3 bg-gradient-to-r from-amber-950/80 to-red-950/80 border-2 border-dashed border-amber-500/50 p-4 rounded-2xl flex flex-col gap-3 shadow-lg relative overflow-hidden shrink-0"
+          >
+            <div className="absolute top-0 right-0 w-16 h-16 bg-amber-500/10 rounded-full blur-xl pointer-events-none" />
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center shrink-0 text-amber-500 mt-0.5 animate-pulse">
+                <ShieldCheck className="w-5 h-5 text-amber-400" />
+              </div>
+              <div className="space-y-1 border-none bg-transparent">
+                <span className="text-[9px] font-mono font-black text-amber-400 tracking-widest uppercase block animate-pulse leading-none mb-1">
+                  ⚠️ SALVAR PROGRESSO NA NUVEM
+                </span>
+                <h4 className="text-xs font-extrabold text-white uppercase tracking-tight leading-none mb-1">
+                  Vínculo de Caçador Pendente!
+                </h4>
+                <p className="text-[10px] text-slate-300 leading-relaxed font-mono">
+                  Sua avaliação foi concluída! Para não perder seus atributos e Rank, crie uma conta para eternizar seus dados no servidor!
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setViewingAuth(true)}
+              className="w-full py-2 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-black text-[10px] font-black font-mono tracking-widest uppercase rounded-lg shadow-md transition-all duration-200 active:scale-95 cursor-pointer shrink-0"
+            >
+              💾 SALVAR ATRIBUTOS NO CADASTRO
+            </button>
+          </motion.div>
+        )}
+
+        {!gameState.avaliacao_concluida && (
+          <motion.div
+            initial={{ opacity: 0, y: -10, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: 'auto' }}
+            exit={{ opacity: 0, y: -10, height: 0 }}
+            className="mx-4 mt-3 bg-gradient-to-r from-[#031122]/90 to-[#02050b]/90 border-2 border-cyan-500/30 p-4 rounded-2xl flex flex-col gap-3 shadow-lg relative overflow-hidden shrink-0"
+          >
+            <div className="absolute top-0 right-0 w-16 h-16 bg-cyan-500/10 rounded-full blur-xl pointer-events-none" />
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center shrink-0 text-cyan-400 mt-0.5 animate-pulse">
+                <Star className="w-5 h-5 text-cyan-400" />
+              </div>
+              <div className="space-y-1 border-none bg-transparent">
+                <span className="text-[9px] font-mono font-black text-cyan-400 tracking-widest uppercase block leading-none mb-1">
+                  📢 NOVA ATUALIZAÇÃO DO JOGADOR
+                </span>
+                <h4 className="text-xs font-extrabold text-white uppercase tracking-tight leading-none mb-1">
+                  Avaliação Física de Rank Disponível!
+                </h4>
+                <p className="text-[10px] text-slate-300 leading-relaxed font-mono">
+                  A nova atualização do sistema de treino está ativa. Faça o teste físico agora para calibrar seu Rank de Caçador!
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowAssessment(true)}
+              className="w-full py-2 bg-cyan-400 hover:bg-cyan-300 text-black text-[10px] font-black font-mono tracking-widest uppercase rounded-lg shadow-md transition-all duration-200 active:scale-95 cursor-pointer shrink-0"
+            >
+              ⚔️ INICIAR MINHA AVALIAÇÃO AGORA
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Main Tab Switchboard */}
       <main className="flex-1 overflow-y-auto no-scrollbar">
@@ -970,6 +1154,22 @@ export default function App() {
         )}
       </AnimatePresence>
 
+      {/* Reassessment Overlay Modal */}
+      <AnimatePresence>
+        {showReassessment && (
+          <ReassessmentModal
+            gameState={gameState}
+            onComplete={(updatedState) => {
+              setGameState(updatedState);
+              saveProgress(updatedState);
+              setShowReassessment(false);
+            }}
+            onClose={() => setShowReassessment(false)}
+            theme={theme}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Game Master Warning / Oath Selector Modal */}
       <AnimatePresence>
         {showGMModal && (
@@ -1044,6 +1244,81 @@ export default function App() {
                   className="w-full py-3.5 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white text-xs font-black font-mono tracking-widest uppercase rounded-xl shadow-lg shadow-amber-900/30 transition-all duration-200 cursor-pointer"
                 >
                   📜 ASSINAR PACTO & JOGAR
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Solo Leveling Physical Assessment Update Announcement Modal */}
+      <AnimatePresence>
+        {!gameState.avaliacao_concluida && showAssessmentAnnouncement && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-[#020204]/90 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto"
+          >
+            <motion.div
+              initial={{ scale: 0.92, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.92, y: 20 }}
+              className="bg-[#0b0c10] border-2 border-cyan-500/30 rounded-[2.5rem] p-6 max-w-sm w-full space-y-5 shadow-[0_20px_50px_rgba(6,182,212,0.15)] text-left relative overflow-hidden"
+            >
+              {/* Sci-fi glow details */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/10 rounded-full blur-[50px] pointer-events-none" />
+              
+              <div className="flex items-center gap-3 border-b border-slate-800 pb-3">
+                <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                  <Scroll className="w-5 h-5 animate-pulse" />
+                </div>
+                <div>
+                  <span className="text-[9px] font-mono font-black text-cyan-400 tracking-widest uppercase block animate-pulse">
+                    ATUALIZAÇÃO DE SISTEMA DISPONÍVEL
+                  </span>
+                  <h3 className="text-sm font-black text-white tracking-tight uppercase">
+                    Avaliação Física de Caçador
+                  </h3>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <p className="text-[11px] text-slate-300 leading-relaxed">
+                  Guerreiro, o Sistema de Treinamento de Caçador recebeu uma <strong>Grande Atualização de Aptidão</strong>! 
+                </p>
+                <div className="bg-[#040912]/80 border border-cyan-500/10 p-3.5 rounded-2xl space-y-2">
+                  <span className="text-[9px] font-mono font-bold text-cyan-400 uppercase tracking-widest block border-b border-cyan-500/15 pb-1">PATCH NOTES (V1.2)</span>
+                  <ul className="text-[10px] text-slate-300 space-y-1.5 font-mono list-disc list-inside">
+                    <li>Atribuição de <strong>Rank Oficial (E a S-Rank)</strong></li>
+                    <li>Cálculo de metas diárias de exercícios</li>
+                    <li>Ganho otimizado de XP de Caçador</li>
+                    <li>Duração automática e controle de reavaliação</li>
+                  </ul>
+                </div>
+                <p className="text-[11px] text-slate-400 leading-relaxed italic">
+                  "Sua força real determina seu Rank de Caçador. Responda com precisão para receber suas missões diárias calibradas."
+                </p>
+              </div>
+
+              <div className="space-y-2.5 pt-2">
+                <button
+                  onClick={() => {
+                    setShowAssessmentAnnouncement(false);
+                    setShowAssessment(true);
+                  }}
+                  className="w-full py-3.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black text-xs font-black font-mono tracking-widest uppercase rounded-xl shadow-lg shadow-cyan-900/30 transition-all duration-200 cursor-pointer text-center block"
+                >
+                  ⚔️ INICIAR MINHA AVALIAÇÃO
+                </button>
+                <button
+                  onClick={() => {
+                    setShowAssessmentAnnouncement(false);
+                    localStorage.setItem('fitnessRPG_dismissedAssessment', 'true');
+                  }}
+                  className="w-full py-3 border border-slate-800 hover:bg-slate-900/50 text-slate-400 text-[10px] font-bold font-mono tracking-widest uppercase rounded-xl transition-all duration-200 cursor-pointer"
+                >
+                  ⏳ FAZER MAIS TARDE / EXPLORAR
                 </button>
               </div>
             </motion.div>
