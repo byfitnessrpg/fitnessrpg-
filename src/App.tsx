@@ -950,6 +950,8 @@ export default function App() {
             user={user}
             onLogout={handleLogout}
             onLoginTrigger={() => setViewingAuth(true)}
+            theme={theme}
+            onToggleTheme={toggleTheme}
           />
         );
       default:

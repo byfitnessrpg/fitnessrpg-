@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { GameState } from '../types';
-import { Award, Zap, Flame, Shield, RotateCcw, Edit2, Download, Check, Share2, Copy, Users, CheckCircle2, Sparkles, Lock, Bell } from 'lucide-react';
+import { Award, Zap, Flame, Shield, RotateCcw, Edit2, Download, Check, Share2, Copy, Users, CheckCircle2, Sparkles, Lock, Bell, Sun, Moon } from 'lucide-react';
 import { motion } from 'motion/react';
 import * as htmlToImage from 'html-to-image';
 
@@ -13,6 +13,8 @@ interface ProfileTabProps {
   user?: any;
   onLogout?: () => void;
   onLoginTrigger?: () => void;
+  theme?: 'dark' | 'light';
+  onToggleTheme?: () => void;
 }
 
 export const ProfileTab: React.FC<ProfileTabProps> = ({
@@ -24,7 +26,10 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
   user,
   onLogout,
   onLoginTrigger,
+  theme = 'dark',
+  onToggleTheme,
 }) => {
+  const isLight = theme === 'light';
   const pct = Math.min(100, Math.round((gameState.xp / xpNeeded) * 100));
   const cardRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
@@ -264,21 +269,29 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
 
           {/* Stats Grid */}
           <div className="space-y-4">
-            <h4 className="text-xs font-mono font-extrabold tracking-widest text-slate-400 uppercase flex items-center gap-1.5 border-t border-slate-900/60 pt-4">
+            <h4 className={`text-xs font-mono font-extrabold tracking-widest uppercase flex items-center gap-1.5 border-t pt-4 transition-colors duration-300 ${
+              isLight ? 'text-slate-500 border-slate-100' : 'text-slate-400 border-slate-900/60'
+            }`}>
               <Award className="w-4 h-4 text-sky-400" />
               ATRIBUTOS REGISTRADOS
             </h4>
 
             <div className="grid grid-cols-2 gap-3">
               {stats.map((s) => (
-                <div key={s.label} className="bg-[#050508] border border-slate-900 rounded-2xl p-4 hover:border-sky-500/20 transition-colors">
+                <div key={s.label} className={`border rounded-2xl p-4 transition-all duration-300 hover:border-sky-500/25 ${
+                  isLight ? 'bg-slate-50/50 border-slate-150' : 'bg-[#050508] border-slate-900'
+                }`}>
                   <span className="text-[9px] font-mono font-bold text-slate-500 uppercase tracking-wide block">
                     {s.label}
                   </span>
-                  <span className="text-2xl font-black font-display text-white block mt-1 leading-none">
+                  <span className={`text-2xl font-black font-display block mt-1 leading-none transition-colors duration-300 ${
+                    isLight ? 'text-slate-900' : 'text-white'
+                  }`}>
                     {s.val}
                   </span>
-                  <span className="text-[9px] font-mono text-slate-400 block mt-1 uppercase tracking-wider">
+                  <span className={`text-[9px] font-mono block mt-1 uppercase tracking-wider transition-colors duration-300 ${
+                    isLight ? 'text-slate-600' : 'text-slate-400'
+                  }`}>
                     {s.sub}
                   </span>
                 </div>
@@ -553,25 +566,77 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
         </div>
       </div>
 
-      {/* SEÇÃO NOTIFICAÇÕES PUSH */}
+      {/* SEÇÃO PREFERÊNCIAS DE SISTEMA (ILUMINAÇÃO E NOTIFICAÇÕES) */}
       <div className="px-5 space-y-4 mt-4">
-        <div className="bg-[#07060a] border border-slate-900 rounded-3xl p-5 shadow-lg space-y-5">
-          <div className="flex items-center gap-2 border-b border-slate-900/60 pb-3">
-            <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
-              <Bell className="w-4 h-4" />
+        <div className={`border rounded-3xl p-5 shadow-lg space-y-5 transition-colors duration-300 ${
+          isLight ? 'bg-white border-slate-200' : 'bg-[#07060a] border border-slate-900'
+        }`}>
+          <div className={`flex items-center gap-2 border-b pb-3 ${isLight ? 'border-slate-100' : 'border-slate-900/60'}`}>
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+              isLight ? 'bg-sky-50 text-sky-500' : 'bg-sky-50/10 text-sky-400 border border-sky-500/30'
+            }`}>
+              <Sparkles className="w-4 h-4 animate-pulse" />
             </div>
             <div>
-              <span className="text-[9px] font-mono font-black text-cyan-400 tracking-wider block uppercase">NOTIFICAÇÕES DO SISTEMA</span>
-              <h3 className="text-sm font-black text-white uppercase tracking-tight font-display">🔔 Lembretes de Treino</h3>
+              <span className={`text-[9px] font-mono font-black tracking-wider block uppercase ${
+                isLight ? 'text-sky-600' : 'text-sky-400'
+              }`}>PREFERÊNCIAS DE INTERFACE</span>
+              <h3 className={`text-sm font-black uppercase tracking-tight font-display ${
+                isLight ? 'text-slate-800' : 'text-white'
+              }`}>⚙️ Configurações & Lembretes</h3>
             </div>
           </div>
 
-          <div className="flex items-center justify-between bg-[#030205] border border-slate-900 rounded-2xl p-4">
-            <div>
-              <span className="text-xs font-black font-mono text-white uppercase block">Receber Notificações</span>
-              <span className="text-[10px] font-mono text-slate-500 uppercase block mt-0.5">
-                {gameState.notificacoes_ativas ? 'Ativado neste dispositivo' : 'Desativado'}
-              </span>
+          {/* 1. Opção de Iluminação (Tema) */}
+          {onToggleTheme && (
+            <div className={`flex items-center justify-between border rounded-2xl p-4 transition-colors duration-300 ${
+              isLight ? 'bg-slate-50/50 border-slate-100' : 'bg-[#030205] border border-slate-900'
+            }`}>
+              <div className="flex items-center gap-3">
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center border transition-all duration-300 ${
+                  isLight ? 'bg-amber-50 border-amber-200 text-amber-500 shadow-sm' : 'bg-sky-950/20 border-sky-900/30 text-amber-400'
+                }`}>
+                  {isLight ? <Sun className="w-4 h-4 fill-amber-500/10" /> : <Moon className="w-4 h-4" />}
+                </div>
+                <div>
+                  <span className={`text-xs font-black font-mono uppercase block ${isLight ? 'text-slate-800' : 'text-white'}`}>Iluminação (Tema)</span>
+                  <span className="text-[10px] font-mono text-slate-500 uppercase block mt-0.5">
+                    {isLight ? 'Modo Claro Ativo' : 'Modo Escuro Ativo'}
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={onToggleTheme}
+                title={isLight ? 'Ativar Modo Escuro' : 'Ativar Modo Claro'}
+                className={`w-12 h-6 rounded-full transition-all duration-300 relative p-1 cursor-pointer flex items-center ${
+                  isLight ? 'bg-slate-200' : 'bg-slate-800'
+                }`}
+              >
+                <div
+                  className={`w-4 h-4 rounded-full transition-all duration-300 shadow-md ${
+                    isLight ? 'bg-sky-500 translate-x-0' : 'bg-cyan-400 translate-x-6'
+                  }`}
+                />
+              </button>
+            </div>
+          )}
+
+          {/* 2. Opção de Receber Notificações */}
+          <div className={`flex items-center justify-between border rounded-2xl p-4 transition-colors duration-300 ${
+            isLight ? 'bg-slate-50/50 border-slate-100' : 'bg-[#030205] border border-slate-900'
+          }`}>
+            <div className="flex items-center gap-3">
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center border transition-all duration-300 ${
+                isLight ? 'bg-cyan-50 border-cyan-100 text-cyan-600 shadow-sm' : 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400'
+              }`}>
+                <Bell className="w-4 h-4" />
+              </div>
+              <div>
+                <span className={`text-xs font-black font-mono uppercase block ${isLight ? 'text-slate-800' : 'text-white'}`}>Receber Notificações</span>
+                <span className="text-[10px] font-mono text-slate-500 uppercase block mt-0.5">
+                  {gameState.notificacoes_ativas ? 'Ativado neste dispositivo' : 'Desativado'}
+                </span>
+              </div>
             </div>
             <button
               onClick={async () => {
@@ -594,12 +659,12 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
                   }
                 }
               }}
-              className={`w-12 h-6 rounded-full transition-all duration-200 relative p-1 cursor-pointer flex items-center ${
-                gameState.notificacoes_ativas ? 'bg-cyan-400' : 'bg-slate-800'
+              className={`w-12 h-6 rounded-full transition-all duration-300 relative p-1 cursor-pointer flex items-center ${
+                gameState.notificacoes_ativas ? 'bg-cyan-400' : 'bg-slate-850'
               }`}
             >
               <div
-                className={`w-4 h-4 rounded-full bg-black transition-all duration-200 ${
+                className={`w-4 h-4 rounded-full bg-black transition-all duration-300 ${
                   gameState.notificacoes_ativas ? 'translate-x-6' : 'translate-x-0'
                 }`}
               />
@@ -641,7 +706,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
                         className={`w-9 h-9 border font-mono font-bold text-xs flex items-center justify-center transition-all cursor-pointer rounded-lg ${
                           isSelected
                             ? 'bg-[#040a12]/40 border-cyan-400 text-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.3)]'
-                            : 'bg-[#0c0a0f]/80 border-slate-900 text-slate-500 hover:border-slate-800'
+                            : 'bg-[#0c0a0f]/80 border-slate-900 text-slate-500 hover:border-slate-850'
                         }`}
                       >
                         {day.label}
@@ -669,7 +734,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
                         className={`py-2 px-3 border text-center transition-all duration-200 cursor-pointer rounded-xl text-xs font-bold uppercase tracking-wider ${
                           isSelected
                             ? 'bg-[#040a12]/40 border-cyan-400 text-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.25)]'
-                            : 'bg-[#0c0a0f]/80 border-slate-900 text-slate-500 hover:border-slate-800'
+                            : 'bg-[#0c0a0f]/80 border-slate-900 text-slate-500 hover:border-slate-850'
                         }`}
                       >
                         {windowName}
