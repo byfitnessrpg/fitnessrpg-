@@ -162,7 +162,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onShowModal, 
           {/* Top category pill */}
           <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-slate-950 border border-sky-500/30 px-4 py-0.5 rounded-full text-[9px] font-bold font-mono text-sky-400 tracking-widest uppercase flex items-center gap-1.5 shadow-[0_4px_10px_rgba(0,0,0,0.3)]">
             <Flame className="w-3 h-3 text-sky-400 animate-pulse" />
-            {isRegistering ? 'REGISTRAR NOVO HERÓI' : 'ACESSAR JORNADA'}
+            {isRegistering ? 'CRIAR NOVA CONTA (CADASTRO)' : 'ACESSAR JORNADA (LOGIN)'}
           </div>
 
           <form onSubmit={isRegistering ? handleRegister : handleLogin} className="space-y-4 pt-2">
@@ -244,7 +244,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onShowModal, 
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     ) : (
                       <>
-                        INICIAR JORNADA
+                        ENTRAR / FAZER LOGIN
                         <Flame className="w-3.5 h-3.5 fill-current text-white" />
                       </>
                     )}
@@ -258,7 +258,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onShowModal, 
                     }}
                     className="w-full py-2.5 bg-transparent hover:bg-slate-900/50 border border-slate-800/80 text-sky-400 hover:text-sky-300 font-bold rounded-xl text-[10px] font-mono tracking-wider uppercase transition-all duration-200 cursor-pointer"
                   >
-                    Registrar Nova Licença
+                    NÃO TEM CONTA? CADASTRAR-SE
                   </button>
                 </>
               ) : (
@@ -272,7 +272,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onShowModal, 
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     ) : (
                       <>
-                        CRIAR PERSONAGEM
+                        CADASTRAR E CRIAR PERSONAGEM
                         <Sparkles className="w-3.5 h-3.5 text-white" />
                       </>
                     )}
@@ -286,7 +286,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onShowModal, 
                     }}
                     className="w-full py-2.5 bg-transparent hover:bg-slate-900/50 border border-slate-800/80 text-slate-400 hover:text-slate-300 font-bold rounded-xl text-[10px] font-mono tracking-wider uppercase transition-all duration-200 cursor-pointer"
                   >
-                    Voltar para o Login
+                    JÁ TEM CONTA? VOLTAR AO LOGIN
                   </button>
                 </>
               )}

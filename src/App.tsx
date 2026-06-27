@@ -274,15 +274,7 @@ export default function App() {
     }
   }, [gameState.notificacoes_ativas]);
 
-  // 3. Automatically trigger Game Master Notice modal on login if no oath has been pledged
-  useEffect(() => {
-    if (user && !gameState.chosenOath) {
-      const timer = setTimeout(() => {
-        setShowGMModal(true);
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [user, gameState.chosenOath]);
+
 
   // Load progress from Supabase / LocalStorage
   const loadProgress = async (currentUser: any) => {
@@ -1012,6 +1004,7 @@ export default function App() {
             setViewingAuth(true);
           }
         }}
+        onLogout={() => setViewingAuth(true)}
         theme={theme}
       />
     );
@@ -1266,86 +1259,7 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Game Master Warning / Oath Selector Modal */}
-      <AnimatePresence>
-        {showGMModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-[#020204]/90 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto"
-          >
-            <motion.div
-              initial={{ scale: 0.92, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.92, y: 20 }}
-              className="bg-[#0b0c10] border-2 border-amber-500/30 rounded-[2.5rem] p-6 max-w-sm w-full space-y-5 shadow-[0_20px_50px_rgba(245,158,11,0.2)] text-left relative overflow-hidden"
-            >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-[50px] pointer-events-none" />
-              
-              <div className="flex items-center gap-3 border-b border-slate-800 pb-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-500">
-                  <Scroll className="w-5 h-5 animate-pulse" />
-                </div>
-                <div>
-                  <span className="text-[9px] font-mono font-black text-amber-500 tracking-widest uppercase block">
-                    AVISO DO MESTRE DO JOGO
-                  </span>
-                  <h3 className="text-sm font-black text-white tracking-tight uppercase">
-                    O Pacto da Verdade
-                  </h3>
-                </div>
-              </div>
 
-              <div className="space-y-2">
-                <p className="text-[11px] text-slate-300 leading-relaxed">
-                  Guerreiro, o <strong>FitnessRPG</strong> é um espelho da sua evolução na vida real. Trapacear (clicar em concluir sem fazer o exercício) não faz sentido, pois sabota o seu próprio herói.
-                </p>
-                <p className="text-[11px] text-slate-400 leading-relaxed font-semibold">
-                  Sua força na vida real é o que move seu personagem. Selecione seu pacto motivacional e honre-o:
-                </p>
-              </div>
-
-              {/* The 3 motivational options */}
-              <div className="space-y-3">
-                {OATH_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.id}
-                    onClick={() => setSelectedOathId(opt.id)}
-                    className={`w-full p-3.5 rounded-2xl text-left border transition-all duration-200 cursor-pointer flex gap-3 ${
-                      selectedOathId === opt.id
-                        ? 'bg-amber-950/20 border-amber-500/60 shadow-[0_4px_12px_rgba(245,158,11,0.1)]'
-                        : 'bg-slate-950/50 border-slate-800 hover:border-slate-700'
-                    }`}
-                  >
-                    <span className="text-xl shrink-0 self-start">{opt.icon}</span>
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-black text-white">{opt.title}</span>
-                        <span className="text-[8px] px-1.5 py-0.5 rounded-md font-mono font-bold bg-amber-500/10 text-amber-400">
-                          {opt.effect}
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-slate-400 leading-relaxed italic">
-                        "{opt.quote}"
-                      </p>
-                    </div>
-                  </button>
-                ))}
-              </div>
-
-              <div className="pt-2">
-                <button
-                  onClick={() => handleSaveOath(selectedOathId)}
-                  className="w-full py-3.5 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white text-xs font-black font-mono tracking-widest uppercase rounded-xl shadow-lg shadow-amber-900/30 transition-all duration-200 cursor-pointer"
-                >
-                  📜 ASSINAR PACTO & JOGAR
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Solo Leveling Physical Assessment Update Announcement Modal */}
       <AnimatePresence>

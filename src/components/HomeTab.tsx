@@ -106,7 +106,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
   const totalPower = str * 2 + sta * 2 + agi * 3 + int * 2;
   
   const getRank = (power: number) => {
-    if (power < 100) return { name: 'E-RANK', badge: 'E', color: 'text-slate-400 border-slate-500 bg-slate-950/40' };
+    if (power < 100) return { name: 'E-RANK', badge: 'E', color: 'text-red-500 border-red-500 bg-red-950/40 shadow-[0_0_10px_rgba(220,38,38,0.3)] font-black' };
     if (power < 150) return { name: 'D-RANK', badge: 'D', color: 'text-emerald-400 border-emerald-500 bg-emerald-950/40' };
     if (power < 220) return { name: 'C-RANK', badge: 'C', color: 'text-blue-400 border-blue-500 bg-blue-950/40' };
     if (power < 300) return { name: 'B-RANK', badge: 'B', color: 'text-purple-400 border-purple-500 bg-purple-950/40' };

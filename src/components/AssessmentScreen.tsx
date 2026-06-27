@@ -73,6 +73,7 @@ export const AssessmentScreen: React.FC<AssessmentScreenProps> = ({
     flexoes: number;
     agachamentos: number;
     prancha: number;
+    rankLetter: string;
   } | null>(null);
 
   const [showMestreMessage, setShowMestreMessage] = useState<boolean>(false);
@@ -251,12 +252,15 @@ export const AssessmentScreen: React.FC<AssessmentScreenProps> = ({
       missionPrancha = Math.max(45, Math.round(prancha * 0.8));
     }
 
+    const rankLetter = nivel === 'Iniciante' ? 'E' : nivel === 'Intermediário' ? 'D' : 'C';
+
     setComputedProfile({
       nivel,
       text,
       flexoes: missionFlexoes,
       agachamentos: missionAgachamentos,
       prancha: missionPrancha,
+      rankLetter,
     });
   };
 
@@ -1115,70 +1119,100 @@ export const AssessmentScreen: React.FC<AssessmentScreenProps> = ({
             exit={{ opacity: 0, scale: 0.95 }}
             className="flex-1 flex flex-col justify-between py-4 z-10 w-full"
           >
-            <div className="space-y-6">
-              <div className="text-center space-y-1">
-                <span className="text-[10px] font-mono font-black text-cyan-400 tracking-widest uppercase block">ANÁLISE CONCLUÍDA</span>
-                <h2 className="text-2xl font-black font-display text-white tracking-widest uppercase neon-text-blue">PERFIL DETECTADO</h2>
+            <div className="space-y-5">
+              {/* Header Box with thin red border */}
+              <div className="flex justify-center">
+                <div className="border border-red-500/30 px-4 py-1.5 rounded-sm bg-red-950/10 backdrop-blur-sm">
+                  <span className="text-[10px] font-mono font-black text-red-500 tracking-[0.25em] uppercase">
+                    ANÁLISE CONCLUÍDA
+                  </span>
+                </div>
               </div>
 
-              {/* Perfil fitness card */}
-              <div className="bg-[#07060a] border border-cyan-500/20 rounded-none p-6 text-center space-y-3 shadow-xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-cyan-500/5 rounded-full blur-2xl pointer-events-none" />
-                
-                <span className="text-[9px] font-mono font-extrabold text-cyan-400 tracking-widest block uppercase">CLASSIFICAÇÃO DO INDIVÍDUO</span>
-                
-                <div className="text-3xl font-black text-[#00f0ff] font-display uppercase tracking-widest flex items-center justify-center gap-2 drop-shadow-[0_0_8px_rgba(0,240,255,0.3)]">
-                  🏅 {computedProfile?.nivel}
-                </div>
+              {/* Subtitle */}
+              <div className="text-center">
+                <span className="text-xs font-mono font-bold text-red-500/80 tracking-widest uppercase block">
+                  SEU RANK ATUAL
+                </span>
+              </div>
 
-                <p className="text-xs text-slate-300 leading-relaxed px-2 font-mono">
-                  "{computedProfile?.text}"
+              {/* Huge Glowing Red Circle Badge */}
+              <div className="flex justify-center">
+                <div className="w-28 h-28 rounded-full border-[6px] border-red-600 flex items-center justify-center bg-red-950/20 shadow-[0_0_30px_rgba(220,38,38,0.5)] relative">
+                  <div className="absolute inset-0 rounded-full border border-red-500/30 animate-ping opacity-25" />
+                  <span className="text-5xl font-black text-red-500 font-display tracking-tight drop-shadow-[0_0_15px_rgba(220,38,38,0.7)]">
+                    {computedProfile?.rankLetter || 'E'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Red-Bordered Description Card */}
+              <div className="bg-[#050101] border-l-4 border-red-600 border-y border-r border-red-950/40 p-4 rounded-md space-y-2 shadow-xl">
+                <p className="text-xs font-mono font-black text-red-400 uppercase tracking-wide">
+                  ⚙️ Nível atual detectado: RANK {computedProfile?.rankLetter || 'E'} ({computedProfile?.nivel})
+                </p>
+                <p className="text-[11px] text-slate-300 font-mono leading-relaxed">
+                  No entanto, uma anomalia foi detectada no seu fluxo de potencial. O Sistema habilitou um cronograma especial de calibração para elevar seus atributos diários.
                 </p>
               </div>
 
-              {/* Primeira missão personalizada */}
-              <div className="bg-[#07060a] border border-slate-900 rounded-none p-5 space-y-4">
-                <div className="border-b border-slate-900/60 pb-3 flex justify-between items-center">
-                  <span className="text-[10px] font-mono font-black text-cyan-400 uppercase tracking-widest flex items-center gap-1.5">
-                    <Target className="w-4 h-4 text-cyan-400" /> MISSÃO DO SISTEMA
-                  </span>
-                  <span className="text-[8px] px-2 py-0.5 rounded-md bg-cyan-950/20 text-cyan-400 border border-cyan-500/10 font-mono font-bold uppercase tracking-widest">DIÁRIA</span>
+              {/* Comprehensive explanation of ranks from E to S */}
+              <div className="bg-[#070303] border border-red-950/60 p-4 rounded-xl space-y-2.5 shadow-lg">
+                <span className="text-[9px] font-mono font-black text-red-500 tracking-wider uppercase block border-b border-red-900/30 pb-1">
+                  ⚔️ SISTEMA DE CLASSES E RANQUES DE CAÇADORES (E a S)
+                </span>
+                
+                <div className="space-y-2 text-[10px] font-mono leading-relaxed">
+                  <div className="flex items-start gap-2">
+                    <span className="text-red-500 font-black min-w-[50px] shrink-0">RANK E</span>
+                    <span className="text-slate-400">O ponto de partida. Foco na criação de hábitos, disciplina e fortalecimento do alicerce físico.</span>
+                  </div>
+                  <div className="flex items-start gap-2 border-t border-red-950/20 pt-1.5">
+                    <span className="text-emerald-400 font-black min-w-[50px] shrink-0">RANK D</span>
+                    <span className="text-slate-400">Iniciante moderado. Exercícios voltados para a adaptação de resistência física e tônus inicial.</span>
+                  </div>
+                  <div className="flex items-start gap-2 border-t border-red-950/20 pt-1.5">
+                    <span className="text-blue-400 font-black min-w-[50px] shrink-0">RANK C</span>
+                    <span className="text-slate-400">Intermediário equilibrado. Carga metabólica aumentada, treinos consistentes e progressão contínua.</span>
+                  </div>
+                  <div className="flex items-start gap-2 border-t border-red-950/20 pt-1.5">
+                    <span className="text-purple-400 font-black min-w-[50px] shrink-0">RANK B</span>
+                    <span className="text-slate-400">Avançado e focado. Ganho de força massivo, hipertrofia sólida e alta intensidade cardiovascular.</span>
+                  </div>
+                  <div className="flex items-start gap-2 border-t border-red-950/20 pt-1.5">
+                    <span className="text-red-400 font-black min-w-[50px] shrink-0">RANK A</span>
+                    <span className="text-slate-400">Elite do Sistema. Treinos pesados e de altíssima performance para caçadores de alto rendimento.</span>
+                  </div>
+                  <div className="flex items-start gap-2 border-t border-red-950/20 pt-1.5">
+                    <span className="text-amber-400 font-black min-w-[50px] shrink-0">RANK S</span>
+                    <span className="text-slate-400">Pico supremo da evolução. Desafios extremos para superar todo e qualquer limite humano.</span>
+                  </div>
                 </div>
+              </div>
 
-                <div className="grid grid-cols-3 gap-2.5 text-center">
-                  <div className="bg-[#040206] border border-slate-900 rounded-none p-3">
-                    <span className="text-[9px] font-mono font-bold text-slate-500 uppercase block leading-none">FLEXÕES</span>
-                    <span className="text-lg font-mono font-black text-white block mt-1.5">{computedProfile?.flexoes}</span>
-                    <span className="text-[8px] text-slate-500 block mt-0.5 font-mono">REPS</span>
-                  </div>
-                  <div className="bg-[#040206] border border-slate-900 rounded-none p-3">
-                    <span className="text-[9px] font-mono font-bold text-slate-500 uppercase block leading-none">AGACHAM.</span>
-                    <span className="text-lg font-mono font-black text-white block mt-1.5">{computedProfile?.agachamentos}</span>
-                    <span className="text-[8px] text-slate-500 block mt-0.5 font-mono">REPS</span>
-                  </div>
-                  <div className="bg-[#040206] border border-slate-900 rounded-none p-3">
-                    <span className="text-[9px] font-mono font-bold text-slate-500 uppercase block leading-none">PRANCHA</span>
-                    <span className="text-lg font-mono font-black text-white block mt-1.5">{computedProfile?.prancha}s</span>
-                    <span className="text-[8px] text-slate-500 block mt-0.5 font-mono">SEG</span>
-                  </div>
+              {/* Initial daily targets row */}
+              <div className="grid grid-cols-3 gap-2 text-center text-[10px] font-mono">
+                <div className="bg-[#050101]/60 border border-red-950/40 py-2.5 rounded-lg">
+                  <span className="text-slate-500 block text-[9px]">FLEXÕES</span>
+                  <span className="text-xs font-bold text-red-400 block mt-0.5">{computedProfile?.flexoes} REPS</span>
                 </div>
-
-                <div className="bg-cyan-950/5 border border-cyan-500/15 rounded-none p-3 flex gap-2.5 items-center">
-                  <span className="text-xl">⚡</span>
-                  <div>
-                    <span className="text-[10px] font-mono font-black text-cyan-400 uppercase tracking-wider block">META DE CALIBRAÇÃO</span>
-                    <span className="text-xs text-slate-300 font-mono leading-tight">Mantenha as marcas por 10 dias de streak ativo.</span>
-                  </div>
+                <div className="bg-[#050101]/60 border border-red-950/40 py-2.5 rounded-lg">
+                  <span className="text-slate-500 block text-[9px]">AGACHAM.</span>
+                  <span className="text-xs font-bold text-red-400 block mt-0.5">{computedProfile?.agachamentos} REPS</span>
+                </div>
+                <div className="bg-[#050101]/60 border border-red-950/40 py-2.5 rounded-lg">
+                  <span className="text-slate-500 block text-[9px]">PRANCHA</span>
+                  <span className="text-xs font-bold text-red-400 block mt-0.5">{computedProfile?.prancha} SEG</span>
                 </div>
               </div>
             </div>
 
             <button
-              id="btn-start-journey"
-              onClick={handleStartJourney}
-              className="w-full py-4 bg-cyan-400 hover:bg-cyan-300 text-black font-display font-black tracking-[0.2em] uppercase rounded-none shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all duration-200 flex items-center justify-center gap-2 active:scale-95 cursor-pointer text-sm"
+              id="btn-accept-mission"
+              onClick={handleBeginGame}
+              className="w-full py-4 mt-6 bg-red-600 hover:bg-red-500 text-white font-mono font-black tracking-[0.25em] uppercase rounded-xl shadow-[0_0_20px_rgba(220,38,38,0.45)] transition-all duration-200 active:scale-95 cursor-pointer text-sm animate-pulse"
             >
-              CONFIRMAR
+              ACEITAR MISSÃO
             </button>
           </motion.div>
         )}
