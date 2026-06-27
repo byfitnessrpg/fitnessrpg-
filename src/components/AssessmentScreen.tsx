@@ -20,9 +20,11 @@ import {
   Activity,
   Heart,
   HelpCircle,
-  Fingerprint
+  Fingerprint,
+  Bell
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { requestNotificationPermission } from '../lib/notifications';
 
 interface AssessmentScreenProps {
   gameState: GameState;
@@ -56,6 +58,8 @@ export const AssessmentScreen: React.FC<AssessmentScreenProps> = ({
 
   const [cronogramaDias, setCronogramaDias] = useState<string[]>(['Seg', 'Qua', 'Sex']);
   const [cronogramaJanela, setCronogramaJanela] = useState<string>('Manhã');
+  const [notificacoesAtivas, setNotificacoesAtivas] = useState<boolean>(gameState.notificacoes_ativas || false);
+  const [notificacoesToken, setNotificacoesToken] = useState<string>(gameState.notificacoes_token || '');
   
   const [isScanning, setIsScanning] = useState<boolean>(false);
   const [scanProgress, setScanProgress] = useState<number>(0);
@@ -294,6 +298,8 @@ export const AssessmentScreen: React.FC<AssessmentScreenProps> = ({
       },
       cronograma_dias: cronogramaDias,
       cronograma_janela: cronogramaJanela,
+      notificacoes_ativas: notificacoesAtivas,
+      notificacoes_token: notificacoesToken,
       weight: parseFloat(peso),
       weightHistory: [
         ...(gameState.weightHistory || []),
@@ -968,6 +974,55 @@ export const AssessmentScreen: React.FC<AssessmentScreenProps> = ({
                     );
                   })}
                 </div>
+              </div>
+
+              {/* Notificações Push */}
+              <div className="space-y-3 bg-[#07060a] border border-slate-900 rounded-2xl p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                      <Bell className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-black font-mono text-cyan-400 uppercase tracking-wider block">
+                        NOTIFICAÇÕES PUSH
+                      </span>
+                      <span className="text-[9px] font-mono text-slate-500 uppercase block mt-0.5">
+                        Lembretes no seu celular ou PC
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (notificacoesAtivas) {
+                        setNotificacoesAtivas(false);
+                      } else {
+                        const token = await requestNotificationPermission();
+                        if (token) {
+                          setNotificacoesAtivas(true);
+                          setNotificacoesToken(token);
+                        } else {
+                          alert("Para receber alertas, conceda permissão de notificação quando solicitado pelo navegador.");
+                        }
+                      }
+                    }}
+                    className={`w-12 h-6 rounded-full transition-all duration-200 relative p-1 cursor-pointer flex items-center ${
+                      notificacoesAtivas ? 'bg-cyan-400 animate-pulse' : 'bg-slate-800'
+                    }`}
+                  >
+                    <div
+                      className={`w-4 h-4 rounded-full bg-black transition-all duration-200 ${
+                        notificacoesAtivas ? 'translate-x-6' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
+                </div>
+                {notificacoesAtivas && (
+                  <span className="text-[10px] text-emerald-400 font-mono font-bold block animate-pulse">
+                    ✓ Notificações ativadas! Você receberá lembretes nos dias configurados.
+                  </span>
+                )}
               </div>
             </div>
 

@@ -106,6 +106,8 @@ export interface GameState {
   cronograma_dias?: string[];
   cronograma_janela?: string;
   completedRecoveryToday?: string[];
+  notificacoes_ativas?: boolean;
+  notificacoes_token?: string;
 }
 
 export interface Friend {

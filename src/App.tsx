@@ -165,6 +165,8 @@ const DEFAULT_STATE: GameState = {
   friendChallenges: [],
   recruitsCount: 0,
   avaliacao_concluida: false,
+  notificacoes_ativas: false,
+  notificacoes_token: '',
 };
 
 export default function App() {
@@ -261,6 +263,17 @@ export default function App() {
     };
   }, []);
 
+  // Initialize notifications if active
+  useEffect(() => {
+    if (gameState.notificacoes_ativas) {
+      import('./lib/notifications').then(({ initializeNotifications }) => {
+        initializeNotifications().catch(err => {
+          console.warn('Erro ao inicializar notificações ao carregar o aplicativo:', err);
+        });
+      });
+    }
+  }, [gameState.notificacoes_ativas]);
+
   // 3. Automatically trigger Game Master Notice modal on login if no oath has been pledged
   useEffect(() => {
     if (user && !gameState.chosenOath) {
@@ -341,6 +354,10 @@ export default function App() {
           if (parsed.proxima_reavaliacao !== undefined) parsedAssessment.proxima_reavaliacao = parsed.proxima_reavaliacao;
           if (parsed.nivel_fitness !== undefined) parsedAssessment.nivel_fitness = parsed.nivel_fitness;
           if (parsed.missao_personalizada !== undefined) parsedAssessment.missao_personalizada = parsed.missao_personalizada;
+          if (parsed.notificacoes_ativas !== undefined) parsedAssessment.notificacoes_ativas = parsed.notificacoes_ativas;
+          if (parsed.notificacoes_token !== undefined) parsedAssessment.notificacoes_token = parsed.notificacoes_token;
+          if (parsed.cronograma_dias !== undefined) parsedAssessment.cronograma_dias = parsed.cronograma_dias;
+          if (parsed.cronograma_janela !== undefined) parsedAssessment.cronograma_janela = parsed.cronograma_janela;
         } catch (e) {
           console.warn("Failed to parse profilePic metadata JSON from database", e);
           parsedProfilePic = rawProfilePic;
@@ -524,6 +541,10 @@ export default function App() {
           proxima_reavaliacao: updatedState.proxima_reavaliacao,
           nivel_fitness: updatedState.nivel_fitness,
           missao_personalizada: updatedState.missao_personalizada,
+          notificacoes_ativas: updatedState.notificacoes_ativas,
+          notificacoes_token: updatedState.notificacoes_token,
+          cronograma_dias: updatedState.cronograma_dias,
+          cronograma_janela: updatedState.cronograma_janela,
         });
 
         await supabase

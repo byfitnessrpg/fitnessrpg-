@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { GameState } from '../types';
-import { Award, Zap, Flame, Shield, RotateCcw, Edit2, Download, Check, Share2, Copy, Users, CheckCircle2, Sparkles, Lock } from 'lucide-react';
+import { Award, Zap, Flame, Shield, RotateCcw, Edit2, Download, Check, Share2, Copy, Users, CheckCircle2, Sparkles, Lock, Bell } from 'lucide-react';
 import { motion } from 'motion/react';
 import * as htmlToImage from 'html-to-image';
 
@@ -550,6 +550,151 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
               })}
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* SEÇÃO NOTIFICAÇÕES PUSH */}
+      <div className="px-5 space-y-4 mt-4">
+        <div className="bg-[#07060a] border border-slate-900 rounded-3xl p-5 shadow-lg space-y-5">
+          <div className="flex items-center gap-2 border-b border-slate-900/60 pb-3">
+            <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+              <Bell className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="text-[9px] font-mono font-black text-cyan-400 tracking-wider block uppercase">NOTIFICAÇÕES DO SISTEMA</span>
+              <h3 className="text-sm font-black text-white uppercase tracking-tight font-display">🔔 Lembretes de Treino</h3>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between bg-[#030205] border border-slate-900 rounded-2xl p-4">
+            <div>
+              <span className="text-xs font-black font-mono text-white uppercase block">Receber Notificações</span>
+              <span className="text-[10px] font-mono text-slate-500 uppercase block mt-0.5">
+                {gameState.notificacoes_ativas ? 'Ativado neste dispositivo' : 'Desativado'}
+              </span>
+            </div>
+            <button
+              onClick={async () => {
+                if (gameState.notificacoes_ativas) {
+                  onUpdateGameState({
+                    ...gameState,
+                    notificacoes_ativas: false
+                  });
+                } else {
+                  const { requestNotificationPermission } = await import('../lib/notifications');
+                  const token = await requestNotificationPermission();
+                  if (token) {
+                    onUpdateGameState({
+                      ...gameState,
+                      notificacoes_ativas: true,
+                      notificacoes_token: token
+                    });
+                  } else {
+                    alert("Para ativar as notificações, permita o acesso nas configurações do navegador.");
+                  }
+                }
+              }}
+              className={`w-12 h-6 rounded-full transition-all duration-200 relative p-1 cursor-pointer flex items-center ${
+                gameState.notificacoes_ativas ? 'bg-cyan-400' : 'bg-slate-800'
+              }`}
+            >
+              <div
+                className={`w-4 h-4 rounded-full bg-black transition-all duration-200 ${
+                  gameState.notificacoes_ativas ? 'translate-x-6' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
+
+          {gameState.notificacoes_ativas && (
+            <div className="space-y-4 animate-fadeIn">
+              {/* Escolha de dias de treino */}
+              <div className="space-y-2">
+                <span className="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-wide block">Dias Programados para Treino</span>
+                <div className="flex justify-between gap-1">
+                  {[
+                    { id: 'Seg', label: 'S' },
+                    { id: 'Ter', label: 'T' },
+                    { id: 'Qua', label: 'Q' },
+                    { id: 'Qui', label: 'Q' },
+                    { id: 'Sex', label: 'S' },
+                    { id: 'Sab', label: 'S' },
+                    { id: 'Dom', label: 'D' }
+                  ].map((day) => {
+                    const currentDays = gameState.cronograma_dias || ['Seg', 'Qua', 'Sex'];
+                    const isSelected = currentDays.includes(day.id);
+                    return (
+                      <button
+                        key={day.id}
+                        onClick={() => {
+                          let updatedDays;
+                          if (isSelected) {
+                            updatedDays = currentDays.filter(d => d !== day.id);
+                          } else {
+                            updatedDays = [...currentDays, day.id];
+                          }
+                          onUpdateGameState({
+                            ...gameState,
+                            cronograma_dias: updatedDays
+                          });
+                        }}
+                        className={`w-9 h-9 border font-mono font-bold text-xs flex items-center justify-center transition-all cursor-pointer rounded-lg ${
+                          isSelected
+                            ? 'bg-[#040a12]/40 border-cyan-400 text-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.3)]'
+                            : 'bg-[#0c0a0f]/80 border-slate-900 text-slate-500 hover:border-slate-800'
+                        }`}
+                      >
+                        {day.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Janela preferida */}
+              <div className="space-y-2">
+                <span className="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-wide block">Horário Preferido (Janela)</span>
+                <div className="grid grid-cols-2 gap-2">
+                  {['Manhã', 'Tarde', 'Noite', 'Madrugada'].map((windowName) => {
+                    const isSelected = gameState.cronograma_janela === windowName;
+                    return (
+                      <button
+                        key={windowName}
+                        onClick={() => {
+                          onUpdateGameState({
+                            ...gameState,
+                            cronograma_janela: windowName
+                          });
+                        }}
+                        className={`py-2 px-3 border text-center transition-all duration-200 cursor-pointer rounded-xl text-xs font-bold uppercase tracking-wider ${
+                          isSelected
+                            ? 'bg-[#040a12]/40 border-cyan-400 text-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.25)]'
+                            : 'bg-[#0c0a0f]/80 border-slate-900 text-slate-500 hover:border-slate-800'
+                        }`}
+                      >
+                        {windowName}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Botão de Testar Lembrete */}
+              <button
+                onClick={async () => {
+                  const { triggerTestNotification } = await import('../lib/notifications');
+                  triggerTestNotification(
+                    '⚔️ FitnessRPG: Hora do Treino!',
+                    `Seu treino de hoje (${gameState.cronograma_janela || 'Manhã'}) está pronto. Venha evoluir seu personagem!`
+                  );
+                }}
+                className="w-full py-2.5 bg-[#030205] hover:bg-slate-900 border border-slate-900 text-cyan-400 font-bold font-mono tracking-wider text-[11px] uppercase rounded-xl flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer"
+              >
+                <Sparkles className="w-3.5 h-3.5 animate-bounce" />
+                Testar Notificação Agora
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
