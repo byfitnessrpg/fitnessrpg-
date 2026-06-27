@@ -15,6 +15,7 @@ import {
   X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { calculateReassessmentProgression } from '../lib/fitnessCalculator';
 
 interface ReassessmentModalProps {
   gameState: GameState;
@@ -88,23 +89,14 @@ export const ReassessmentModal: React.FC<ReassessmentModalProps> = ({
       prancha: 15
     };
 
-    // Calculate new mission values gradually
-    const profile = gameState.nivel_fitness || 'Iniciante';
-    const factor = profile === 'Iniciante' ? 0.65 : (profile === 'Intermediário' ? 0.70 : 0.75);
-
-    let nextFlexoes = Math.round(flexoes * factor);
-    let nextAgachamentos = Math.round(agachamentos * factor);
-    let nextPrancha = Math.round(prancha * factor);
-
-    // Apply strict gradual thresholds
-    nextFlexoes = Math.max(oldMissions.flexoes, Math.min(oldMissions.flexoes + 4, nextFlexoes));
-    nextAgachamentos = Math.max(oldMissions.agachamentos, Math.min(oldMissions.agachamentos + 6, nextAgachamentos));
-    nextPrancha = Math.max(oldMissions.prancha, Math.min(oldMissions.prancha + 15, nextPrancha));
-
-    // Floor values
-    nextFlexoes = Math.max(5, nextFlexoes);
-    nextAgachamentos = Math.max(10, nextAgachamentos);
-    nextPrancha = Math.max(15, nextPrancha);
+    // Calculate new mission values gradually using our personalized, safe algorithm
+    const nextMissions = calculateReassessmentProgression({
+      gameState,
+      newFlexoesTest: flexoes,
+      newAgachamentosTest: agachamentos,
+      newPranchaTest: prancha,
+      newPeso: finalPeso,
+    });
 
     setEvolutionData({
       flexoesDiff,
@@ -116,11 +108,7 @@ export const ReassessmentModal: React.FC<ReassessmentModalProps> = ({
       pesoDiff,
       pesoPct,
       oldMissions,
-      newMissions: {
-        flexoes: nextFlexoes,
-        agachamentos: nextAgachamentos,
-        prancha: nextPrancha,
-      }
+      newMissions: nextMissions
     });
 
     setStep(2);

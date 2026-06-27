@@ -9,30 +9,157 @@ import { motion, AnimatePresence } from 'motion/react';
 import { OATH_OPTIONS } from '../App';
 import { ExerciseIcon } from './ExerciseIcon';
 
+import neckStretchImg from '../assets/images/shredded_neck_stretch_1782592687377.jpg';
+import shoulderChestImg from '../assets/images/shredded_shoulder_chest_1782592699484.jpg';
+import armsStretchImg from '../assets/images/shredded_arms_stretch_1782592709605.jpg';
+import backStretchImg from '../assets/images/shredded_back_stretch_1782592719951.jpg';
+import hamstringStretchImg from '../assets/images/shredded_hamstrings_1782592730225.jpg';
+import quadricepsStretchImg from '../assets/images/shredded_quadriceps_1782592741631.jpg';
+import calfStretchImg from '../assets/images/shredded_calf_stretch_1782592750411.jpg';
+import hipMobilityImg from '../assets/images/shredded_hip_mobility_1782592761420.jpg';
+import spineMobilityImg from '../assets/images/shredded_spine_mobility_1782592774581.jpg';
+import walkExerciseImg from '../assets/images/shredded_walk_1782592784972.jpg';
+
 export const RECOVERY_ACTIVITIES = [
   {
-    id: 'rec_walk',
-    name: 'Caminhada Leve',
-    desc: 'Caminhada leve de 15-20 minutos para manter a circulação ativa e regenerar.',
-    icon: '🚶',
-    xp: 25,
-    tag: 'OPCIONAL'
-  },
-  {
-    id: 'rec_stretch',
-    name: 'Alongamento Suave',
-    desc: 'Alongue-se suavemente por 5 minutos para aliviar as tensões corporais.',
-    icon: '🧘',
-    xp: 20,
-    tag: 'OPCIONAL'
-  },
-  {
-    id: 'rec_hydrate',
-    name: 'Super Hidratação',
-    desc: 'Complete sua meta de água para lubrificar as articulações e recuperar fibras.',
-    icon: '💧',
+    id: 'rec_neck_stretch',
+    name: 'Alongamento de Pescoço',
+    desc: 'Alivie a tensão acumulada na região cervical com movimentos suaves.',
+    instructions: 'Incline a cabeça aproximando a orelha esquerda do ombro esquerdo. Segure suavemente por 15 segundos. Repita para o lado direito. Em seguida, gire a cabeça em movimentos lentos circulares.',
+    icon: '🧘‍♀️',
     xp: 15,
-    tag: 'RECOMENDADO'
+    duration: 30,
+    tag: 'OPCIONAL',
+    durationLabel: '15 SEGUNDOS',
+    focusLabel: 'AMBOS OS LADOS',
+    breathLabel: 'RESPIRE SUAVEMENTE',
+    image: neckStretchImg
+  },
+  {
+    id: 'rec_shoulder_chest',
+    name: 'Alongamento de Ombros e Peito',
+    desc: 'Abra o tórax e libere a articulação dos ombros para melhorar a postura.',
+    instructions: 'Entrelace os dedos atrás das costas, estenda os braços e eleve-os suavemente até sentir o peito alongar. Mantenha os ombros relaxados e respire fundo.',
+    icon: '🙆‍♂️',
+    xp: 15,
+    duration: 30,
+    tag: 'OPCIONAL',
+    durationLabel: '15 SEGUNDOS',
+    focusLabel: 'AMBOS OS LADOS',
+    breathLabel: 'RESPIRE FUNDO',
+    image: shoulderChestImg
+  },
+  {
+    id: 'rec_arms_stretch',
+    name: 'Alongamento de Braços',
+    desc: 'Alongue os tríceps e antebraços, aliviando o cansaço dos membros superiores.',
+    instructions: 'Cruze um braço à frente do corpo e apoie-o com a outra mão na altura do cotovelo, pressionando-o levemente contra o peito por 15 segundos. Troque de braço.',
+    icon: '💪',
+    xp: 15,
+    duration: 30,
+    tag: 'OPCIONAL',
+    durationLabel: '15 SEGUNDOS',
+    focusLabel: 'EM FRENTE DO CORPO',
+    breathLabel: 'MANTENHA A POSTURA RETA',
+    image: armsStretchImg
+  },
+  {
+    id: 'rec_back_stretch',
+    name: 'Alongamento de Costas',
+    desc: 'Alivie a pressão sobre a lombar e a musculatura dorsal média.',
+    instructions: 'Estenda os braços à frente, entrelace as mãos e empurde para frente enquanto projeta as costas para trás de forma suave, relaxando os ombros e a cabeça.',
+    icon: '🧘',
+    xp: 15,
+    duration: 30,
+    tag: 'OPCIONAL',
+    durationLabel: '15 SEGUNDOS',
+    focusLabel: 'EM FRENTE AO CORPO',
+    breathLabel: 'RELAXE A CABEÇA',
+    image: backStretchImg
+  },
+  {
+    id: 'rec_hamstrings',
+    name: 'Alongamento de Posteriores da Coxa',
+    desc: 'Solta a cadeia posterior das pernas e previne dores e rigidez lombar.',
+    instructions: 'Fique em pé ou sentado. Mantenha uma perna estendida à frente e flexione o quadril tentando aproximar as mãos da ponta do pé ou tornozelo. Não balance ou force.',
+    icon: '🦵',
+    xp: 20,
+    duration: 40,
+    tag: 'OPCIONAL',
+    durationLabel: '20 SEGUNDOS',
+    focusLabel: 'FLEXIONE O QUADRIL',
+    breathLabel: 'MANTENHA AS COSTAS ALINHADAS E RESPIRAÇÃO CONSTANTE',
+    image: hamstringStretchImg
+  },
+  {
+    id: 'rec_quadriceps',
+    name: 'Alongamento de Quadríceps',
+    desc: 'Alongue a musculatura anterior da coxa, reduzindo sobrecarga nos joelhos.',
+    instructions: 'Apoie-se se necessário. Flexione um joelho para trás, segure o tornozelo com a mão e puxe-o suavemente em direção ao glúteo. Mantenha os joelhos alinhados.',
+    icon: '🧍',
+    xp: 15,
+    duration: 40,
+    tag: 'OPCIONAL',
+    durationLabel: '20 SEGUNDOS',
+    focusLabel: 'FLEXIONE 1 JOELHO',
+    breathLabel: 'APOIE-SE SE NECESSÁRIO. MANTENHA OS JOELHOS ALINHADOS E O QUADRIL ESTÁVEL',
+    image: quadricepsStretchImg
+  },
+  {
+    id: 'rec_calf_stretch',
+    name: 'Alongamento de Panturrilhas',
+    desc: 'Reduz a rigidez e previne dores nas pernas, melhorando a flexibilidade.',
+    instructions: 'Fique de frente para uma parede. Apoie as mãos, dê um passo para trás com uma perna, apoie todo o calcanhar traseiro no chão e incline o quadril para frente.',
+    icon: '👣',
+    xp: 15,
+    duration: 40,
+    tag: 'OPCIONAL',
+    durationLabel: '20 SEGUNDOS',
+    focusLabel: 'APOIO COM AS MÃOS',
+    breathLabel: 'MANTENHA O CALCANHAR TRASEIRO NO CHÃO E INCLINE O QUADRIL PARA FRENTE',
+    image: calfStretchImg
+  },
+  {
+    id: 'rec_hip_mobility',
+    name: 'Mobilidade de Quadril',
+    desc: 'Aumente a amplitude de movimento do quadril e relaxe as articulações.',
+    instructions: 'Em pé com as mãos na cintura, faça movimentos circulares amplos com o quadril. Faça 10 giros suaves para o lado direito e 10 giros para o lado esquerdo.',
+    icon: '🔄',
+    xp: 20,
+    duration: 20,
+    tag: 'OPCIONAL',
+    durationLabel: '20 SEGUNDOS',
+    focusLabel: 'EM PÉ COM AS MÃOS NA CINTURA',
+    breathLabel: 'MANTENHA O TRONCO ESTÁVEL E FAÇA MOVIMENTOS CIRCULARES CONTROLADOS',
+    image: hipMobilityImg
+  },
+  {
+    id: 'rec_spine_mobility',
+    name: 'Mobilidade de Coluna',
+    desc: 'Excelente para lubrificar as vértebras e aliviar dores na coluna inteira.',
+    instructions: 'Em quatro apoios (mãos e joelhos no chão). Inspire curvando as costas para baixo e olhando para cima (vaca). Solte o ar curvando as costas para cima (gato).',
+    icon: '🐈',
+    xp: 20,
+    duration: 20,
+    tag: 'OPCIONAL',
+    durationLabel: '20 SEGUNDOS',
+    focusLabel: 'EM QUATRO APOIOS (MÃOS E JOELHOS)',
+    breathLabel: 'INSPIRE CURVANDO AS COSTAS PARA BAIXO E OLHE PARA CIMA (VACA). SOLTE O AR CURVANDO AS COSTAS PARA CIMA (GATO).',
+    image: spineMobilityImg
+  },
+  {
+    id: 'rec_light_walk',
+    name: 'Caminhada Leve (Opcional)',
+    desc: 'Caminhada de 15-20 minutos para manter a circulação ativa e recuperar tecidos.',
+    instructions: 'Caminhe ao ar livre ou em uma esteira em ritmo descontraído e constante. Respire profundamente pelo nariz e relaxe os braços e ombros.',
+    icon: '🚶',
+    xp: 30,
+    duration: 1800,
+    tag: 'OPCIONAL',
+    durationLabel: '30 MINUTOS',
+    focusLabel: 'RESPIRAÇÃO PROFUNDA E RITMO CONSTANTE',
+    breathLabel: 'FOQUE NO PRESENTE E MANTENHA A POSTURA CORRETA',
+    image: walkExerciseImg
   }
 ];
 
@@ -43,6 +170,7 @@ interface HomeTabProps {
   scaledTarget: (ex: Exercise) => number;
   onUpdateGameState: (newState: GameState) => void;
   onCompleteRecoveryActivity?: (activityId: string, xpReward: number, name: string) => void;
+  onStartRecoveryActivity?: (activityId: string) => void;
   theme?: 'dark' | 'light';
 }
 
@@ -53,6 +181,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
   scaledTarget,
   onUpdateGameState,
   onCompleteRecoveryActivity,
+  onStartRecoveryActivity,
   theme = 'dark',
 }) => {
   // Gracefully handle undefined fields from gameState
@@ -563,22 +692,19 @@ export const HomeTab: React.FC<HomeTabProps> = ({
         {!isTrainingDay && (
           <div className={`p-4.5 rounded-xl mb-4.5 border transition-all flex flex-col gap-2 ${
             isLight 
-              ? 'bg-amber-50/60 border-amber-300 text-amber-900' 
-              : 'bg-gradient-to-r from-amber-950/20 via-[#07060a] to-[#07060a] border-amber-500/20 text-slate-300'
+              ? 'bg-teal-50/60 border-teal-300 text-teal-900' 
+              : 'bg-gradient-to-r from-teal-950/20 via-[#07060a] to-[#07060a] border-teal-500/20 text-slate-300'
           }`}>
             <div className="flex items-center gap-2.5">
-              <span className="text-xl filter drop-shadow-[0_2px_8px_rgba(245,158,11,0.3)]">🛌</span>
+              <span className="text-xl filter drop-shadow-[0_2px_8px_rgba(20,184,166,0.3)]">🏕️</span>
               <div>
-                <span className="text-[10px] font-mono font-black text-amber-500 uppercase tracking-widest block leading-none">SISTEMA DE RECUPERAÇÃO ATIVO</span>
-                <span className={`text-xs font-black font-display uppercase tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>DIA DE DESCANSO DETECTADO</span>
+                <span className="text-[10px] font-mono font-black text-teal-500 uppercase tracking-widest block leading-none">RECOMENDAÇÃO DO SISTEMA</span>
+                <span className={`text-xs font-black font-display uppercase tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>MISSÃO DE RECUPERAÇÃO (OPCIONAL)</span>
               </div>
             </div>
             <p className="text-[10.5px] font-mono leading-relaxed text-slate-400">
-              Hoje é seu dia de descanso programado! O descanso é fundamental para a recuperação e reconstrução muscular. Aproveite para descansar e se manter hidratado!
+              Hoje é seu dia de descanso. Seu corpo evolui durante a recuperação. Se desejar, realize algumas atividades leves para acelerar sua recuperação e chegar mais preparado ao próximo treino.
             </p>
-            <span className="text-[9.5px] font-mono font-black text-amber-500 block uppercase italic leading-none mt-1">
-              "Treinar sem descanso é o caminho para a falha física." — SISTEMA
-            </span>
           </div>
         )}
 
@@ -636,11 +762,11 @@ export const HomeTab: React.FC<HomeTabProps> = ({
               return (
                 <div
                   key={rec.id}
-                  onClick={() => !isCompleted && onCompleteRecoveryActivity?.(rec.id, rec.xp, rec.name)}
+                  onClick={() => !isCompleted && onStartRecoveryActivity?.(rec.id)}
                   className={`flex items-center justify-between py-2.5 px-3 border transition-all cursor-pointer rounded-lg ${
                     isCompleted
-                      ? (isLight ? 'bg-emerald-50 border-emerald-200/60 opacity-50' : 'bg-emerald-950/10 border-emerald-500/10 opacity-40')
-                      : (isLight ? 'bg-slate-50/80 border-slate-200 hover:border-emerald-400/40 hover:bg-emerald-50/25' : 'bg-[#07070a] border-slate-900 hover:border-emerald-500/40 hover:bg-slate-950')
+                      ? (isLight ? 'bg-teal-50/40 border-teal-200/60 opacity-50' : 'bg-teal-950/10 border-teal-500/10 opacity-40')
+                      : (isLight ? 'bg-slate-50/80 border-slate-200 hover:border-teal-400/40 hover:bg-teal-50/25' : 'bg-[#07070a] border-slate-900 hover:border-teal-500/40 hover:bg-slate-950')
                   }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
@@ -668,18 +794,25 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                   <div className="flex items-center gap-2 shrink-0">
                     <span className={`font-mono text-[10px] font-bold ${
                       isCompleted 
-                        ? 'text-emerald-500' 
+                        ? 'text-teal-500' 
                         : (isLight ? 'text-slate-500' : 'text-slate-400')
                     }`}>
-                      {isCompleted ? '✓ COMPLETADO' : `+${rec.xp} XP`}
+                      {isCompleted ? '✓ CONCLUÍDO' : `+${rec.xp} XP`}
                     </span>
                     {!isCompleted && (
-                      <button className={`w-5 h-5 rounded flex items-center justify-center transition-all border ${
-                        isLight 
-                          ? 'bg-emerald-50 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 text-emerald-600 border-emerald-200 shadow-sm' 
-                          : 'bg-[#0a120d] text-emerald-400 border-emerald-500/20 hover:bg-emerald-500 hover:text-black hover:border-emerald-500'
-                      }`}>
-                        <Check className="w-3 h-3 stroke-[3]" />
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onStartRecoveryActivity?.(rec.id);
+                        }}
+                        className={`px-2 py-1 text-[9px] font-bold uppercase rounded flex items-center gap-1 transition-all border ${
+                          isLight 
+                            ? 'bg-teal-50 hover:bg-teal-500 hover:text-white hover:border-teal-500 text-teal-600 border-teal-200 shadow-sm' 
+                            : 'bg-teal-950/40 text-teal-400 border-teal-500/20 hover:bg-teal-500 hover:text-black hover:border-teal-500'
+                        }`}
+                      >
+                        <Play className="w-2 h-2 fill-current" />
+                        Executar
                       </button>
                     )}
                   </div>
@@ -704,12 +837,12 @@ export const HomeTab: React.FC<HomeTabProps> = ({
         ) : (
           <div className={`my-5 p-4 rounded-xl flex gap-2.5 items-start border transition-colors ${
             isLight 
-              ? 'bg-emerald-50/60 border-emerald-200 text-emerald-700' 
-              : 'bg-emerald-950/10 border border-emerald-500/15 text-emerald-400'
+              ? 'bg-teal-50/60 border-teal-200 text-teal-700' 
+              : 'bg-teal-950/10 border-teal-500/15 text-teal-400'
           }`}>
-            <Sparkles className="w-4.5 h-4.5 text-emerald-500 shrink-0 mt-0.5 animate-pulse" />
+            <Sparkles className="w-4.5 h-4.5 text-teal-500 shrink-0 mt-0.5 animate-pulse" />
             <p className="text-[10px] leading-relaxed font-semibold font-mono uppercase tracking-wider">
-              SISTEMA: Protocolo de recuperação ativo. Realize atividades leves opcionais para manter sua integridade muscular e acumular bônus de regeneração física.
+              A recuperação também faz parte da evolução. Complete apenas as atividades que desejar e volte amanhã para sua próxima missão.
             </p>
           </div>
         )}

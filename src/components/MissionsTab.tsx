@@ -12,6 +12,7 @@ interface MissionsTabProps {
   onStartExercise: (id: string) => void;
   scaledTarget: (ex: Exercise) => number;
   onCompleteRecoveryActivity?: (activityId: string, xpReward: number, name: string) => void;
+  onStartRecoveryActivity?: (activityId: string) => void;
   theme?: 'dark' | 'light';
 }
 
@@ -21,6 +22,7 @@ export const MissionsTab: React.FC<MissionsTabProps> = ({
   onStartExercise,
   scaledTarget,
   onCompleteRecoveryActivity,
+  onStartRecoveryActivity,
   theme = 'dark',
 }) => {
   const [subTab, setSubTab] = useState<'daily' | 'weekly' | 'special'>('daily');
@@ -254,10 +256,10 @@ export const MissionsTab: React.FC<MissionsTabProps> = ({
                     key={rec.id}
                     className={`border rounded-2xl overflow-hidden transition-all duration-300 ${
                       done
-                        ? (isLight ? 'bg-emerald-50/40 border-emerald-200/50 opacity-60' : 'border-emerald-500/10 opacity-60 bg-black')
+                        ? (isLight ? 'bg-teal-50/40 border-teal-200/50 opacity-60' : 'border-teal-500/10 opacity-60 bg-black')
                         : isExpanded
-                        ? (isLight ? 'bg-white border-emerald-500 shadow-[0_4px_15px_rgba(16,185,129,0.1)]' : 'bg-black border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.15)]')
-                        : (isLight ? 'bg-white border-slate-200/80 hover:border-emerald-400' : 'bg-black border-slate-900 hover:border-emerald-500/20')
+                        ? (isLight ? 'bg-white border-teal-500 shadow-[0_4px_15px_rgba(20,184,166,0.1)]' : 'bg-black border-teal-500/50 shadow-[0_0_15px_rgba(20,184,166,0.15)]')
+                        : (isLight ? 'bg-white border-slate-200/80 hover:border-teal-400' : 'bg-black border-slate-900 hover:border-teal-500/20')
                     }`}
                   >
                     {/* Header click */}
@@ -287,10 +289,10 @@ export const MissionsTab: React.FC<MissionsTabProps> = ({
 
                       <div className="flex items-center gap-3">
                         {done ? (
-                          <span className="text-emerald-500 font-bold text-xs uppercase font-mono">✓ CONCLUÍDO</span>
+                          <span className="text-teal-500 font-bold text-xs uppercase font-mono">✓ CONCLUÍDO</span>
                         ) : (
                           <span className={`font-bold text-xs font-mono transition-colors ${
-                            isLight ? 'text-emerald-600 font-extrabold' : 'text-emerald-400'
+                            isLight ? 'text-teal-600 font-extrabold' : 'text-teal-400'
                           }`}>+{rec.xp} XP</span>
                         )}
                         {isExpanded ? (
@@ -326,16 +328,16 @@ export const MissionsTab: React.FC<MissionsTabProps> = ({
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  onCompleteRecoveryActivity?.(rec.id, rec.xp, rec.name);
+                                  onStartRecoveryActivity?.(rec.id);
                                 }}
                                 className={`w-full mt-2 py-3 text-xs font-black font-mono tracking-widest uppercase rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-sm ${
                                   isLight 
-                                    ? 'bg-slate-950 hover:bg-slate-800 text-white shadow-[0_3px_10px_rgba(15,23,42,0.15)]' 
-                                    : 'bg-white hover:bg-slate-200 text-black shadow-[0_0_12px_rgba(255,255,255,0.15)]'
+                                    ? 'bg-teal-600 hover:bg-teal-500 text-white shadow-[0_3px_10px_rgba(20,184,166,0.15)]' 
+                                    : 'bg-teal-500 hover:bg-teal-400 text-black shadow-[0_0_12px_rgba(20,184,166,0.2)]'
                                 }`}
                               >
-                                <Check className="w-4 h-4" />
-                                Concluir Atividade
+                                <Play className="w-4 h-4 fill-current" />
+                                Executar Atividade
                               </button>
                             )}
                           </div>

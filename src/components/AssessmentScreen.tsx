@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { requestNotificationPermission } from '../lib/notifications';
+import { calculatePersonalizedFitness } from '../lib/fitnessCalculator';
 
 interface AssessmentScreenProps {
   gameState: GameState;
@@ -211,56 +212,25 @@ export const AssessmentScreen: React.FC<AssessmentScreenProps> = ({
   };
 
   const calculateResults = () => {
-    // Automated analysis logic
-    let score = 0;
-    if (frequenciaTreino === 'Nunca treino') score += 1;
-    else if (frequenciaTreino === 'Treino raramente') score += 2;
-    else if (frequenciaTreino === 'Treino 2-3 vezes por semana') score += 4;
-    else if (frequenciaTreino === 'Treino 4 ou mais vezes por semana') score += 6;
-
-    score += flexoes * 0.5;
-    score += agachamentos * 0.3;
-    score += prancha * 0.2;
-
-    let nivel = 'Iniciante';
-    let text = 'Seu foco será desenvolver força básica, resistência e criar consistência de treino.';
-    
-    if (score >= 12 && score < 25) {
-      nivel = 'Intermediário';
-      text = 'Seu foco será aprimorar a forma, aumentar a intensidade dos blocos e construir massa muscular.';
-    } else if (score >= 25) {
-      nivel = 'Avançado';
-      text = 'Você possui excelente aptidão. Seu foco será superar limites e masterizar movimentos de alta intensidade.';
-    }
-
-    // Generate personalized missions
-    let missionFlexoes = 5;
-    let missionAgachamentos = 10;
-    let missionPrancha = 15;
-
-    if (nivel === 'Iniciante') {
-      missionFlexoes = Math.max(5, Math.ceil(flexoes * 1.2));
-      missionAgachamentos = Math.max(10, Math.ceil(agachamentos * 1.2));
-      missionPrancha = Math.max(15, Math.ceil(prancha * 1.2));
-    } else if (nivel === 'Intermediário') {
-      missionFlexoes = Math.max(12, Math.round(flexoes * 0.75));
-      missionAgachamentos = Math.max(20, Math.round(agachamentos * 0.75));
-      missionPrancha = Math.max(25, Math.round(prancha * 0.75));
-    } else {
-      missionFlexoes = Math.max(22, Math.round(flexoes * 0.8));
-      missionAgachamentos = Math.max(35, Math.round(agachamentos * 0.8));
-      missionPrancha = Math.max(45, Math.round(prancha * 0.8));
-    }
-
-    const rankLetter = nivel === 'Iniciante' ? 'E' : nivel === 'Intermediário' ? 'D' : 'C';
+    const profile = calculatePersonalizedFitness({
+      sexo,
+      idade,
+      altura: parseFloat(altura) || 170,
+      peso: parseFloat(peso) || 70,
+      objetivo,
+      frequenciaTreino,
+      flexoesTest: flexoes,
+      agachamentosTest: agachamentos,
+      pranchaTest: prancha,
+    });
 
     setComputedProfile({
-      nivel,
-      text,
-      flexoes: missionFlexoes,
-      agachamentos: missionAgachamentos,
-      prancha: missionPrancha,
-      rankLetter,
+      nivel: profile.nivel,
+      text: profile.text,
+      flexoes: profile.flexoes,
+      agachamentos: profile.agachamentos,
+      prancha: profile.prancha,
+      rankLetter: profile.rankLetter,
     });
   };
 
@@ -415,25 +385,29 @@ export const AssessmentScreen: React.FC<AssessmentScreenProps> = ({
               </div>
             </div>
 
-            {/* Next Button exactly matching the cyan style */}
-            <div className="w-full space-y-5">
+            {/* Split options: clear separate buttons for Registration vs Login */}
+            <div className="w-full space-y-4">
               <button
                 id="btn-start-assessment"
                 onClick={handleNextStep}
-                className="w-full py-4 bg-cyan-400 hover:bg-cyan-300 text-black font-display font-black tracking-[0.2em] uppercase rounded-none shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all duration-200 flex items-center justify-center gap-2 active:scale-95 cursor-pointer text-sm"
+                className="w-full py-4 bg-cyan-400 hover:bg-cyan-300 text-black font-display font-black tracking-[0.1em] uppercase rounded-xl shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all duration-200 flex flex-col items-center justify-center cursor-pointer"
               >
-                PRÓXIMO
+                <span className="text-sm tracking-[0.15em]">INICIAR NOVA JORNADA</span>
+                <span className="text-[9px] font-mono opacity-80 font-semibold tracking-normal mt-0.5">(Fazer avaliação & cadastrar nova conta)</span>
               </button>
 
-              <div className="text-center">
-                <button
-                  type="button"
-                  onClick={onLogout}
-                  className="text-[10px] text-slate-500 font-mono underline cursor-pointer hover:text-slate-400 bg-transparent border-none p-0"
-                >
-                  Já sou um jogador (Fazer Login)
-                </button>
-                <p className="text-[8px] text-slate-600 font-mono mt-3">
+              <button
+                type="button"
+                id="btn-already-player"
+                onClick={onLogout}
+                className="w-full py-4 bg-[#0c101a] border border-cyan-500/30 hover:border-cyan-400 text-cyan-400 hover:text-cyan-300 font-display font-black tracking-[0.1em] uppercase rounded-xl transition-all duration-200 flex flex-col items-center justify-center cursor-pointer shadow-[0_4px_15px_rgba(0,0,0,0.4)]"
+              >
+                <span className="text-sm tracking-[0.15em]">JÁ SOU UM JOGADOR</span>
+                <span className="text-[9px] font-mono opacity-80 text-slate-400 font-semibold tracking-normal mt-0.5">(Acessar jornada existente / Fazer Login)</span>
+              </button>
+
+              <div className="text-center pt-2">
+                <p className="text-[8px] text-slate-600 font-mono">
                   Ao continuar, você aceita os <span className="underline">Termos</span> e <span className="underline">Privacidade</span>.
                 </p>
               </div>

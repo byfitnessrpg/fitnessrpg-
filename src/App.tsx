@@ -12,6 +12,8 @@ import { RankingTab } from './components/RankingTab';
 import { ProfileTab } from './components/ProfileTab';
 import { EvolutionTab } from './components/EvolutionTab';
 import { MissionScreen } from './components/MissionScreen';
+import { RecoveryMissionScreen } from './components/RecoveryMissionScreen';
+import { RECOVERY_ACTIVITIES } from './components/HomeTab';
 import { AuthScreen } from './components/AuthScreen';
 import { AssessmentScreen } from './components/AssessmentScreen';
 import { ReassessmentModal } from './components/ReassessmentModal';
@@ -175,6 +177,7 @@ export default function App() {
   const [gameState, setGameState] = useState<GameState>(DEFAULT_STATE);
   const [activeTab, setActiveTab] = useState<string>('home');
   const [activeExerciseId, setActiveExerciseId] = useState<string | null>(null);
+  const [activeRecoveryActivityId, setActiveRecoveryActivityId] = useState<string | null>(null);
   const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     return (localStorage.getItem('fitnessRPG_theme') as 'dark' | 'light') || 'dark';
@@ -562,13 +565,18 @@ export default function App() {
   // Scaled exercise target value based on completed total missions and consecutive days streak
   const getScaledTarget = (ex: Exercise) => {
     let baseTarget = ex.base;
+    let maxCap = Infinity;
+
     if (gameState.missao_personalizada) {
-      if (ex.id === 'd1' && gameState.missao_personalizada.flexoes) {
-        baseTarget = gameState.missao_personalizada.flexoes;
-      } else if (ex.id === 'd2' && gameState.missao_personalizada.agachamentos) {
-        baseTarget = gameState.missao_personalizada.agachamentos;
-      } else if (ex.id === 'd3' && gameState.missao_personalizada.prancha) {
-        baseTarget = gameState.missao_personalizada.prancha;
+      if (ex.id === 'd1') {
+        baseTarget = gameState.missao_personalizada.flexoes || ex.base;
+        maxCap = gameState.flexoes_inicial || baseTarget;
+      } else if (ex.id === 'd2') {
+        baseTarget = gameState.missao_personalizada.agachamentos || ex.base;
+        maxCap = gameState.agachamentos_inicial || baseTarget;
+      } else if (ex.id === 'd3') {
+        baseTarget = gameState.missao_personalizada.prancha || ex.base;
+        maxCap = gameState.prancha_inicial || baseTarget;
       } else {
         const factor = Math.min(1, gameState.totalMissions / 50);
         const range = ex.max - ex.base;
@@ -584,7 +592,19 @@ export default function App() {
     const streakSteps = Math.floor((gameState.streak || 0) / 2);
     const intensityBonusFactor = 1 + streakSteps * 0.05;
     
-    return Math.floor(baseTarget * intensityBonusFactor);
+    let finalTarget = Math.floor(baseTarget * intensityBonusFactor);
+
+    // CRITICAL: The daily mission target MUST NOT exceed approximately 80% of their actual capacity (maxCap)
+    // to leave room for evolution and avoid frustration, unless their initial capability was zero/extremely low
+    if (maxCap !== Infinity && maxCap > 0) {
+      const safeMaxLimit = Math.max(
+        ex.base, // Ensure we at least do the exercise's baseline requirement
+        Math.round(maxCap * 0.8) // Strictly cap at 80% of initial capacity
+      );
+      finalTarget = Math.min(finalTarget, safeMaxLimit);
+    }
+
+    return finalTarget;
   };
 
   const showToastMsg = (msg: string, type: 'success' | 'gold' | 'default' = 'default') => {
@@ -878,6 +898,7 @@ export default function App() {
               saveProgress(newState);
             }}
             onCompleteRecoveryActivity={handleCompleteRecoveryActivity}
+            onStartRecoveryActivity={(id) => setActiveRecoveryActivityId(id)}
             theme={theme}
           />
         );
@@ -889,6 +910,7 @@ export default function App() {
             onStartExercise={(id) => setActiveExerciseId(id)}
             scaledTarget={getScaledTarget}
             onCompleteRecoveryActivity={handleCompleteRecoveryActivity}
+            onStartRecoveryActivity={(id) => setActiveRecoveryActivityId(id)}
             theme={theme}
           />
         );
@@ -1004,7 +1026,10 @@ export default function App() {
             setViewingAuth(true);
           }
         }}
-        onLogout={() => setViewingAuth(true)}
+        onLogout={async () => {
+          await handleLogout();
+          setViewingAuth(true);
+        }}
         theme={theme}
       />
     );
@@ -1029,6 +1054,7 @@ export default function App() {
 
   // Active workout quest
   const activeExercise = EXERCISES.find((e) => e.id === activeExerciseId);
+  const activeRecoveryActivity = RECOVERY_ACTIVITIES.find((r) => r.id === activeRecoveryActivityId);
 
   return (
     <div className={`min-h-screen flex flex-col justify-between max-w-md mx-auto font-sans relative pb-20 select-none transition-colors duration-300 ${
@@ -1154,6 +1180,20 @@ export default function App() {
             targetCount={getScaledTarget(activeExercise)}
             onClose={() => setActiveExerciseId(null)}
             onComplete={handleExerciseComplete}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Active recovery screen modal */}
+      <AnimatePresence>
+        {activeRecoveryActivity && (
+          <RecoveryMissionScreen
+            activity={activeRecoveryActivity}
+            onClose={() => setActiveRecoveryActivityId(null)}
+            onComplete={(id, xp, name) => {
+              handleCompleteRecoveryActivity(id, xp, name);
+              setActiveRecoveryActivityId(null);
+            }}
           />
         )}
       </AnimatePresence>
