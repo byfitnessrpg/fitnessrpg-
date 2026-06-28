@@ -277,6 +277,20 @@ export default function App() {
     }
   }, [gameState.notificacoes_ativas]);
 
+  // Run background notification engine check on active game state
+  useEffect(() => {
+    if (gameState.notificacoes_ativas) {
+      import('./lib/notificationEngine').then(({ checkAndTriggerIntelligentNotifications }) => {
+        const timer = setTimeout(() => {
+          checkAndTriggerIntelligentNotifications(gameState).catch(err => {
+            console.warn('Erro ao processar checagem automática de notificações:', err);
+          });
+        }, 3000);
+        return () => clearTimeout(timer);
+      });
+    }
+  }, [gameState.notificacoes_ativas, gameState.waterIntake, gameState.completedToday?.length]);
+
 
 
   // Load progress from Supabase / LocalStorage
@@ -758,6 +772,16 @@ export default function App() {
     setGameState(nextState);
     saveProgress(nextState);
 
+    // Se as notificações estiverem ativas, dispara a notificação inteligente de missão concluída!
+    if (nextState.notificacoes_ativas) {
+      import('./lib/notificationEngine').then(({ getIntelligentMessage }) => {
+        import('./lib/notifications').then(({ triggerTestNotification }) => {
+          const { title, body } = getIntelligentMessage('missao_concluida');
+          triggerTestNotification(title, body);
+        });
+      });
+    }
+
     // Visual prompts
     showToastMsg(`✅ ${ex.name} completo! +${ex.xp} XP`, 'success');
 
@@ -803,6 +827,16 @@ export default function App() {
 
     setGameState(updatedState);
     saveProgress(updatedState);
+
+    // Se as notificações estiverem ativas, dispara a notificação inteligente de missão concluída!
+    if (updatedState.notificacoes_ativas) {
+      import('./lib/notificationEngine').then(({ getIntelligentMessage }) => {
+        import('./lib/notifications').then(({ triggerTestNotification }) => {
+          const { title, body } = getIntelligentMessage('missao_concluida');
+          triggerTestNotification(title, body);
+        });
+      });
+    }
 
     showToastMsg(`🛌 ${name} completo! +${xpReward} XP`, 'success');
 

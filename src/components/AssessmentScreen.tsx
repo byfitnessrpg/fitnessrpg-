@@ -985,13 +985,13 @@ export const AssessmentScreen: React.FC<AssessmentScreenProps> = ({
                         }
                       }
                     }}
-                    className={`w-12 h-6 rounded-full transition-all duration-200 relative p-1 cursor-pointer flex items-center ${
-                      notificacoesAtivas ? 'bg-cyan-400 animate-pulse' : 'bg-slate-800'
+                    className={`w-12 h-6 rounded-full transition-all duration-300 relative p-1 cursor-pointer flex items-center ${
+                      notificacoesAtivas ? 'bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.3)] animate-pulse' : 'bg-slate-800 border border-slate-700'
                     }`}
                   >
                     <div
-                      className={`w-4 h-4 rounded-full bg-black transition-all duration-200 ${
-                        notificacoesAtivas ? 'translate-x-6' : 'translate-x-0'
+                      className={`w-4 h-4 rounded-full transition-all duration-300 shadow-sm ${
+                        notificacoesAtivas ? 'bg-white translate-x-6' : 'bg-sky-400 translate-x-0'
                       }`}
                     />
                   </button>

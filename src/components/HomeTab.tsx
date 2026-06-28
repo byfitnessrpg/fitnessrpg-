@@ -292,6 +292,17 @@ export const HomeTab: React.FC<HomeTabProps> = ({
     const updatedState = { ...gameState };
     const prevIntake = updatedState.waterIntake !== undefined ? updatedState.waterIntake : 0;
     updatedState.waterIntake = prevIntake + amount;
+    
+    const waterGoal = gameState.waterGoal || 2000;
+    if (prevIntake < waterGoal && updatedState.waterIntake >= waterGoal && gameState.notificacoes_ativas) {
+      import('../lib/notificationEngine').then(({ getIntelligentMessage }) => {
+        import('../lib/notifications').then(({ triggerTestNotification }) => {
+          const { title, body } = getIntelligentMessage('missao_concluida');
+          triggerTestNotification(title, body);
+        });
+      });
+    }
+
     onUpdateGameState(updatedState);
   };
 

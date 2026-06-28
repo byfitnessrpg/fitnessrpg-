@@ -3,6 +3,7 @@ import { GameState } from '../types';
 import { Award, Zap, Flame, Shield, RotateCcw, Edit2, Download, Check, Share2, Copy, Users, CheckCircle2, Sparkles, Lock, Bell, Sun, Moon } from 'lucide-react';
 import { motion } from 'motion/react';
 import * as htmlToImage from 'html-to-image';
+import { NOTIFICATION_DATABASE, getIntelligentMessage, loadNotificationHistory, resetNotificationHistory, NotificationCategory } from '../lib/notificationEngine';
 
 interface ProfileTabProps {
   gameState: GameState;
@@ -39,6 +40,8 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
 
   const [reassessmentCountdown, setReassessmentCountdown] = useState<string>('');
   const [isReassessmentLocked, setIsReassessmentLocked] = useState<boolean>(false);
+  const [selectedNotificationCategory, setSelectedNotificationCategory] = useState<NotificationCategory>('bom_dia');
+  const [notificationLogs, setNotificationLogs] = useState<string[]>([]);
 
   React.useEffect(() => {
     const updateCountdown = () => {
@@ -660,12 +663,14 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
                 }
               }}
               className={`w-12 h-6 rounded-full transition-all duration-300 relative p-1 cursor-pointer flex items-center ${
-                gameState.notificacoes_ativas ? 'bg-cyan-400' : 'bg-slate-850'
+                gameState.notificacoes_ativas ? 'bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.3)]' : (isLight ? 'bg-slate-200' : 'bg-slate-800')
               }`}
             >
               <div
-                className={`w-4 h-4 rounded-full bg-black transition-all duration-300 ${
-                  gameState.notificacoes_ativas ? 'translate-x-6' : 'translate-x-0'
+                className={`w-4 h-4 rounded-full transition-all duration-300 shadow-sm ${
+                  gameState.notificacoes_ativas 
+                    ? 'bg-white translate-x-6' 
+                    : (isLight ? 'bg-blue-500 translate-x-0' : 'bg-sky-400 translate-x-0')
                 }`}
               />
             </button>
@@ -744,20 +749,191 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
                 </div>
               </div>
 
-              {/* Botão de Testar Lembrete */}
-              <button
-                onClick={async () => {
-                  const { triggerTestNotification } = await import('../lib/notifications');
-                  triggerTestNotification(
-                    '⚔️ FitnessRPG: Hora do Treino!',
-                    `Seu treino de hoje (${gameState.cronograma_janela || 'Manhã'}) está pronto. Venha evoluir seu personagem!`
+              {/* CENTRAL DE NOTIFICAÇÕES INTELIGENTES (INTERACTIVE HUB) */}
+              <div className={`mt-4 border-t pt-4 space-y-4 ${isLight ? 'border-slate-100' : 'border-slate-900/60'}`}>
+                <div>
+                  <span className={`text-[10px] font-mono font-extrabold tracking-wider block uppercase ${isLight ? 'text-cyan-600' : 'text-cyan-400'}`}>
+                    CENTRAL DE NOTIFICAÇÕES INTELIGENTES
+                  </span>
+                  <p className="text-[10.5px] text-slate-500 font-medium leading-relaxed mt-0.5">
+                    O sistema seleciona mensagens aleatórias e evita que a mesma se repita em dias consecutivos. Escolha uma categoria para inspecionar e testar o algoritmo:
+                  </p>
+                </div>
+
+                {/* Seleção de Categoria */}
+                <div className="grid grid-cols-4 gap-1.5">
+                  {(Object.keys(NOTIFICATION_DATABASE) as NotificationCategory[]).map((catKey) => {
+                    const cat = NOTIFICATION_DATABASE[catKey];
+                    const isCatSelected = selectedNotificationCategory === catKey;
+                    return (
+                      <button
+                        key={catKey}
+                        onClick={() => setSelectedNotificationCategory(catKey)}
+                        title={cat.name}
+                        className={`py-1.5 rounded-xl border text-base flex flex-col items-center justify-center transition-all cursor-pointer ${
+                          isCatSelected
+                            ? 'bg-cyan-500/10 border-cyan-400 text-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.15)]'
+                            : (isLight ? 'bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300' : 'bg-[#0c0a0f]/80 border-slate-900 text-slate-400 hover:border-slate-800')
+                        }`}
+                      >
+                        <span>{cat.icon}</span>
+                        <span className="text-[7.5px] font-bold font-mono uppercase tracking-tight mt-0.5 max-w-full truncate px-1">
+                          {cat.name.split(' ')[0]}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Painel da Categoria Selecionada */}
+                {selectedNotificationCategory && (() => {
+                  const catInfo = NOTIFICATION_DATABASE[selectedNotificationCategory];
+                  const history = loadNotificationHistory();
+                  const catHist = history[selectedNotificationCategory] || { lastSentText: '', usedTexts: [] };
+                  
+                  return (
+                    <div className={`rounded-2xl p-3.5 border space-y-3 transition-all ${
+                      isLight ? 'bg-slate-50/50 border-slate-200/60' : 'bg-[#030205] border-slate-900'
+                    }`}>
+                      {/* Header da categoria */}
+                      <div className="flex items-start gap-2.5">
+                        <span className="text-2xl">{catInfo.icon}</span>
+                        <div className="space-y-0.5">
+                          <h4 className={`text-xs font-extrabold uppercase font-display tracking-tight ${isLight ? 'text-slate-800' : 'text-white'}`}>
+                            {catInfo.name}
+                          </h4>
+                          <p className="text-[10px] text-slate-500 leading-normal font-medium">
+                            {catInfo.description}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Mensagens disponíveis na categoria */}
+                      <div className="space-y-1.5">
+                        <span className="text-[9px] font-mono font-bold text-slate-500 uppercase tracking-wide block">
+                          Banco de Mensagens ({catInfo.messages.length})
+                        </span>
+                        <div className="max-h-24 overflow-y-auto space-y-1 pr-1 scrollbar-thin scrollbar-thumb-slate-800">
+                          {catInfo.messages.map((msg, i) => {
+                            const isLastSent = msg === catHist.lastSentText;
+                            const isUsedInCycle = catHist.usedTexts.includes(msg);
+                            
+                            return (
+                              <div
+                                key={i}
+                                className={`p-2 rounded-xl text-[10px] leading-snug border transition-all ${
+                                  isLastSent
+                                    ? (isLight ? 'bg-amber-50/70 border-amber-200 text-amber-800' : 'bg-amber-950/20 border-amber-500/20 text-amber-300')
+                                    : isUsedInCycle
+                                    ? (isLight ? 'bg-slate-100 border-slate-200 text-slate-500' : 'bg-slate-900/40 border-slate-900 text-slate-400')
+                                    : (isLight ? 'bg-white border-slate-100 text-slate-700' : 'bg-[#08070c] border-slate-950 text-slate-300')
+                                }`}
+                              >
+                                <div className="flex items-center justify-between gap-1.5">
+                                  <span className="flex-1">{msg}</span>
+                                  {isLastSent && (
+                                    <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 text-[7.5px] font-mono uppercase font-extrabold shrink-0">
+                                      Última Enviada
+                                    </span>
+                                  )}
+                                  {!isLastSent && isUsedInCycle && (
+                                    <span className="text-slate-500 text-[7.5px] font-mono uppercase font-bold shrink-0">
+                                      No ciclo
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Status do algoritmo de repetição */}
+                      <div className={`p-2 rounded-xl border flex items-center justify-between text-[9.5px] font-mono ${
+                        isLight ? 'bg-slate-100/50 border-slate-150' : 'bg-[#09080d] border-slate-950'
+                      }`}>
+                        <div className="space-y-0.5">
+                          <span className="text-slate-500 uppercase block">STATUS DO ALGORITMO:</span>
+                          <span className={`${isLight ? 'text-emerald-700' : 'text-emerald-400'} font-bold uppercase block`}>
+                            🛡️ Garantia de não-repetição ativa
+                          </span>
+                        </div>
+                        <div className="text-right space-y-0.5">
+                          <span className="text-slate-500 uppercase block">CICLO ATUAL:</span>
+                          <span className={`${isLight ? 'text-sky-700 font-bold' : 'text-sky-400'} uppercase block`}>
+                            {catHist.usedTexts.length} / {catInfo.messages.length} UTILIZADAS
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Ações */}
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          onClick={() => {
+                            resetNotificationHistory(selectedNotificationCategory);
+                            setNotificationLogs(prev => [
+                              `[${new Date().toLocaleTimeString('pt-BR')}] Histórico limpo para a categoria "${catInfo.name}".`,
+                              ...prev
+                            ]);
+                          }}
+                          className={`py-2 text-[10px] font-mono font-bold uppercase rounded-xl border transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                            isLight
+                              ? 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-600'
+                              : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-400'
+                          }`}
+                        >
+                          <RotateCcw className="w-3 h-3" />
+                          Limpar Histórico
+                        </button>
+
+                        <button
+                          onClick={async () => {
+                            const { triggerTestNotification } = await import('../lib/notifications');
+                            const { title, body } = getIntelligentMessage(selectedNotificationCategory);
+                            await triggerTestNotification(title, body);
+                            
+                            setNotificationLogs(prev => [
+                              `[${new Date().toLocaleTimeString('pt-BR')}] [Faro Inteligente] Escolhido: "${body}"`,
+                              ...prev
+                            ]);
+                          }}
+                          className="py-2 bg-[#040a12]/50 hover:bg-cyan-950/20 border border-cyan-500/20 hover:border-cyan-500/50 text-cyan-400 font-mono font-bold uppercase text-[10px] rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                        >
+                          <Sparkles className="w-3 h-3 animate-bounce" />
+                          Simular Envio
+                        </button>
+                      </div>
+                    </div>
                   );
-                }}
-                className="w-full py-2.5 bg-[#030205] hover:bg-slate-900 border border-slate-900 text-cyan-400 font-bold font-mono tracking-wider text-[11px] uppercase rounded-xl flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer"
-              >
-                <Sparkles className="w-3.5 h-3.5 animate-bounce" />
-                Testar Notificação Agora
-              </button>
+                })()}
+
+                {/* Histórico/Log do Simulador */}
+                {notificationLogs.length > 0 && (
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[9px] font-mono font-bold text-slate-500 uppercase tracking-wide">
+                        LOG DO MOTOR DE SELEÇÃO
+                      </span>
+                      <button
+                        onClick={() => setNotificationLogs([])}
+                        className="text-[8px] font-mono text-red-400 hover:text-red-300 uppercase underline"
+                      >
+                        Limpar Logs
+                      </button>
+                    </div>
+                    <div className={`p-2.5 rounded-xl border max-h-24 overflow-y-auto font-mono text-[9px] space-y-1 ${
+                      isLight ? 'bg-slate-100 border-slate-200 text-slate-600' : 'bg-[#030205] border-slate-950 text-slate-400'
+                    }`}>
+                      {notificationLogs.map((log, index) => (
+                        <div key={index} className="border-b border-slate-900/10 last:border-0 pb-1 last:pb-0 leading-normal">
+                          {log}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
             </div>
           )}
         </div>
