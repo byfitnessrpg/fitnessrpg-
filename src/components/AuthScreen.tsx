@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Shield, Mail, Lock, Flame, Sparkles, User, ArrowLeft } from 'lucide-react';
 import { motion } from 'motion/react';
-import fitnessRpgLogo from '../assets/images/fitness_rpg_exact_logo_1782332014254.jpg';
+import fitnessRpgLogo from '../assets/images/blue_crest_logo_1782655072782.jpg';
 
 interface AuthScreenProps {
   onSuccess: (user: any) => void;
@@ -42,7 +42,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onShowModal, 
     e.preventDefault();
     if (!email || !password) return;
     if (!charName.trim()) {
-      setErrorMsg('Por favor, escolha o seu Nome de Caçador.');
+      setErrorMsg('Por favor, escolha o seu Nome de Perfil.');
       return;
     }
     setLoading(true);
@@ -64,7 +64,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onShowModal, 
         if (data?.session) {
           onSuccess(data.user);
         } else {
-          onShowModal('Cadastro realizado com sucesso! Faça login para começar a sua jornada no FitnessRPG.');
+          onShowModal('Cadastro realizado com sucesso! Faça login para começar a sua jornada no Fitness Evolution.');
           setIsRegistering(false);
         }
       }
@@ -108,7 +108,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onShowModal, 
         >
           <img 
             src={fitnessRpgLogo} 
-            alt="Fitness RPG Logo" 
+            alt="Fitness Evolution Logo" 
             className="w-full h-full object-cover scale-[1.03]" 
             referrerPolicy="no-referrer" 
           />
@@ -126,24 +126,26 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onShowModal, 
           FITNESS
         </h2>
         
-        {/* Custom exquisite vector sword separator */}
+        {/* Custom premium sports barbell separator */}
         <svg viewBox="0 0 300 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-60 h-5 text-slate-800 my-1 filter drop-shadow-[0_1px_2px_rgba(0,0,0,0.15)]">
-          <path d="M 10,10 L 110,10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.3" />
-          <circle cx="10" cy="10" r="1.5" fill="currentColor" opacity="0.5" />
-          
-          <path d="M 190,10 L 290,10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.3" />
-          <circle cx="290" cy="10" r="1.5" fill="currentColor" opacity="0.5" />
-
-          {/* Sword detail */}
-          <circle cx="120" cy="10" r="1.5" fill="currentColor" />
-          <line x1="122" y1="10" x2="132" y2="10" stroke="currentColor" strokeWidth="2" />
-          <path d="M 132,5 L 132,15 M 131,5 L 129,4 M 131,15 L 129,16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          <path d="M 132,8 L 175,8 L 180,10 L 175,12 L 132,12 Z" fill="currentColor" />
-          <line x1="132" y1="10" x2="175" y2="10" stroke="white" strokeWidth="0.5" opacity="0.4" />
+          {/* Left line */}
+          <path d="M 10,10 L 120,10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.3" />
+          {/* Right line */}
+          <path d="M 180,10 L 290,10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.3" />
+          {/* Center Barbell bar */}
+          <rect x="135" y="9" width="30" height="2" fill="currentColor" />
+          {/* Barbell weights */}
+          <rect x="131" y="6" width="4" height="8" rx="1" fill="currentColor" />
+          <rect x="127" y="4" width="4" height="12" rx="1.5" fill="currentColor" />
+          <rect x="165" y="6" width="4" height="8" rx="1" fill="currentColor" />
+          <rect x="169" y="4" width="4" height="12" rx="1.5" fill="currentColor" />
+          {/* Outer bar ends */}
+          <rect x="123" y="8" width="4" height="4" fill="currentColor" opacity="0.6" />
+          <rect x="173" y="8" width="4" height="4" fill="currentColor" opacity="0.6" />
         </svg>
 
-        <h1 className="text-5xl font-extrabold font-serif italic text-slate-900 tracking-wide select-none">
-          RPG
+        <h1 className="text-3xl font-black text-slate-900 tracking-[0.25em] select-none uppercase">
+          EVOLUTION
         </h1>
         
         <p className="text-slate-500 text-[10px] font-mono tracking-widest uppercase mt-2">
@@ -162,7 +164,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onShowModal, 
           {/* Top category pill */}
           <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-slate-950 border border-sky-500/30 px-4 py-0.5 rounded-full text-[9px] font-bold font-mono text-sky-400 tracking-widest uppercase flex items-center gap-1.5 shadow-[0_4px_10px_rgba(0,0,0,0.3)]">
             <Flame className="w-3 h-3 text-sky-400 animate-pulse" />
-            {isRegistering ? 'CRIAR NOVA CONTA (CADASTRO)' : 'ACESSAR JORNADA (LOGIN)'}
+            {isRegistering ? 'CRIAR NOVA CONTA (CADASTRO)' : 'ACESSAR PERFIL (LOGIN)'}
           </div>
 
           <form onSubmit={isRegistering ? handleRegister : handleLogin} className="space-y-4 pt-2">
@@ -172,13 +174,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onShowModal, 
                 animate={{ opacity: 1, y: 0 }}
               >
                 <label className="block text-[9px] font-mono font-bold tracking-wider text-slate-400 mb-1 uppercase">
-                  Nome de Caçador (Como quer ser chamado?)
+                  Nome de Perfil (Como quer ser chamado?)
                 </label>
                 <div className="relative">
                   <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                   <input
                     type="text"
-                    placeholder="Seu codinome lendário"
+                    placeholder="Seu nome ou apelido"
                     value={charName}
                     onChange={(e) => setCharName(e.target.value)}
                     className="w-full pl-11 pr-4 py-2.5 bg-[#0d111a] border border-slate-800/80 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none rounded-xl text-xs text-white placeholder-slate-600 transition-all duration-200"
@@ -190,7 +192,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onShowModal, 
 
             <div>
               <label className="block text-[9px] font-mono font-bold tracking-wider text-slate-400 mb-1 uppercase">
-                E-mail do Guerreiro
+                E-mail de Cadastro
               </label>
               <div className="relative">
                 <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
@@ -272,7 +274,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onShowModal, 
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     ) : (
                       <>
-                        CADASTRAR E CRIAR PERSONAGEM
+                        CADASTRAR E COMEÇAR TREINOS
                         <Sparkles className="w-3.5 h-3.5 text-white" />
                       </>
                     )}
@@ -294,7 +296,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onShowModal, 
           </form>
         </motion.div>
 
-        {/* Game Master warning decree */}
+        {/* Honest warning card */}
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -306,11 +308,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onShowModal, 
           <div className="flex items-center justify-center gap-1.5 text-amber-950 mb-1">
             <Shield className="w-3.5 h-3.5 animate-pulse text-amber-950" />
             <span className="text-[9px] font-black font-mono tracking-wider uppercase">
-              DIRETRIZ DO MESTRE DO JOGO
+              COMPROMISSO DE EVOLUÇÃO E HONESTIDADE
             </span>
           </div>
           <p className="text-[10.5px] text-slate-950 font-bold leading-relaxed">
-            "Sua força na vida real é o que move seu personagem. Trapacear clicando sem treinar é sabotar sua própria evolução legítima. Treine de verdade, vença de verdade!"
+            "Sua dedicação na vida real determina seu progresso. Treinar com disciplina e de forma correta é o único caminho para a sua melhor versão física e mental. Sem atalhos!"
           </p>
         </motion.div>
       </div>
@@ -318,7 +320,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onShowModal, 
       {/* Decorative footer message */}
       <div className="text-center text-[9px] font-mono tracking-widest text-slate-400 flex items-center justify-center gap-1.5 z-10 py-4 uppercase shrink-0">
         <Sparkles className="w-3 h-3 text-sky-500 animate-pulse" />
-        SISTEMA DE SEGURANÇA ATIVO · FITNESSRPG 2026
+        SISTEMA DE EVOLUÇÃO ATIVO · FITNESS EVOLUTION 2026
       </div>
     </div>
   );

@@ -11,6 +11,7 @@ interface ProfileTabProps {
   onReset: () => void;
   onUpdateGameState: (newState: GameState) => void;
   onTriggerReassessment?: () => void;
+  onNavigateToPremium?: () => void;
   user?: any;
   onLogout?: () => void;
   onLoginTrigger?: () => void;
@@ -24,6 +25,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
   onReset,
   onUpdateGameState,
   onTriggerReassessment,
+  onNavigateToPremium,
   user,
   onLogout,
   onLoginTrigger,
@@ -31,6 +33,8 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
   onToggleTheme,
 }) => {
   const isLight = theme === 'light';
+  const isPremium = !!gameState.isPremium;
+
   const pct = Math.min(100, Math.round((gameState.xp / xpNeeded) * 100));
   const cardRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
@@ -111,14 +115,14 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
   };
 
   const stats = [
-    { label: 'Contratos Completos', val: gameState.totalMissions, sub: 'quests' },
+    { label: 'Metas Concluídas', val: gameState.totalMissions, sub: 'treinos' },
     { label: 'Chama Ativa (Streak)', val: `${gameState.streak}🔥`, sub: 'dias seguidos' },
     { label: 'XP Acumulado', val: gameState.totalXP.toLocaleString(), sub: 'xp total' },
     { label: 'Conquistas Coletadas', val: gameState.unlockedAchievements.length, sub: 'emblemas' },
-    { label: 'Guerreiro das Flexões', val: gameState.totalFlexoes, sub: 'flexões totais' },
-    { label: 'Pernas de Aço', val: gameState.totalAgacham, sub: 'agachamentos' },
-    { label: 'Prancha do Destino', val: `${Math.floor(gameState.totalPrancha / 60)}m`, sub: 'tempo total' },
-    { label: 'Recorde Diário', val: gameState.maxDayMissions, sub: 'quests completas' },
+    { label: 'Volume de Flexões', val: gameState.totalFlexoes, sub: 'flexões totais' },
+    { label: 'Força de Agachamento', val: gameState.totalAgacham, sub: 'agachamentos' },
+    { label: 'Resistência de Prancha', val: `${Math.floor(gameState.totalPrancha / 60)}m`, sub: 'tempo total' },
+    { label: 'Recorde Diário', val: gameState.maxDayMissions, sub: 'treinos em um dia' },
   ];
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -159,7 +163,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
       });
       
       const link = document.createElement('a');
-      link.download = `licenca-cacador-${gameState.charName || 'guerreiro'}.png`;
+      link.download = `carteira-atleta-${gameState.charName || 'atleta'}.png`;
       link.href = dataUrl;
       link.click();
       
@@ -184,7 +188,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
         className="hidden"
       />
 
-      {/* COMPARTILHAMENTO / CAPTURA DE TELA: Área da Carteira de Caçador */}
+      {/* COMPARTILHAMENTO / CAPTURA DE TELA: Área da Carteira de Atleta */}
       <div className="px-4 pt-4">
         <div 
           ref={cardRef} 
@@ -256,13 +260,13 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
 
             {/* Hero title & Class Rank name tag */}
             <div className="space-y-1">
-              <h3 className="text-xl font-extrabold font-display text-white">{gameState.charName || 'Guerreiro da Disciplina'}</h3>
+              <h3 className="text-xl font-extrabold font-display text-white">{gameState.charName || 'Atleta de Calistenia'}</h3>
               <span
                 className={`inline-block px-4 py-1 border rounded-full text-[10px] font-bold tracking-widest font-mono uppercase ${
                   rankColors[rank as keyof typeof rankColors]
                 }`}
               >
-                Tier {rank} · {gameState.charClass || 'Caçador'}
+                Aptidão: {rank} · {gameState.charClass || 'Calistenia'}
               </span>
               <p className="text-[11px] text-slate-500 font-mono pt-1">
                 {gameState.xp} / {xpNeeded} XP para o próximo nível ({pct}%)
@@ -324,7 +328,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
           ) : (
             <>
               <Download className="w-4 h-4 text-black stroke-[3px]" />
-              SALVAR LICENÇA DE CAÇADOR (PRINT)
+              SALVAR CARTÃO DE EVOLUÇÃO (PRINT)
             </>
           )}
         </button>
@@ -344,14 +348,14 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
               <span className="text-[9px] font-mono font-black text-cyan-400 tracking-wider block uppercase">ATUALIZAÇÃO DE SISTEMA DISPONÍVEL</span>
               <h3 className="text-sm font-black text-white uppercase tracking-tight font-display">Aptidão Física Geral</h3>
               <p className="text-[11px] text-slate-400 leading-relaxed max-w-xs mx-auto">
-                Realize sua primeira avaliação física para calcular seu Rank de Caçador (E-Rank até S-Rank) e calibrar suas missões diárias de acordo com seu corpo!
+                Realize sua primeira avaliação física para calcular seu nível de Aptidão Física (E-Rank até S-Rank) e calibrar suas missões diárias de acordo com seu corpo!
               </p>
             </div>
             <button
               onClick={() => onTriggerReassessment ? onTriggerReassessment() : null}
               className="w-full py-3 bg-cyan-400 hover:bg-cyan-300 text-black font-mono text-xs font-black tracking-widest uppercase rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95 shadow-[0_0_15px_rgba(6,182,212,0.25)]"
             >
-              ⚔️ REALIZAR AVALIAÇÃO AGORA
+              ✨ REALIZAR AVALIAÇÃO AGORA
             </button>
           </div>
         </div>
@@ -377,8 +381,8 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
               </div>
               <div className="bg-[#030205] p-3 rounded-xl border border-slate-900">
                 <span className="text-slate-500 font-mono block text-[9px] uppercase">Próxima Reavaliação</span>
-                <span className={`text-xs font-bold block mt-1 ${isReassessmentLocked ? 'text-amber-500 font-mono' : 'text-emerald-400'}`}>
-                  {isReassessmentLocked ? reassessmentCountdown : '✓ Disponível agora!'}
+                <span className={`text-xs font-bold block mt-1 ${!isPremium ? 'text-yellow-500 font-mono' : isReassessmentLocked ? 'text-amber-500 font-mono' : 'text-emerald-400'}`}>
+                  {!isPremium ? 'Bloqueada 🔒' : isReassessmentLocked ? reassessmentCountdown : '✓ Disponível agora!'}
                 </span>
               </div>
             </div>
@@ -394,7 +398,14 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
               </div>
             )}
 
-            {isReassessmentLocked ? (
+            {!isPremium ? (
+              <button
+                onClick={onNavigateToPremium}
+                className="w-full py-3 bg-gradient-to-r from-yellow-500 via-amber-400 to-yellow-600 text-black font-mono text-xs font-black tracking-widest uppercase rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95 shadow-md hover:brightness-110"
+              >
+                👑 Ativar Reavaliação Inteligente
+              </button>
+            ) : isReassessmentLocked ? (
               <div className="w-full py-3 bg-[#0c0a0f] border border-slate-900/60 text-slate-500 font-mono text-xs font-bold tracking-wider uppercase rounded-xl flex flex-col items-center justify-center gap-1 shadow-inner select-none">
                 <span className="flex items-center gap-1.5 text-[9px] font-black text-amber-500/80 uppercase tracking-widest">
                   <Lock className="w-3.5 h-3.5 text-amber-500/80" /> Reavaliação Bloqueada
@@ -427,7 +438,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
           </div>
 
           <p className="text-[11px] text-slate-400 leading-relaxed">
-            Convide amigos para treinar no FitnessRPG. Fortaleça sua consistência e evoluam juntos, sem recompensas materiais – apenas o poder da comunidade e do progresso mútuo.
+            Convide amigos para treinar no Fitness Evolution. Fortaleça sua consistência e evoluam juntos, sem recompensas materiais – apenas o poder da comunidade e do progresso mútuo.
           </p>
 
           {/* Código de Convite */}
@@ -435,15 +446,15 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
             <div className="flex items-center justify-between gap-2 min-w-0">
               <div className="min-w-0 flex-1">
                 <span className="text-[9px] font-mono font-bold text-slate-500 uppercase block">SEU CÓDIGO DE CONVITE</span>
-                <span className="text-lg font-black font-mono text-sky-400 tracking-wider block mt-0.5 truncate" title={gameState.friendCode || 'FIT-CACADOR'}>
+                <span className="text-lg font-black font-mono text-sky-400 tracking-wider block mt-0.5 truncate" title={gameState.friendCode || 'FIT-ATLETA'}>
                   {gameState.friendCode && gameState.friendCode.length > 12 
                     ? `${gameState.friendCode.substring(0, 10)}...` 
-                    : (gameState.friendCode || 'FIT-CACADOR')}
+                    : (gameState.friendCode || 'FIT-ATLETA')}
                 </span>
               </div>
               <button
                 onClick={() => {
-                  navigator.clipboard.writeText(gameState.friendCode || 'FIT-CACADOR');
+                  navigator.clipboard.writeText(gameState.friendCode || 'FIT-ATLETA');
                   setCopiedInviteCode(true);
                   setTimeout(() => setCopiedInviteCode(false), 2000);
                 }}
@@ -481,13 +492,13 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
             {/* Botão de Compartilhar */}
             <button
               onClick={() => {
-                const inviteCode = gameState.friendCode || 'FIT-CACADOR';
-                const inviteLink = `https://fitnessrpg.vercel.app?ref=${inviteCode}`;
-                const shareText = `Estou evoluindo no FitnessRPG. Venha iniciar sua jornada comigo.\nLink: ${inviteLink}\nCódigo de Convite: ${inviteCode}`;
+                const inviteCode = gameState.friendCode || 'FIT-ATLETA';
+                const inviteLink = `https://fitnessevolution.vercel.app?ref=${inviteCode}`;
+                const shareText = `Estou evoluindo no Fitness Evolution. Venha iniciar sua jornada comigo.\nLink: ${inviteLink}\nCódigo de Convite: ${inviteCode}`;
                 
                 if (navigator.share) {
                   navigator.share({
-                    title: 'FitnessRPG',
+                    title: 'Fitness Evolution',
                     text: shareText,
                     url: inviteLink,
                   }).then(() => {
@@ -624,56 +635,67 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
             </div>
           )}
 
-          {/* 2. Opção de Receber Notificações */}
-          <div className={`flex items-center justify-between border rounded-2xl p-4 transition-colors duration-300 ${
-            isLight ? 'bg-slate-50/50 border-slate-100' : 'bg-[#030205] border border-slate-900'
+          {/* 2. Opção de Receber Notificações - Blue Visibility Upgrade */}
+          <div className={`flex flex-col gap-3.5 border rounded-2xl p-4 transition-all duration-300 ${
+            isLight 
+              ? 'bg-blue-50/50 border-blue-200 shadow-sm' 
+              : 'bg-[#040612] border border-blue-500/40 shadow-[0_0_12px_rgba(59,130,246,0.1)]'
           }`}>
-            <div className="flex items-center gap-3">
-              <div className={`w-9 h-9 rounded-xl flex items-center justify-center border transition-all duration-300 ${
-                isLight ? 'bg-cyan-50 border-cyan-100 text-cyan-600 shadow-sm' : 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400'
-              }`}>
-                <Bell className="w-4 h-4" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center border transition-all duration-300 ${
+                  isLight ? 'bg-blue-100 border-blue-300 text-blue-600 shadow-sm' : 'bg-blue-500/20 border-blue-500/40 text-blue-400'
+                }`}>
+                  <Bell className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className={`text-xs font-black font-mono uppercase block ${isLight ? 'text-blue-900' : 'text-blue-400'}`}>
+                    Ativar Notificações de Treino
+                  </span>
+                  <span className={`text-[10px] font-mono uppercase block mt-0.5 ${gameState.notificacoes_ativas ? 'text-emerald-400 font-extrabold' : 'text-blue-300/80'}`}>
+                    {gameState.notificacoes_ativas ? 'STATUS: ATIVADO' : 'STATUS: DESATIVADO'}
+                  </span>
+                </div>
               </div>
-              <div>
-                <span className={`text-xs font-black font-mono uppercase block ${isLight ? 'text-slate-800' : 'text-white'}`}>Receber Notificações</span>
-                <span className="text-[10px] font-mono text-slate-500 uppercase block mt-0.5">
-                  {gameState.notificacoes_ativas ? 'Ativado neste dispositivo' : 'Desativado'}
-                </span>
-              </div>
-            </div>
-            <button
-              onClick={async () => {
-                if (gameState.notificacoes_ativas) {
-                  onUpdateGameState({
-                    ...gameState,
-                    notificacoes_ativas: false
-                  });
-                } else {
-                  const { requestNotificationPermission } = await import('../lib/notifications');
-                  const token = await requestNotificationPermission();
-                  if (token) {
+              <button
+                onClick={async () => {
+                  if (gameState.notificacoes_ativas) {
                     onUpdateGameState({
                       ...gameState,
-                      notificacoes_ativas: true,
-                      notificacoes_token: token
+                      notificacoes_ativas: false
                     });
                   } else {
-                    alert("Para ativar as notificações, permita o acesso nas configurações do navegador.");
+                    const { requestNotificationPermission } = await import('../lib/notifications');
+                    const token = await requestNotificationPermission();
+                    if (token) {
+                      onUpdateGameState({
+                        ...gameState,
+                        notificacoes_ativas: true,
+                        notificacoes_token: token
+                      });
+                    } else {
+                      alert("Para ativar as notificações, permita o acesso nas configurações do navegador.");
+                    }
                   }
-                }
-              }}
-              className={`w-12 h-6 rounded-full transition-all duration-300 relative p-1 cursor-pointer flex items-center ${
-                gameState.notificacoes_ativas ? 'bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.3)]' : (isLight ? 'bg-slate-200' : 'bg-slate-800')
-              }`}
-            >
-              <div
-                className={`w-4 h-4 rounded-full transition-all duration-300 shadow-sm ${
-                  gameState.notificacoes_ativas 
-                    ? 'bg-white translate-x-6' 
-                    : (isLight ? 'bg-blue-500 translate-x-0' : 'bg-sky-400 translate-x-0')
+                }}
+                className={`w-12 h-6 rounded-full transition-all duration-300 relative p-1 cursor-pointer flex items-center ${
+                  gameState.notificacoes_ativas ? 'bg-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.5)]' : 'bg-blue-950 border border-blue-500/50'
                 }`}
-              />
-            </button>
+              >
+                <div
+                  className={`w-4 h-4 rounded-full transition-all duration-300 shadow-sm ${
+                    gameState.notificacoes_ativas 
+                      ? 'bg-white translate-x-6' 
+                      : 'bg-blue-400 translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+            {!gameState.notificacoes_ativas && (
+              <span className={`text-[9.5px] font-mono block ${isLight ? 'text-blue-800' : 'text-blue-400/90'}`}>
+                ℹ️ Clique no seletor azul para receber alertas diários de treinos e streaks.
+              </span>
+            )}
           </div>
 
           {gameState.notificacoes_ativas && (

@@ -97,11 +97,11 @@ export function calculatePersonalizedFitness({
 
   if (score >= 15 && score < 32) {
     nivel = 'Intermediário';
-    rankLetter = 'D';
+    rankLetter = 'E';
     text = 'Você possui boa coordenação e resistência de base. Foco em aprimorar a cadência, hipertrofia leve e densidade metabólica.';
   } else if (score >= 32) {
     nivel = 'Avançado';
-    rankLetter = 'C';
+    rankLetter = 'E';
     text = 'Seu perfil demonstrou excelente aptidão neuromuscular. O Sistema gerou um cronograma avançado para maximizar sua força, potência e superação.';
   }
 

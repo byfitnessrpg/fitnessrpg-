@@ -1,30 +1,9 @@
 import React, { useState } from 'react';
 import { GameState } from '../types';
 import {
-  Sparkles,
-  ChevronRight,
-  ShieldAlert,
-  Target,
-  Flame,
-  Award,
-  Scroll,
-  Dumbbell,
-  Timer,
-  Scale,
-  Ruler,
-  Calendar,
-  Smile,
-  ArrowLeft,
-  Check,
-  User,
-  Activity,
-  Heart,
-  HelpCircle,
-  Fingerprint,
-  Bell
+  TrendingUp, Dumbbell, Timer, Scale, Ruler, Calendar, ArrowLeft, Check, User, Activity, Flame, Shield, Award, Clock
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { requestNotificationPermission } from '../lib/notifications';
 import { calculatePersonalizedFitness } from '../lib/fitnessCalculator';
 
 interface AssessmentScreenProps {
@@ -42,6 +21,7 @@ export const AssessmentScreen: React.FC<AssessmentScreenProps> = ({
   onClose,
   theme = 'dark',
 }) => {
+  const isLight = theme === 'light';
   const [step, setStep] = useState<number>(1);
   
   // Form states
@@ -49,22 +29,18 @@ export const AssessmentScreen: React.FC<AssessmentScreenProps> = ({
   const [sexo, setSexo] = useState<string>('');
   const [altura, setAltura] = useState<string>('');
   const [peso, setPeso] = useState<string>('');
-  
   const [objetivo, setObjetivo] = useState<string>('');
   const [frequenciaTreino, setFrequenciaTreino] = useState<string>('');
   
-  const [flexoes, setFlexoes] = useState<number>(0);
-  const [agachamentos, setAgachamentos] = useState<number>(0);
-  const [prancha, setPrancha] = useState<number>(0);
+  const [flexoes, setFlexoes] = useState<number>(10);
+  const [agachamentos, setAgachamentos] = useState<number>(15);
+  const [prancha, setPrancha] = useState<number>(30);
 
   const [cronogramaDias, setCronogramaDias] = useState<string[]>(['Seg', 'Qua', 'Sex']);
   const [cronogramaJanela, setCronogramaJanela] = useState<string>('Manhã');
-  const [notificacoesAtivas, setNotificacoesAtivas] = useState<boolean>(gameState.notificacoes_ativas || false);
-  const [notificacoesToken, setNotificacoesToken] = useState<string>(gameState.notificacoes_token || '');
   
-  const [isScanning, setIsScanning] = useState<boolean>(false);
-  const [scanProgress, setScanProgress] = useState<number>(0);
-  
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [processProgress, setProcessProgress] = useState<number>(0);
   const [errors, setErrors] = useState<Record<string, string>>({});
   
   // Results calculation state
@@ -74,76 +50,66 @@ export const AssessmentScreen: React.FC<AssessmentScreenProps> = ({
     flexoes: number;
     agachamentos: number;
     prancha: number;
-    rankLetter: string;
   } | null>(null);
-
-  const [showMestreMessage, setShowMestreMessage] = useState<boolean>(false);
 
   React.useEffect(() => {
     let interval: any = null;
-    if (isScanning && step === 7) {
+    if (isProcessing && step === 7) {
       interval = setInterval(() => {
-        setScanProgress((prev) => {
+        setProcessProgress((prev) => {
           if (prev >= 100) {
             clearInterval(interval);
-            setIsScanning(false);
-            // Trigger transition to results after a short delay
+            setIsProcessing(false);
             setTimeout(() => {
               calculateResults();
               setStep(8);
             }, 600);
             return 100;
           }
-          return prev + 2;
+          return prev + 4;
         });
-      }, 50);
+      }, 60);
     } else {
       if (interval) clearInterval(interval);
     }
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isScanning, step]);
+  }, [isProcessing, step]);
 
-  const getScanMessage = (progress: number): string => {
-    if (progress === 0) return 'AGUARDANDO BIOMETRIA...';
-    if (progress < 20) return 'INICIALIZANDO PROTOCOLO BIOMÉTRICO...';
-    if (progress < 40) return 'CONECTANDO AO BANCO DE DADOS DO SISTEMA...';
-    if (progress < 65) return 'ANALISANDO DADOS DO JOGADOR...';
-    if (progress < 85) return 'CALIBRANDO RANK DE CAÇADOR...';
-    if (progress < 100) return 'SISTEMA GERANDO CRONOGRAMA...';
-    return 'AVALIAÇÃO CONCLUÍDA!';
+  const getProcessingMessage = (progress: number): string => {
+    if (progress === 0) return 'PREPARANDO ANÁLISE...';
+    if (progress < 25) return 'ANALISANDO DADOS FISIOLÓGICOS...';
+    if (progress < 50) return 'PROCESSANDO CAPACIDADE NEUROMUSCULAR...';
+    if (progress < 75) return 'DETERMINANDO SEU NÍVEL DE CALISTENIA...';
+    if (progress < 95) return 'MODELANDO PLANO PERSONALIZADO...';
+    return 'PLANO DE TREINO GERADO!';
   };
 
-  // Objective choices
   const OBJETIVOS = [
-    { id: 'Emagrecer', icon: '🔥', label: 'Emagrecer', desc: 'Perda de gordura e definição corporal' },
-    { id: 'Ganhar massa muscular', icon: '💪', label: 'Ganhar massa muscular', desc: 'Hipertrofia e ganho de força' },
-    { id: 'Melhorar condicionamento', icon: '⚡', label: 'Melhorar condicionamento', desc: 'Mais fôlego e resistência no dia a dia' },
-    { id: 'Criar hábito de treinar', icon: '🎯', label: 'Criar hábito de treinar', desc: 'Consistência e disciplina na rotina' },
-    { id: 'Manter a saúde', icon: '❤️', label: 'Manter a saúde', desc: 'Bem-estar geral e longevidade' },
+    { id: 'Emagrecer', icon: '🔥', label: 'Emagrecer', desc: 'Queima de gordura e definição corporal' },
+    { id: 'Ganhar massa muscular', icon: '💪', label: 'Ganhar força e massa', desc: 'Hipertrofia muscular através de calistenia' },
+    { id: 'Melhorar condicionamento', icon: '⚡', label: 'Condicionamento Físico', desc: 'Mais fôlego, agilidade e resistência' },
+    { id: 'Criar hábito de treinar', icon: '📅', label: 'Hábito e Consistência', desc: 'Desenvolver disciplina com foco em constância' },
+    { id: 'Manter a saúde', icon: '💎', label: 'Saúde e Bem-estar', desc: 'Mobilidade, fortalecimento e longevidade' },
   ];
 
-  // Frequency choices
-  const FREQUENCIAS = [
-    { id: 'Nunca treino', icon: '🛋️', label: 'Nunca treino', desc: 'Sedentário, sem atividade regular' },
-    { id: 'Treino raramente', icon: '🚶', label: 'Treino raramente', desc: 'Pratico de vez em quando' },
-    { id: 'Treino 2-3 vezes por semana', icon: '🏃', label: 'Treino 2-3 vezes por semana', desc: 'Atividade física moderada' },
-    { id: 'Treino 4 ou mais vezes por semana', icon: '⚡', label: 'Treino 4 ou mais vezes por semana', desc: 'Estilo de vida bastante ativo' },
+  const EXPERIENCIAS = [
+    { id: 'Nunca treino', icon: '🛋️', label: 'Iniciante do zero', desc: 'Sedentário ou parado há bastante tempo' },
+    { id: 'Treino raramente', icon: '🚶', label: 'Intermediário esporádico', desc: 'Pratico de vez em quando sem rotina fixa' },
+    { id: 'Treino 2-3 vezes por semana', icon: '🏃', label: 'Ativo frequente', desc: 'Costumo treinar regularmente na semana' },
+    { id: 'Treino 4 ou mais vezes por semana', icon: '⚡', label: 'Avançado consistente', desc: 'Treino de alta consistência e intensidade' },
   ];
 
   const handleNextStep = () => {
     const newErrors: Record<string, string> = {};
 
     if (step === 2) {
-      // Validate Step 2: Basic Info (Age/Birth year, Gender, Height, Weight)
       const parsedVal = parseInt(idade);
       if (!idade || isNaN(parsedVal)) {
-        newErrors.idade = 'Informe uma idade ou ano de nascimento válido.';
-      } else if (parsedVal > 1900 && (parsedVal < 1905 || parsedVal > 2026)) {
-        newErrors.idade = 'Informe um ano de nascimento válido.';
-      } else if (parsedVal <= 1900 && (parsedVal < 5 || parsedVal > 120)) {
-        newErrors.idade = 'Informe uma idade válida (5 a 120 anos).';
+        newErrors.idade = 'Informe uma idade válida.';
+      } else if (parsedVal < 10 || parsedVal > 110) {
+        newErrors.idade = 'Informe uma idade entre 10 e 110 anos.';
       }
 
       if (!sexo) {
@@ -176,7 +142,7 @@ export const AssessmentScreen: React.FC<AssessmentScreenProps> = ({
 
     if (step === 4) {
       if (!frequenciaTreino) {
-        newErrors.frequenciaTreino = 'Por favor, selecione sua experiência.';
+        newErrors.frequenciaTreino = 'Por favor, selecione seu nível de experiência.';
         setErrors(newErrors);
         return;
       }
@@ -188,17 +154,13 @@ export const AssessmentScreen: React.FC<AssessmentScreenProps> = ({
       setStep(6);
     } else if (step === 6) {
       if (cronogramaDias.length === 0) {
-        newErrors.cronogramaDias = 'Selecione pelo menos 1 dia de atividade para seu cronograma.';
+        newErrors.cronogramaDias = 'Selecione pelo menos 1 dia para o seu cronograma semanal.';
         setErrors(newErrors);
         return;
       }
-      setScanProgress(0);
-      setIsScanning(false);
+      setProcessProgress(0);
+      setIsProcessing(true);
       setStep(7);
-    } else if (step === 7) {
-      // Step 7 is biometrics, normally completes automatically but just in case:
-      calculateResults();
-      setStep(8);
     } else {
       setStep(prev => prev + 1);
     }
@@ -206,15 +168,15 @@ export const AssessmentScreen: React.FC<AssessmentScreenProps> = ({
 
   const handlePrevStep = () => {
     setErrors({});
-    setIsScanning(false);
-    setScanProgress(0);
+    setIsProcessing(false);
+    setProcessProgress(0);
     setStep(prev => Math.max(1, prev - 1));
   };
 
   const calculateResults = () => {
     const profile = calculatePersonalizedFitness({
       sexo,
-      idade,
+      idade: parseInt(idade) || 25,
       altura: parseFloat(altura) || 170,
       peso: parseFloat(peso) || 70,
       objetivo,
@@ -230,30 +192,20 @@ export const AssessmentScreen: React.FC<AssessmentScreenProps> = ({
       flexoes: profile.flexoes,
       agachamentos: profile.agachamentos,
       prancha: profile.prancha,
-      rankLetter: profile.rankLetter,
     });
   };
 
-  const handleStartJourney = () => {
-    setShowMestreMessage(true);
-  };
-
-  const handleBeginGame = () => {
+  const handleBeginProgram = () => {
     if (!computedProfile) return;
 
-    const inputAgeVal = parseInt(idade);
-    const resolvedAge = inputAgeVal > 1900 ? (2026 - inputAgeVal) : inputAgeVal;
-    
     const today = new Date().toDateString();
-    
-    // Set reassessment in exactly 10 days
     const nextReassessmentDate = new Date();
     nextReassessmentDate.setDate(nextReassessmentDate.getDate() + 10);
 
     const updatedState: GameState = {
       ...gameState,
       avaliacao_concluida: true,
-      idade: resolvedAge,
+      idade: parseInt(idade) || 25,
       sexo,
       altura: parseFloat(altura),
       peso: parseFloat(peso),
@@ -272,68 +224,57 @@ export const AssessmentScreen: React.FC<AssessmentScreenProps> = ({
       },
       cronograma_dias: cronogramaDias,
       cronograma_janela: cronogramaJanela,
-      notificacoes_ativas: notificacoesAtivas,
-      notificacoes_token: notificacoesToken,
       weight: parseFloat(peso),
       weightHistory: [
         ...(gameState.weightHistory || []),
         { date: new Date().toLocaleDateString('pt-BR'), value: parseFloat(peso) }
-      ]
+      ],
+      // Reset fitness specs to clean slate
+      charClass: undefined,
+      charName: undefined,
+      statPoints: 0,
+      level: 1,
+      xp: 0,
+      totalXP: 0,
     };
 
     onComplete(updatedState);
   };
 
   const SEX_OPTIONS = [
-    { id: 'Masculino', icon: '♂', label: 'Masculino' },
-    { id: 'Feminino', icon: '♀', label: 'Feminino' },
-    { id: 'Prefiro não dizer', icon: '?', label: 'Prefiro não dizer' }
+    { id: 'Masculino', label: 'Masculino' },
+    { id: 'Feminino', label: 'Feminino' },
+    { id: 'Outro', label: 'Outro' }
   ];
 
+  const DAYS_OF_WEEK = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+  const TIME_OPTIONS = ['Manhã', 'Tarde', 'Noite'];
+
   return (
-    <div id="assessment-container" className="min-h-screen flex flex-col max-w-md mx-auto relative bg-[#030205] text-slate-100 p-6 justify-between select-none font-sans cyber-grid overflow-y-auto no-scrollbar">
+    <div className={`min-h-screen flex flex-col max-w-md mx-auto relative ${isLight ? 'bg-slate-50 text-slate-900' : 'bg-slate-950 text-slate-100'} p-6 justify-between select-none font-sans overflow-y-auto no-scrollbar pb-10`}>
+      {/* Background accents */}
+      <div className="absolute top-0 left-0 right-0 h-64 bg-gradient-to-b from-blue-500/10 to-transparent pointer-events-none z-0" />
       
-      {/* Glow Effects in Corners to Match the Screenshot Glows */}
-      <div className="bg-[#ff1e56]/8 w-64 h-64 rounded-full blur-[90px] absolute -top-12 -left-12 pointer-events-none z-0" />
-      <div className="bg-cyan-500/10 w-72 h-72 rounded-full blur-[100px] absolute -top-16 -right-16 pointer-events-none z-0" />
-      <div className="bg-cyan-400/5 w-64 h-64 rounded-full blur-[80px] absolute bottom-0 right-0 pointer-events-none z-0" />
-
-      {/* Close button for returning players on step 1 */}
-      {step === 1 && onClose && (
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-slate-500 hover:text-white font-mono text-[10px] uppercase border border-slate-900/60 bg-[#0c0a0f]/80 px-3 py-1.5 transition-all active:scale-95 z-20"
-        >
-          ✖ Fechar
-        </button>
-      )}
-
-      {/* Top progress bar with back button inline */}
+      {/* Top Navigation */}
       {step > 1 && step < 8 && (
         <div className="w-full flex items-center gap-4 pt-2 pb-6 z-10 shrink-0">
           <button 
-            id="btn-back-step"
             onClick={handlePrevStep}
-            className="text-cyan-400 hover:text-cyan-300 active:scale-95 transition-all cursor-pointer p-1"
+            className="text-blue-500 hover:text-blue-600 active:scale-95 transition-all cursor-pointer p-1"
           >
-            <ArrowLeft className="w-6 h-6 stroke-[2.5]" />
+            <ArrowLeft className="w-5 h-5 stroke-[2.5]" />
           </button>
           
-          <div className="flex-1 h-1 bg-[#121016] border border-slate-900 rounded-full overflow-hidden relative">
+          <div className="flex-1 h-1 bg-slate-200 dark:bg-slate-900 rounded-full overflow-hidden">
             <div 
-              className="h-full bg-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.8)] transition-all duration-300 rounded-full"
+              className="h-full bg-blue-500 transition-all duration-300"
               style={{ width: `${((step - 1) / 6) * 100}%` }}
             />
           </div>
 
-          {onClose && (
-            <button 
-              onClick={onClose}
-              className="text-slate-400 hover:text-white font-mono text-[10px] uppercase border border-slate-900/60 bg-[#0c0a0f]/80 px-2.5 py-1.5 transition-all active:scale-95 shrink-0"
-            >
-              Sair
-            </button>
-          )}
+          <span className="text-[10px] font-mono font-bold text-slate-400">
+            PASSO {step - 1}/6
+          </span>
         </div>
       )}
 
@@ -346,71 +287,79 @@ export const AssessmentScreen: React.FC<AssessmentScreenProps> = ({
             exit={{ opacity: 0, y: -15 }}
             className="flex-1 flex flex-col justify-between items-center py-6 z-10 w-full"
           >
-            {/* Top Label */}
-            <div className="pt-8">
-              <div className="px-4 py-1.5 bg-[#05060b] border border-cyan-500/40 rounded-sm shadow-[0_0_10px_rgba(6,182,212,0.15)]">
-                <span className="text-[11px] font-mono font-black text-cyan-400 tracking-[0.25em] block uppercase">SISTEMA INICIADO</span>
+            {/* Top Pill */}
+            <div className="pt-2 flex justify-center w-full">
+              <span className="px-4 py-1.5 bg-blue-500/10 text-blue-500 dark:text-blue-400 rounded-full text-[10px] font-mono tracking-widest uppercase font-bold">
+                EVOLUÇÃO REAL EM CASA
+              </span>
+            </div>
+
+            {/* Icon Graphic */}
+            <div className="w-24 h-24 rounded-3xl bg-blue-500 flex items-center justify-center text-white my-8 shadow-xl shadow-blue-500/20">
+              <TrendingUp className="w-12 h-12 stroke-[2.5]" />
+            </div>
+
+            {/* Main branding */}
+            <div className="text-center space-y-2.5 max-w-xs">
+              <h1 className="text-3xl font-black tracking-tight uppercase">
+                Fitness <span className="text-blue-500">Evolution</span>
+              </h1>
+              <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-normal">
+                Sua jornada definitiva de treinos calistênicos em casa. Sem falsas promessas, focado 100% no seu progresso pessoal e hábitos saudáveis.
+              </p>
+            </div>
+
+            {/* High fidelity features checklist */}
+            <div className="w-full bg-white dark:bg-slate-900/40 border border-slate-100 dark:border-slate-900/60 rounded-2xl p-4 space-y-3.5 my-8">
+              <div className="flex items-start gap-3">
+                <div className="w-5 h-5 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0 mt-0.5">
+                  <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold uppercase tracking-wide">Plano de Treino Científico</h4>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Calculado proporcionalmente à sua aptidão atual para máxima consistência.</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <div className="w-5 h-5 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0 mt-0.5">
+                  <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold uppercase tracking-wide">Acompanhamento de Métricas</h4>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Acompanhe seu peso, sequência de treinos (streak), resistência e ganho de força real.</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <div className="w-5 h-5 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0 mt-0.5">
+                  <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold uppercase tracking-wide">Reavaliação de Progresso</h4>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">O sistema se adapta de forma inteligente a cada 10 dias com novos testes físicos.</p>
+                </div>
               </div>
             </div>
 
-            {/* Circular Scanning Profile */}
-            <div className="my-auto flex flex-col items-center justify-center space-y-12 w-full">
-              <div className="relative w-44 h-44 flex items-center justify-center">
-                {/* Outer pulsing thin ring */}
-                <div className="absolute inset-0 rounded-full border border-cyan-400/20 animate-ping duration-1000" />
-                <div className="absolute inset-0 rounded-full border-2 border-cyan-400/20" />
-                <div className="absolute inset-2 rounded-full border border-cyan-400/30" />
-                
-                {/* Octagonal style inner circle */}
-                <div className="absolute inset-4 border-2 border-cyan-400/80 rounded-[2.5rem] shadow-[0_0_30px_rgba(6,182,212,0.3)] flex items-center justify-center bg-[#07060a]">
-                  <User className="w-16 h-16 text-cyan-400 drop-shadow-[0_0_8px_rgba(6,182,212,0.6)] stroke-[1.5]" />
-                </div>
-              </div>
-              
-              {/* Holographic greeting message */}
-              <div className="space-y-6 w-full text-center">
-                <h1 className="text-3xl font-black tracking-widest uppercase font-display text-white neon-text-blue">
-                  BEM-VINDO, JOGADOR
-                </h1>
-                
-                <div className="bg-[#05060b]/95 border border-slate-900 rounded-none p-6 relative max-w-sm mx-auto shadow-xl">
-                  {/* Visual sci-fi brackets */}
-                  <div className="absolute bottom-0 left-0 w-3.5 h-3.5 border-l-2 border-b-2 border-cyan-400" />
-                  
-                  <p className="text-xs text-slate-300 font-mono leading-relaxed text-center px-2">
-                    "Agora você passará por uma breve avaliação de potencial. Responda todas as perguntas de forma honesta e precisa, pois isso será analisado pelo Sistema para calcular seus desafios iniciais."
-                  </p>
-                  <span className="text-[10px] font-black font-mono text-cyan-400 tracking-wider block mt-3 text-center">— SISTEMA</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Split options: clear separate buttons for Registration vs Login */}
-            <div className="w-full space-y-4">
+            {/* Call to action */}
+            <div className="w-full space-y-3 shrink-0">
               <button
-                id="btn-start-assessment"
                 onClick={handleNextStep}
-                className="w-full py-4 bg-cyan-400 hover:bg-cyan-300 text-black font-display font-black tracking-[0.1em] uppercase rounded-xl shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all duration-200 flex flex-col items-center justify-center cursor-pointer"
+                className="w-full py-4 bg-blue-500 hover:bg-blue-600 text-white font-bold text-sm tracking-wide uppercase rounded-xl transition-all cursor-pointer shadow-lg shadow-blue-500/10 active:scale-[0.98]"
               >
-                <span className="text-sm tracking-[0.15em]">INICIAR NOVA JORNADA</span>
-                <span className="text-[9px] font-mono opacity-80 font-semibold tracking-normal mt-0.5">(Fazer avaliação & cadastrar nova conta)</span>
+                COMEÇAR AVALIAÇÃO INICIAL
               </button>
 
-              <button
-                type="button"
-                id="btn-already-player"
-                onClick={onLogout}
-                className="w-full py-4 bg-[#0c101a] border border-cyan-500/30 hover:border-cyan-400 text-cyan-400 hover:text-cyan-300 font-display font-black tracking-[0.1em] uppercase rounded-xl transition-all duration-200 flex flex-col items-center justify-center cursor-pointer shadow-[0_4px_15px_rgba(0,0,0,0.4)]"
-              >
-                <span className="text-sm tracking-[0.15em]">JÁ SOU UM JOGADOR</span>
-                <span className="text-[9px] font-mono opacity-80 text-slate-400 font-semibold tracking-normal mt-0.5">(Acessar jornada existente / Fazer Login)</span>
-              </button>
-
-              <div className="text-center pt-2">
-                <p className="text-[8px] text-slate-600 font-mono">
-                  Ao continuar, você aceita os <span className="underline">Termos</span> e <span className="underline">Privacidade</span>.
-                </p>
-              </div>
+              {onLogout && (
+                <button
+                  type="button"
+                  onClick={onLogout}
+                  className="w-full py-2 bg-transparent text-slate-400 dark:text-slate-500 hover:text-slate-300 font-bold text-xs uppercase transition-all tracking-wider text-center"
+                >
+                  Entrar com outra conta
+                </button>
+              )}
             </div>
           </motion.div>
         )}
@@ -424,133 +373,91 @@ export const AssessmentScreen: React.FC<AssessmentScreenProps> = ({
             className="flex-1 flex flex-col justify-between py-4 z-10 w-full"
           >
             <div className="space-y-6">
-              {/* Header */}
               <div className="space-y-1">
-                <h2 className="text-2xl font-black font-display text-white tracking-widest uppercase neon-text-blue">
-                  INFORMAÇÕES PESSOAIS
+                <h2 className="text-2xl font-black tracking-tight uppercase">
+                  DADOS FISIOLÓGICOS
                 </h2>
-                <p className="text-xs text-slate-400 font-mono">Precisamos de alguns dados básicos</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">Precisamos dessas métricas básicas para calibrar seu treino.</p>
               </div>
 
-              <div className="space-y-5">
-                {/* Idade / Ano de Nascimento */}
-                <div className="space-y-2">
-                  <label className="text-xs font-black font-mono text-cyan-400 uppercase tracking-wider block">
-                    Ano de Nascimento
+              <div className="space-y-4">
+                {/* Idade */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wide block">
+                    Sua Idade (anos)
                   </label>
                   <input
-                    id="input-idade"
                     type="number"
                     pattern="[0-9]*"
                     value={idade}
                     onChange={(e) => setIdade(e.target.value)}
-                    placeholder="Ex: 1990"
-                    className="w-full bg-[#050408] border border-[#ff3e6c]/40 focus:border-[#ff3e6c] rounded-none p-4 text-sm text-slate-100 outline-none transition-all placeholder:text-slate-800 font-mono focus:shadow-[0_0_12px_rgba(255,62,108,0.2)]"
+                    placeholder="Ex: 26"
+                    className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 text-sm outline-none transition-all focus:border-blue-500"
                   />
                   {errors.idade && (
-                    <span className="text-[#ff3e6c] text-[10px] font-mono font-bold flex items-center gap-1 mt-1">
-                      <ShieldAlert className="w-3.5 h-3.5" /> {errors.idade}
-                    </span>
+                    <span className="text-red-500 text-[10px] font-semibold block">{errors.idade}</span>
                   )}
                 </div>
 
                 {/* Sexo */}
                 <div className="space-y-2">
-                  <label className="text-xs font-black font-mono text-cyan-400 uppercase tracking-wider block">
-                    Sexo
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wide block">
+                    Sexo Biológico
                   </label>
-                  <div className="grid grid-cols-2 gap-4">
-                    {SEX_OPTIONS.slice(0, 2).map((s) => (
+                  <div className="grid grid-cols-3 gap-3">
+                    {SEX_OPTIONS.map((s) => (
                       <button
-                        id={`btn-sexo-${s.id}`}
                         key={s.id}
                         type="button"
                         onClick={() => setSexo(s.id)}
-                        className={`relative p-6 border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-3 min-h-[130px] rounded-none ${
+                        className={`p-3.5 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-1.5 ${
                           sexo === s.id
-                            ? 'bg-[#040a12]/40 border-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.2)]'
-                            : 'bg-[#07060a]/90 border-slate-900 text-slate-400 hover:border-slate-800'
+                            ? 'bg-blue-500/10 border-blue-500 text-blue-500 font-bold'
+                            : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-400 hover:border-slate-300'
                         }`}
                       >
-                        {sexo === s.id && (
-                          <div className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full bg-cyan-400 flex items-center justify-center shadow-[0_0_8px_rgba(6,182,212,0.6)]">
-                            <Check className="w-3.5 h-3.5 text-black stroke-[3]" />
-                          </div>
-                        )}
-                        <span className={`text-3xl ${sexo === s.id ? 'text-cyan-400 drop-shadow-[0_0_8px_rgba(6,182,212,0.5)]' : 'text-slate-600'}`}>{s.icon}</span>
-                        <span className={`text-xs font-bold uppercase tracking-wider block leading-tight ${sexo === s.id ? 'text-white' : 'text-slate-500'}`}>{s.label}</span>
+                        <span className="text-xs font-bold tracking-wide">{s.label}</span>
                       </button>
                     ))}
                   </div>
-
-                  {/* Prefer not to say styled to fill the layout nicely */}
-                  <div className="pt-1">
-                    <button
-                      id={`btn-sexo-${SEX_OPTIONS[2].id}`}
-                      type="button"
-                      onClick={() => setSexo(SEX_OPTIONS[2].id)}
-                      className={`relative w-full p-5 border transition-all cursor-pointer flex items-center justify-center gap-4 min-h-[70px] rounded-none ${
-                        sexo === SEX_OPTIONS[2].id
-                          ? 'bg-[#040a12]/40 border-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.2)]'
-                          : 'bg-[#07060a]/90 border-slate-900 text-slate-400 hover:border-slate-800'
-                      }`}
-                    >
-                      {sexo === SEX_OPTIONS[2].id && (
-                        <div className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full bg-cyan-400 flex items-center justify-center shadow-[0_0_8px_rgba(6,182,212,0.6)]">
-                          <Check className="w-3.5 h-3.5 text-black stroke-[3]" />
-                        </div>
-                      )}
-                      <HelpCircle className={`w-6 h-6 ${sexo === SEX_OPTIONS[2].id ? 'text-cyan-400' : 'text-slate-600'}`} />
-                      <span className={`text-xs font-bold uppercase tracking-wider leading-tight ${sexo === SEX_OPTIONS[2].id ? 'text-white' : 'text-slate-500'}`}>{SEX_OPTIONS[2].label}</span>
-                    </button>
-                  </div>
-
                   {errors.sexo && (
-                    <span className="text-[#ff3e6c] text-[10px] font-mono font-bold flex items-center gap-1 mt-1">
-                      <ShieldAlert className="w-3.5 h-3.5" /> {errors.sexo}
-                    </span>
+                    <span className="text-red-500 text-[10px] font-semibold block">{errors.sexo}</span>
                   )}
                 </div>
 
                 {/* Altura & Peso Grid */}
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-xs font-black font-mono text-cyan-400 uppercase tracking-wider block">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wide block">
                       Altura (cm)
                     </label>
                     <input
-                      id="input-altura"
                       type="number"
                       pattern="[0-9]*"
                       value={altura}
                       onChange={(e) => setAltura(e.target.value)}
                       placeholder="Ex: 175"
-                      className="w-full bg-[#050408] border border-slate-900 focus:border-cyan-400 rounded-none p-4 text-sm text-slate-100 outline-none transition-all placeholder:text-slate-800 font-mono focus:shadow-[0_0_12px_rgba(6,182,212,0.15)]"
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 text-sm outline-none transition-all focus:border-blue-500"
                     />
                     {errors.altura && (
-                      <span className="text-[#ff3e6c] text-[10px] font-mono font-bold flex items-center gap-1 mt-1">
-                        <ShieldAlert className="w-3.5 h-3.5" /> {errors.altura}
-                      </span>
+                      <span className="text-red-500 text-[10px] font-semibold block">{errors.altura}</span>
                     )}
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-xs font-black font-mono text-cyan-400 uppercase tracking-wider block">
-                      Peso (kg)
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wide block">
+                      Peso Atual (kg)
                     </label>
                     <input
-                      id="input-peso"
                       type="number"
                       step="any"
                       value={peso}
                       onChange={(e) => setPeso(e.target.value)}
-                      placeholder="Ex: 78.5"
-                      className="w-full bg-[#050408] border border-slate-900 focus:border-cyan-400 rounded-none p-4 text-sm text-slate-100 outline-none transition-all placeholder:text-slate-800 font-mono focus:shadow-[0_0_12px_rgba(6,182,212,0.15)]"
+                      placeholder="Ex: 72.4"
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 text-sm outline-none transition-all focus:border-blue-500"
                     />
                     {errors.peso && (
-                      <span className="text-[#ff3e6c] text-[10px] font-mono font-bold flex items-center gap-1 mt-1">
-                        <ShieldAlert className="w-3.5 h-3.5" /> {errors.peso}
-                      </span>
+                      <span className="text-red-500 text-[10px] font-semibold block">{errors.peso}</span>
                     )}
                   </div>
                 </div>
@@ -558,9 +465,8 @@ export const AssessmentScreen: React.FC<AssessmentScreenProps> = ({
             </div>
 
             <button
-              id="btn-step2-next"
               onClick={handleNextStep}
-              className="w-full py-4 mt-8 bg-cyan-400 hover:bg-cyan-300 text-black font-display font-black tracking-[0.2em] uppercase rounded-none shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all duration-200 flex items-center justify-center gap-2 active:scale-95 cursor-pointer text-sm"
+              className="w-full py-4 mt-8 bg-blue-500 hover:bg-blue-600 text-white font-bold tracking-wide uppercase rounded-xl transition-all cursor-pointer active:scale-95 text-sm"
             >
               CONTINUAR
             </button>
@@ -577,48 +483,44 @@ export const AssessmentScreen: React.FC<AssessmentScreenProps> = ({
           >
             <div className="space-y-6">
               <div className="space-y-1">
-                <h2 className="text-2xl font-black font-display text-white tracking-widest uppercase neon-text-blue">
-                  PRINCIPAL OBJETIVO
+                <h2 className="text-2xl font-black tracking-tight uppercase">
+                  QUAL SEU OBJETIVO?
                 </h2>
-                <p className="text-xs text-slate-400 font-mono">Para calibração das futuras missões do Sistema</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">Isso ajustará o volume e as repetições sugeridas de calistenia.</p>
               </div>
 
               <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1 no-scrollbar">
                 {OBJETIVOS.map((obj) => (
                   <button
-                    id={`btn-objetivo-${obj.id}`}
                     key={obj.id}
                     onClick={() => setObjetivo(obj.id)}
-                    className={`w-full p-4 rounded-none text-left border transition-all duration-200 cursor-pointer flex items-center gap-4 relative ${
+                    className={`w-full p-4 rounded-xl text-left border transition-all duration-200 cursor-pointer flex items-center gap-4 relative ${
                       objetivo === obj.id
-                        ? 'bg-[#040a12]/30 border-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.15)]'
-                        : 'bg-[#07060a]/90 border-slate-900 hover:border-slate-800'
+                        ? 'bg-blue-500/10 border-blue-500'
+                        : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300'
                     }`}
                   >
                     {objetivo === obj.id && (
-                      <div className="absolute top-2.5 right-2.5 w-4.5 h-4.5 rounded-full bg-cyan-400 flex items-center justify-center shadow-[0_0_6px_rgba(6,182,212,0.6)]">
-                        <Check className="w-3 h-3 text-black stroke-[3]" />
+                      <div className="absolute top-3 right-3 w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center">
+                        <Check className="w-3 h-3 text-white stroke-[3]" />
                       </div>
                     )}
                     <span className="text-2xl shrink-0">{obj.icon}</span>
                     <div>
-                      <span className={`text-xs font-bold uppercase tracking-wider block ${objetivo === obj.id ? 'text-white' : 'text-slate-400'}`}>{obj.label}</span>
-                      <span className="text-[10px] text-slate-500 leading-tight block mt-0.5">{obj.desc}</span>
+                      <span className="text-xs font-bold uppercase tracking-wider block">{obj.label}</span>
+                      <span className="text-[10.5px] text-slate-400 leading-tight block mt-0.5">{obj.desc}</span>
                     </div>
                   </button>
                 ))}
                 {errors.objetivo && (
-                  <span className="text-[#ff3e6c] text-[10px] font-mono font-bold flex items-center gap-1 mt-1">
-                    <ShieldAlert className="w-3.5 h-3.5" /> {errors.objetivo}
-                  </span>
+                  <span className="text-red-500 text-[10px] font-semibold block">{errors.objetivo}</span>
                 )}
               </div>
             </div>
 
             <button
-              id="btn-step3-next"
               onClick={handleNextStep}
-              className="w-full py-4 mt-6 bg-cyan-400 hover:bg-cyan-300 text-black font-display font-black tracking-[0.2em] uppercase rounded-none shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all duration-200 flex items-center justify-center gap-2 active:scale-95 cursor-pointer text-sm"
+              className="w-full py-4 mt-6 bg-blue-500 hover:bg-blue-600 text-white font-bold tracking-wide uppercase rounded-xl transition-all cursor-pointer active:scale-95 text-sm"
             >
               CONTINUAR
             </button>
@@ -635,48 +537,44 @@ export const AssessmentScreen: React.FC<AssessmentScreenProps> = ({
           >
             <div className="space-y-6">
               <div className="space-y-1">
-                <h2 className="text-2xl font-black font-display text-white tracking-widest uppercase neon-text-blue">
-                  FUNDO HISTÓRICO
+                <h2 className="text-2xl font-black tracking-tight uppercase">
+                  EXPERIÊNCIA COM TREINOS
                 </h2>
-                <p className="text-xs text-slate-400 font-mono">Qual sua experiência real de treino?</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">Qual o seu nível de atividade física no momento?</p>
               </div>
 
               <div className="space-y-3">
-                {FREQUENCIAS.map((freq) => (
+                {EXPERIENCIAS.map((freq) => (
                   <button
-                    id={`btn-frequencia-${freq.id}`}
                     key={freq.id}
                     onClick={() => setFrequenciaTreino(freq.id)}
-                    className={`w-full p-4 rounded-none text-left border transition-all duration-200 cursor-pointer flex items-center gap-4 relative ${
+                    className={`w-full p-4 rounded-xl text-left border transition-all duration-200 cursor-pointer flex items-center gap-4 relative ${
                       frequenciaTreino === freq.id
-                        ? 'bg-[#040a12]/30 border-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.15)]'
-                        : 'bg-[#07060a]/90 border-slate-900 hover:border-slate-800'
+                        ? 'bg-blue-500/10 border-blue-500'
+                        : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300'
                     }`}
                   >
                     {frequenciaTreino === freq.id && (
-                      <div className="absolute top-2.5 right-2.5 w-4.5 h-4.5 rounded-full bg-cyan-400 flex items-center justify-center shadow-[0_0_6px_rgba(6,182,212,0.6)]">
-                        <Check className="w-3 h-3 text-black stroke-[3]" />
+                      <div className="absolute top-3 right-3 w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center">
+                        <Check className="w-3 h-3 text-white stroke-[3]" />
                       </div>
                     )}
                     <span className="text-2xl shrink-0">{freq.icon}</span>
                     <div>
-                      <span className={`text-xs font-bold uppercase tracking-wider block ${frequenciaTreino === freq.id ? 'text-white' : 'text-slate-400'}`}>{freq.label}</span>
-                      <span className="text-[10px] text-slate-500 leading-tight block mt-0.5">{freq.desc}</span>
+                      <span className="text-xs font-bold uppercase tracking-wider block">{freq.label}</span>
+                      <span className="text-[10.5px] text-slate-400 leading-tight block mt-0.5">{freq.desc}</span>
                     </div>
                   </button>
                 ))}
                 {errors.frequenciaTreino && (
-                  <span className="text-[#ff3e6c] text-[10px] font-mono font-bold flex items-center gap-1 mt-1">
-                    <ShieldAlert className="w-3.5 h-3.5" /> {errors.frequenciaTreino}
-                  </span>
+                  <span className="text-red-500 text-[10px] font-semibold block">{errors.frequenciaTreino}</span>
                 )}
               </div>
             </div>
 
             <button
-              id="btn-step4-next"
               onClick={handleNextStep}
-              className="w-full py-4 mt-6 bg-cyan-400 hover:bg-cyan-300 text-black font-display font-black tracking-[0.2em] uppercase rounded-none shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all duration-200 flex items-center justify-center gap-2 active:scale-95 cursor-pointer text-sm"
+              className="w-full py-4 mt-6 bg-blue-500 hover:bg-blue-600 text-white font-bold tracking-wide uppercase rounded-xl transition-all cursor-pointer active:scale-95 text-sm"
             >
               CONTINUAR
             </button>
@@ -693,24 +591,21 @@ export const AssessmentScreen: React.FC<AssessmentScreenProps> = ({
           >
             <div className="space-y-6">
               <div className="space-y-2 text-center">
-                <span className="text-[10px] font-mono font-bold text-cyan-400 uppercase tracking-widest block">TESTE ADICIONAL</span>
-                <h2 className="text-2xl font-black font-display text-white tracking-widest uppercase neon-text-blue">TESTE DE FORÇA</h2>
-                <div className="bg-[#05060b] border border-slate-900 rounded-none p-4 text-left space-y-2">
-                  <span className="text-[9px] font-mono font-black text-cyan-400 tracking-wider block uppercase flex items-center gap-1.5">
-                    <Activity className="w-3.5 h-3.5" /> RECOMENDAÇÃO DO SISTEMA:
-                  </span>
-                  <p className="text-[10px] text-slate-400 leading-relaxed font-mono">
-                    "Agora vamos descobrir seu ponto de partida físico. Digite ou use o controle de cada exercício até seu limite técnico atual. Se não conseguir executar, informe 0."
+                <span className="text-[10px] font-mono font-bold text-blue-500 uppercase tracking-widest block">TESTE FÍSICO INICIAL</span>
+                <h2 className="text-2xl font-black tracking-tight uppercase">CAPACIDADE ATUAL</h2>
+                <div className="bg-slate-100 dark:bg-slate-900 border border-slate-200/50 dark:border-slate-900 rounded-xl p-4 text-left">
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed font-sans">
+                    Insira quantas repetições de cada exercício você consegue fazer <strong>sem parar</strong> até atingir sua fadiga técnica. Seja honesto para calibrar seu treino adequadamente.
                   </p>
                 </div>
               </div>
 
-              <div className="space-y-4 max-h-[360px] overflow-y-auto pr-1 no-scrollbar">
+              <div className="space-y-5">
                 {/* Flexões */}
-                <div className="bg-[#07060a] border border-slate-900 rounded-none p-4 flex flex-col space-y-3">
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 flex flex-col space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-2 font-mono">
-                      <Dumbbell className="w-4 h-4 text-red-500" /> Flexões Consecutivas
+                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                      <Dumbbell className="w-4 h-4 text-blue-500 animate-pulse" /> Flexões Clássicas
                     </span>
                     <div className="flex items-center gap-1.5">
                       <input
@@ -721,32 +616,32 @@ export const AssessmentScreen: React.FC<AssessmentScreenProps> = ({
                           const val = parseInt(e.target.value);
                           setFlexoes(isNaN(val) ? 0 : Math.max(0, val));
                         }}
-                        className="w-16 bg-[#030206] border border-slate-800 text-right pr-2 text-md font-mono font-black text-red-500 focus:outline-none focus:border-red-500 rounded-md py-0.5"
+                        className="w-14 bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-center text-sm font-bold text-blue-500 focus:outline-none focus:border-blue-500 rounded-lg py-1"
                       />
-                      <span className="text-xs font-normal text-slate-500 font-mono">reps</span>
+                      <span className="text-[10px] font-bold text-slate-500">reps</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <button
                       type="button"
-                      onClick={() => setFlexoes(prev => Math.max(0, prev - 5))}
-                      className="w-9 h-9 rounded-none bg-slate-900 hover:bg-slate-800 border border-slate-900 text-white font-bold flex items-center justify-center cursor-pointer transition-all active:scale-95"
+                      onClick={() => setFlexoes(prev => Math.max(0, prev - 2))}
+                      className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-850 hover:bg-slate-200 text-slate-600 dark:text-white font-bold flex items-center justify-center cursor-pointer transition-all active:scale-95 text-xs"
                     >
                       -
                     </button>
                     <input
                       type="range"
                       min="0"
-                      max="500"
-                      step="5"
+                      max="100"
+                      step="2"
                       value={flexoes}
                       onChange={(e) => setFlexoes(parseInt(e.target.value) || 0)}
-                      className="flex-1 h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-red-500"
+                      className="flex-1 h-1.5 bg-slate-200 dark:bg-slate-950 rounded-lg appearance-none cursor-pointer accent-blue-500"
                     />
                     <button
                       type="button"
-                      onClick={() => setFlexoes(prev => prev + 5)}
-                      className="w-9 h-9 rounded-none bg-slate-900 hover:bg-slate-800 border border-slate-900 text-white font-bold flex items-center justify-center cursor-pointer transition-all active:scale-95"
+                      onClick={() => setFlexoes(prev => prev + 2)}
+                      className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-850 hover:bg-slate-200 text-slate-600 dark:text-white font-bold flex items-center justify-center cursor-pointer transition-all active:scale-95 text-xs"
                     >
                       +
                     </button>
@@ -754,10 +649,10 @@ export const AssessmentScreen: React.FC<AssessmentScreenProps> = ({
                 </div>
 
                 {/* Agachamentos */}
-                <div className="bg-[#07060a] border border-slate-900 rounded-none p-4 flex flex-col space-y-3">
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 flex flex-col space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-2 font-mono">
-                      <Dumbbell className="w-4 h-4 text-amber-500" /> Agachamentos Máximos
+                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                      <Dumbbell className="w-4 h-4 text-blue-500 animate-pulse" /> Agachamentos Livres
                     </span>
                     <div className="flex items-center gap-1.5">
                       <input
@@ -768,32 +663,32 @@ export const AssessmentScreen: React.FC<AssessmentScreenProps> = ({
                           const val = parseInt(e.target.value);
                           setAgachamentos(isNaN(val) ? 0 : Math.max(0, val));
                         }}
-                        className="w-16 bg-[#030206] border border-slate-800 text-right pr-2 text-md font-mono font-black text-amber-500 focus:outline-none focus:border-amber-500 rounded-md py-0.5"
+                        className="w-14 bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-center text-sm font-bold text-blue-500 focus:outline-none focus:border-blue-500 rounded-lg py-1"
                       />
-                      <span className="text-xs font-normal text-slate-500 font-mono">reps</span>
+                      <span className="text-[10px] font-bold text-slate-500">reps</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <button
                       type="button"
-                      onClick={() => setAgachamentos(prev => Math.max(0, prev - 5))}
-                      className="w-9 h-9 rounded-none bg-slate-900 hover:bg-slate-800 border border-slate-900 text-white font-bold flex items-center justify-center cursor-pointer transition-all active:scale-95"
+                      onClick={() => setAgachamentos(prev => Math.max(0, prev - 2))}
+                      className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-850 hover:bg-slate-200 text-slate-600 dark:text-white font-bold flex items-center justify-center cursor-pointer transition-all active:scale-95 text-xs"
                     >
                       -
                     </button>
                     <input
                       type="range"
                       min="0"
-                      max="500"
-                      step="5"
+                      max="120"
+                      step="2"
                       value={agachamentos}
                       onChange={(e) => setAgachamentos(parseInt(e.target.value) || 0)}
-                      className="flex-1 h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                      className="flex-1 h-1.5 bg-slate-200 dark:bg-slate-950 rounded-lg appearance-none cursor-pointer accent-blue-500"
                     />
                     <button
                       type="button"
-                      onClick={() => setAgachamentos(prev => prev + 5)}
-                      className="w-9 h-9 rounded-none bg-slate-900 hover:bg-slate-800 border border-slate-900 text-white font-bold flex items-center justify-center cursor-pointer transition-all active:scale-95"
+                      onClick={() => setAgachamentos(prev => prev + 2)}
+                      className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-850 hover:bg-slate-200 text-slate-600 dark:text-white font-bold flex items-center justify-center cursor-pointer transition-all active:scale-95 text-xs"
                     >
                       +
                     </button>
@@ -801,10 +696,10 @@ export const AssessmentScreen: React.FC<AssessmentScreenProps> = ({
                 </div>
 
                 {/* Prancha */}
-                <div className="bg-[#07060a] border border-slate-900 rounded-none p-4 flex flex-col space-y-3">
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 flex flex-col space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-2 font-mono">
-                      <Timer className="w-4 h-4 text-cyan-400" /> Prancha Estática
+                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                      <Timer className="w-4 h-4 text-blue-500" /> Prancha Isométrica
                     </span>
                     <div className="flex items-center gap-1.5">
                       <input
@@ -815,32 +710,32 @@ export const AssessmentScreen: React.FC<AssessmentScreenProps> = ({
                           const val = parseInt(e.target.value);
                           setPrancha(isNaN(val) ? 0 : Math.max(0, val));
                         }}
-                        className="w-16 bg-[#030206] border border-slate-800 text-right pr-2 text-md font-mono font-black text-cyan-400 focus:outline-none focus:border-cyan-400 rounded-md py-0.5"
+                        className="w-14 bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-center text-sm font-bold text-blue-500 focus:outline-none focus:border-blue-500 rounded-lg py-1"
                       />
-                      <span className="text-xs font-normal text-slate-500 font-mono">seg</span>
+                      <span className="text-[10px] font-bold text-slate-500">seg</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <button
                       type="button"
                       onClick={() => setPrancha(prev => Math.max(0, prev - 5))}
-                      className="w-9 h-9 rounded-none bg-slate-900 hover:bg-slate-800 border border-slate-900 text-white font-bold flex items-center justify-center cursor-pointer transition-all active:scale-95"
+                      className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-850 hover:bg-slate-200 text-slate-600 dark:text-white font-bold flex items-center justify-center cursor-pointer transition-all active:scale-95 text-xs"
                     >
                       -
                     </button>
                     <input
                       type="range"
                       min="0"
-                      max="1200"
+                      max="300"
                       step="5"
                       value={prancha}
                       onChange={(e) => setPrancha(parseInt(e.target.value) || 0)}
-                      className="flex-1 h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-cyan-400"
+                      className="flex-1 h-1.5 bg-slate-200 dark:bg-slate-950 rounded-lg appearance-none cursor-pointer accent-blue-500"
                     />
                     <button
                       type="button"
                       onClick={() => setPrancha(prev => prev + 5)}
-                      className="w-9 h-9 rounded-none bg-slate-900 hover:bg-slate-800 border border-slate-900 text-white font-bold flex items-center justify-center cursor-pointer transition-all active:scale-95"
+                      className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-850 hover:bg-slate-200 text-slate-600 dark:text-white font-bold flex items-center justify-center cursor-pointer transition-all active:scale-95 text-xs"
                     >
                       +
                     </button>
@@ -850,9 +745,8 @@ export const AssessmentScreen: React.FC<AssessmentScreenProps> = ({
             </div>
 
             <button
-              id="btn-step5-finish"
               onClick={handleNextStep}
-              className="w-full py-4 bg-cyan-400 hover:bg-cyan-300 text-black font-display font-black tracking-[0.2em] uppercase rounded-none shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all duration-200 flex items-center justify-center gap-2 active:scale-95 cursor-pointer text-sm z-10 mt-4"
+              className="w-full py-4 mt-8 bg-blue-500 hover:bg-blue-600 text-white font-bold tracking-wide uppercase rounded-xl transition-all cursor-pointer active:scale-95 text-sm"
             >
               CONTINUAR
             </button>
@@ -868,148 +762,82 @@ export const AssessmentScreen: React.FC<AssessmentScreenProps> = ({
             className="flex-1 flex flex-col justify-between py-4 z-10 w-full"
           >
             <div className="space-y-6">
-              {/* Header */}
-              <div className="text-center space-y-1">
-                <h2 className="text-2xl font-black font-display text-white tracking-widest uppercase neon-text-blue">
-                  CRONOGRAMA
+              <div className="space-y-1">
+                <h2 className="text-2xl font-black tracking-tight uppercase">
+                  DISPONIBILIDADE
                 </h2>
-                <p className="text-xs text-slate-400 font-mono">Defina sua rotina de caça</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">Quais dias e períodos prefere treinar calistenia?</p>
               </div>
 
-              {/* Dias de Atividade */}
-              <div className="space-y-3">
-                <label className="text-xs font-black font-mono text-cyan-400 uppercase tracking-wider block">
-                  Dias de Atividade
-                </label>
-                <div className="flex justify-between gap-1.5">
-                  {[
-                    { id: 'Seg', label: 'S' },
-                    { id: 'Ter', label: 'T' },
-                    { id: 'Qua', label: 'Q' },
-                    { id: 'Qui', label: 'Q' },
-                    { id: 'Sex', label: 'S' },
-                    { id: 'Sab', label: 'S' },
-                    { id: 'Dom', label: 'D' }
-                  ].map((day) => {
-                    const isSelected = cronogramaDias.includes(day.id);
-                    return (
-                      <button
-                        key={day.id}
-                        type="button"
-                        onClick={() => {
-                          if (isSelected) {
-                            setCronogramaDias(cronogramaDias.filter(d => d !== day.id));
-                          } else {
-                            setCronogramaDias([...cronogramaDias, day.id]);
-                          }
-                        }}
-                        className={`w-11 h-11 border font-mono font-bold text-sm flex items-center justify-center transition-all cursor-pointer rounded-lg ${
-                          isSelected
-                            ? 'bg-[#040a12]/40 border-cyan-400 text-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.3)]'
-                            : 'bg-[#0c0a0f]/80 border-slate-900 text-slate-500 hover:border-slate-800'
-                        }`}
-                      >
-                        {day.label}
-                      </button>
-                    );
-                  })}
-                </div>
-                {errors.cronogramaDias && (
-                  <span className="text-[#ff3e6c] text-[10px] font-mono font-bold flex items-center gap-1 mt-1">
-                    <ShieldAlert className="w-3.5 h-3.5" /> {errors.cronogramaDias}
-                  </span>
-                )}
-              </div>
-
-              {/* Janela de Treino */}
-              <div className="space-y-3">
-                <label className="text-xs font-black font-mono text-cyan-400 uppercase tracking-wider block">
-                  Janela de Treino
-                </label>
-                <div className="grid grid-cols-2 gap-4">
-                  {['Manhã', 'Tarde', 'Noite', 'Madrugada'].map((windowName) => {
-                    const isSelected = cronogramaJanela === windowName;
-                    return (
-                      <button
-                        key={windowName}
-                        type="button"
-                        onClick={() => setCronogramaJanela(windowName)}
-                        className={`relative py-8 px-4 border text-center transition-all duration-200 cursor-pointer flex items-center justify-center min-h-[110px] rounded-2xl ${
-                          isSelected
-                            ? 'bg-[#040a12]/40 border-cyan-400 text-white shadow-[0_0_15px_rgba(6,182,212,0.35)] ring-2 ring-cyan-400/50'
-                            : 'bg-[#0c0a0f]/80 border-slate-900 text-slate-400 hover:border-slate-800'
-                        }`}
-                      >
-                        {isSelected && (
-                          <div className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full bg-cyan-400 flex items-center justify-center shadow-[0_0_8px_rgba(6,182,212,0.6)]">
-                            <Check className="w-3.5 h-3.5 text-black stroke-[3]" />
-                          </div>
-                        )}
-                        <span className={`text-sm font-bold uppercase tracking-wider block ${isSelected ? 'text-cyan-400 font-extrabold' : 'text-slate-500'}`}>
-                          {windowName}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Notificações Push */}
-              <div className="space-y-3 bg-[#07060a] border border-slate-900 rounded-2xl p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
-                      <Bell className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <span className="text-[10px] font-black font-mono text-cyan-400 uppercase tracking-wider block">
-                        NOTIFICAÇÕES PUSH
-                      </span>
-                      <span className="text-[9px] font-mono text-slate-500 uppercase block mt-0.5">
-                        Lembretes no seu celular ou PC
-                      </span>
-                    </div>
+              <div className="space-y-5">
+                {/* Dias de Treino */}
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wide block">
+                    Dias para treinar
+                  </label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {DAYS_OF_WEEK.map((day) => {
+                      const isSelected = cronogramaDias.includes(day);
+                      return (
+                        <button
+                          key={day}
+                          type="button"
+                          onClick={() => {
+                            if (isSelected) {
+                              setCronogramaDias(prev => prev.filter(d => d !== day));
+                            } else {
+                              setCronogramaDias(prev => [...prev, day]);
+                            }
+                          }}
+                          className={`py-3 rounded-lg border text-center transition-all cursor-pointer font-bold text-xs ${
+                            isSelected
+                              ? 'bg-blue-500 border-blue-500 text-white shadow-md shadow-blue-500/10'
+                              : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-400'
+                          }`}
+                        >
+                          {day}
+                        </button>
+                      );
+                    })}
                   </div>
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      if (notificacoesAtivas) {
-                        setNotificacoesAtivas(false);
-                      } else {
-                        const token = await requestNotificationPermission();
-                        if (token) {
-                          setNotificacoesAtivas(true);
-                          setNotificacoesToken(token);
-                        } else {
-                          alert("Para receber alertas, conceda permissão de notificação quando solicitado pelo navegador.");
-                        }
-                      }
-                    }}
-                    className={`w-12 h-6 rounded-full transition-all duration-300 relative p-1 cursor-pointer flex items-center ${
-                      notificacoesAtivas ? 'bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.3)] animate-pulse' : 'bg-slate-800 border border-slate-700'
-                    }`}
-                  >
-                    <div
-                      className={`w-4 h-4 rounded-full transition-all duration-300 shadow-sm ${
-                        notificacoesAtivas ? 'bg-white translate-x-6' : 'bg-sky-400 translate-x-0'
-                      }`}
-                    />
-                  </button>
+                  {errors.cronogramaDias && (
+                    <span className="text-red-500 text-[10px] font-semibold block">{errors.cronogramaDias}</span>
+                  )}
                 </div>
-                {notificacoesAtivas && (
-                  <span className="text-[10px] text-emerald-400 font-mono font-bold block animate-pulse">
-                    ✓ Notificações ativadas! Você receberá lembretes nos dias configurados.
-                  </span>
-                )}
+
+                {/* Período Preferido */}
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wide block">
+                    Horário Preferido
+                  </label>
+                  <div className="grid grid-cols-3 gap-3">
+                    {TIME_OPTIONS.map((time) => {
+                      const isSelected = cronogramaJanela === time;
+                      return (
+                        <button
+                          key={time}
+                          type="button"
+                          onClick={() => setCronogramaJanela(time)}
+                          className={`p-4 rounded-xl border text-center transition-all cursor-pointer font-bold text-xs ${
+                            isSelected
+                              ? 'bg-blue-500/10 border-blue-500 text-blue-500 font-bold'
+                              : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-400'
+                          }`}
+                        >
+                          <span className="block">{time}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             </div>
 
             <button
-              id="btn-step6-next"
               onClick={handleNextStep}
-              className="w-full py-4 bg-cyan-400 hover:bg-cyan-300 text-black font-display font-black tracking-[0.2em] uppercase rounded-none shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all duration-200 flex items-center justify-center gap-2 active:scale-95 cursor-pointer text-sm z-10 mt-6"
+              className="w-full py-4 mt-8 bg-blue-500 hover:bg-blue-600 text-white font-bold tracking-wide uppercase rounded-xl transition-all cursor-pointer active:scale-95 text-sm"
             >
-              CONTINUAR
+              CRIAR MEU PLANO PERSONALIZADO
             </button>
           </motion.div>
         )}
@@ -1017,229 +845,105 @@ export const AssessmentScreen: React.FC<AssessmentScreenProps> = ({
         {step === 7 && (
           <motion.div
             key="step7"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            className="flex-1 flex flex-col justify-between py-4 z-10 w-full"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="flex-1 flex flex-col items-center justify-center py-12 z-10 w-full"
           >
-            <div className="space-y-6">
-              {/* Header */}
-              <div className="text-center space-y-1">
-                <h2 className="text-xl font-black font-display text-white tracking-widest uppercase neon-text-blue">
-                  PROCEDIMENTO DE AVALIAÇÃO OBRIGATÓRIO
-                </h2>
-                <p className="text-[11px] text-slate-400 font-mono">
-                  Pressione a biometria para iniciar a avaliação do Sistema
-                </p>
+            <div className="space-y-6 text-center max-w-xs">
+              {/* Spinning Ring */}
+              <div className="relative w-20 h-20 mx-auto">
+                <div className="absolute inset-0 rounded-full border-4 border-slate-200 dark:border-slate-900" />
+                <div className="absolute inset-0 rounded-full border-4 border-blue-500 border-t-transparent animate-spin" />
               </div>
-
-              {/* Progress and status message */}
-              <div className="space-y-3 pt-12">
-                <span className="text-[10px] font-black font-mono text-cyan-400 uppercase tracking-widest block animate-pulse">
-                  {getScanMessage(scanProgress)}
-                </span>
-                
-                {/* Thin custom progress loading bar matching the design */}
-                <div className="w-full h-1 bg-[#121016] border border-slate-900 rounded-full overflow-hidden relative">
-                  <div 
-                    className="h-full bg-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.8)] transition-all duration-100 rounded-full"
-                    style={{ width: `${scanProgress}%` }}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Fingerprint touch target container */}
-            <div className="flex flex-col items-center justify-center mt-auto pb-12 gap-3">
-              <button
-                type="button"
-                onMouseDown={() => setIsScanning(true)}
-                onMouseUp={() => setIsScanning(false)}
-                onMouseLeave={() => setIsScanning(false)}
-                onTouchStart={() => setIsScanning(true)}
-                onTouchEnd={() => setIsScanning(false)}
-                onClick={() => {
-                  if (!isScanning) {
-                    setIsScanning(true);
-                  }
-                }}
-                className={`w-28 h-28 rounded-full border flex items-center justify-center transition-all duration-300 relative outline-none focus:outline-none cursor-pointer ${
-                  isScanning 
-                    ? 'bg-cyan-500/10 border-cyan-400 shadow-[0_0_30px_rgba(6,182,212,0.5)] scale-95' 
-                    : 'bg-[#0c0a0f]/80 border-slate-900 hover:border-slate-800 hover:shadow-[0_0_15px_rgba(255,255,255,0.05)]'
-                }`}
-              >
-                {/* Ping wave animation while holding */}
-                {isScanning && (
-                  <span className="absolute inset-0 rounded-full border border-cyan-400 animate-ping opacity-75 pointer-events-none" />
-                )}
-                <Fingerprint className={`w-14 h-14 transition-colors duration-300 ${
-                  isScanning ? 'text-cyan-400' : 'text-slate-500'
-                }`} />
-              </button>
               
-              <span className="text-[9px] font-mono font-bold text-slate-500 uppercase tracking-widest leading-none mt-2">
-                {isScanning ? 'MANTENHA PRESSIONADO' : 'TOQUE OU SEGURE PARA ESCANEAR'}
-              </span>
+              <div className="space-y-1">
+                <span className="text-[10px] font-mono font-bold text-blue-500 tracking-widest uppercase block animate-pulse">
+                  {processProgress}% CONCLUÍDO
+                </span>
+                <h3 className="text-lg font-black uppercase tracking-tight text-white">{getProcessingMessage(processProgress)}</h3>
+                <p className="text-xs text-slate-400">Nosso algoritmo está montando as metas ideais para o seu corpo.</p>
+              </div>
             </div>
           </motion.div>
         )}
 
-        {step === 8 && !showMestreMessage && (
+        {step === 8 && computedProfile && (
           <motion.div
-            key="results"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="flex-1 flex flex-col justify-between py-4 z-10 w-full"
-          >
-            <div className="space-y-5">
-              {/* Header Box with thin red border */}
-              <div className="flex justify-center">
-                <div className="border border-red-500/30 px-4 py-1.5 rounded-sm bg-red-950/10 backdrop-blur-sm">
-                  <span className="text-[10px] font-mono font-black text-red-500 tracking-[0.25em] uppercase">
-                    ANÁLISE CONCLUÍDA
-                  </span>
-                </div>
-              </div>
-
-              {/* Subtitle */}
-              <div className="text-center">
-                <span className="text-xs font-mono font-bold text-red-500/80 tracking-widest uppercase block">
-                  SEU RANK ATUAL
-                </span>
-              </div>
-
-              {/* Huge Glowing Red Circle Badge */}
-              <div className="flex justify-center">
-                <div className="w-28 h-28 rounded-full border-[6px] border-red-600 flex items-center justify-center bg-red-950/20 shadow-[0_0_30px_rgba(220,38,38,0.5)] relative">
-                  <div className="absolute inset-0 rounded-full border border-red-500/30 animate-ping opacity-25" />
-                  <span className="text-5xl font-black text-red-500 font-display tracking-tight drop-shadow-[0_0_15px_rgba(220,38,38,0.7)]">
-                    {computedProfile?.rankLetter || 'E'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Red-Bordered Description Card */}
-              <div className="bg-[#050101] border-l-4 border-red-600 border-y border-r border-red-950/40 p-4 rounded-md space-y-2 shadow-xl">
-                <p className="text-xs font-mono font-black text-red-400 uppercase tracking-wide">
-                  ⚙️ Nível atual detectado: RANK {computedProfile?.rankLetter || 'E'} ({computedProfile?.nivel})
-                </p>
-                <p className="text-[11px] text-slate-300 font-mono leading-relaxed">
-                  No entanto, uma anomalia foi detectada no seu fluxo de potencial. O Sistema habilitou um cronograma especial de calibração para elevar seus atributos diários.
-                </p>
-              </div>
-
-              {/* Comprehensive explanation of ranks from E to S */}
-              <div className="bg-[#070303] border border-red-950/60 p-4 rounded-xl space-y-2.5 shadow-lg">
-                <span className="text-[9px] font-mono font-black text-red-500 tracking-wider uppercase block border-b border-red-900/30 pb-1">
-                  ⚔️ SISTEMA DE CLASSES E RANQUES DE CAÇADORES (E a S)
-                </span>
-                
-                <div className="space-y-2 text-[10px] font-mono leading-relaxed">
-                  <div className="flex items-start gap-2">
-                    <span className="text-red-500 font-black min-w-[50px] shrink-0">RANK E</span>
-                    <span className="text-slate-400">O ponto de partida. Foco na criação de hábitos, disciplina e fortalecimento do alicerce físico.</span>
-                  </div>
-                  <div className="flex items-start gap-2 border-t border-red-950/20 pt-1.5">
-                    <span className="text-emerald-400 font-black min-w-[50px] shrink-0">RANK D</span>
-                    <span className="text-slate-400">Iniciante moderado. Exercícios voltados para a adaptação de resistência física e tônus inicial.</span>
-                  </div>
-                  <div className="flex items-start gap-2 border-t border-red-950/20 pt-1.5">
-                    <span className="text-blue-400 font-black min-w-[50px] shrink-0">RANK C</span>
-                    <span className="text-slate-400">Intermediário equilibrado. Carga metabólica aumentada, treinos consistentes e progressão contínua.</span>
-                  </div>
-                  <div className="flex items-start gap-2 border-t border-red-950/20 pt-1.5">
-                    <span className="text-purple-400 font-black min-w-[50px] shrink-0">RANK B</span>
-                    <span className="text-slate-400">Avançado e focado. Ganho de força massivo, hipertrofia sólida e alta intensidade cardiovascular.</span>
-                  </div>
-                  <div className="flex items-start gap-2 border-t border-red-950/20 pt-1.5">
-                    <span className="text-red-400 font-black min-w-[50px] shrink-0">RANK A</span>
-                    <span className="text-slate-400">Elite do Sistema. Treinos pesados e de altíssima performance para caçadores de alto rendimento.</span>
-                  </div>
-                  <div className="flex items-start gap-2 border-t border-red-950/20 pt-1.5">
-                    <span className="text-amber-400 font-black min-w-[50px] shrink-0">RANK S</span>
-                    <span className="text-slate-400">Pico supremo da evolução. Desafios extremos para superar todo e qualquer limite humano.</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Initial daily targets row */}
-              <div className="grid grid-cols-3 gap-2 text-center text-[10px] font-mono">
-                <div className="bg-[#050101]/60 border border-red-950/40 py-2.5 rounded-lg">
-                  <span className="text-slate-500 block text-[9px]">FLEXÕES</span>
-                  <span className="text-xs font-bold text-red-400 block mt-0.5">{computedProfile?.flexoes} REPS</span>
-                </div>
-                <div className="bg-[#050101]/60 border border-red-950/40 py-2.5 rounded-lg">
-                  <span className="text-slate-500 block text-[9px]">AGACHAM.</span>
-                  <span className="text-xs font-bold text-red-400 block mt-0.5">{computedProfile?.agachamentos} REPS</span>
-                </div>
-                <div className="bg-[#050101]/60 border border-red-950/40 py-2.5 rounded-lg">
-                  <span className="text-slate-500 block text-[9px]">PRANCHA</span>
-                  <span className="text-xs font-bold text-red-400 block mt-0.5">{computedProfile?.prancha} SEG</span>
-                </div>
-              </div>
-            </div>
-
-            <button
-              id="btn-accept-mission"
-              onClick={handleBeginGame}
-              className="w-full py-4 mt-6 bg-red-600 hover:bg-red-500 text-white font-mono font-black tracking-[0.25em] uppercase rounded-xl shadow-[0_0_20px_rgba(220,38,38,0.45)] transition-all duration-200 active:scale-95 cursor-pointer text-sm animate-pulse"
-            >
-              ACEITAR MISSÃO
-            </button>
-          </motion.div>
-        )}
-
-        {showMestreMessage && (
-          <motion.div
-            key="mestre"
-            initial={{ opacity: 0, scale: 0.95 }}
+            key="step8"
+            initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             className="flex-1 flex flex-col justify-between py-4 z-10 w-full"
           >
             <div className="space-y-6">
-              <div className="flex items-center gap-3 border-b border-slate-900 pb-3">
-                <div className="w-10 h-10 rounded-none bg-cyan-950/20 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
-                  <Scroll className="w-5 h-5 animate-pulse" />
+              {/* Success Badge */}
+              <div className="text-center space-y-2">
+                <div className="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center mx-auto">
+                  <Award className="w-6 h-6 stroke-[2.5]" />
                 </div>
-                <div>
-                  <span className="text-[9px] font-mono font-black text-cyan-400 tracking-widest uppercase block">SISTEMA COMPLETO</span>
-                  <h3 className="text-sm font-black text-white font-display tracking-tight uppercase">📜 MENSAGEM RECEBIDA</h3>
-                </div>
+                <h2 className="text-2xl font-black tracking-tight uppercase">
+                  PLANO GERADO!
+                </h2>
+                <p className="text-xs text-slate-400 max-w-xs mx-auto">Tudo pronto para iniciarmos sua evolução de forma segura e científica.</p>
               </div>
 
-              <div className="bg-[#05060b]/90 border border-cyan-500/20 rounded-none p-6 space-y-4 text-center shadow-2xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none" />
-                
-                <div className="text-3xl animate-bounce">📜</div>
-                
-                <h4 className="text-sm font-mono font-black text-white uppercase tracking-wider">Parabéns, Guerreiro.</h4>
-                
-                <div className="space-y-3 text-[11px] text-slate-300 leading-relaxed text-justify font-mono">
-                  <p>
-                    O Sistema concluiu sua análise com sucesso. Suas missões foram calibradas e sua jornada no FitnessRPG começou.
-                  </p>
-                  <p>
-                    Siga rigorosamente os exercícios diários calculados para somar XP e conquistar níveis de prestígio.
-                  </p>
-                  <p className="text-cyan-400 font-bold">
-                    A cada 10 dias, o painel do perfil liberará a REAVALIAÇÃO FÍSICA para recalibrar sua força e acelerar seus ganhos.
-                  </p>
-                  <p>
-                    A perseverança é o que diferencia os campeões dos fracos. Mostre sua determinação ao Sistema!
-                  </p>
+              {/* Assessment Card Details */}
+              <div className="bg-white dark:bg-slate-900 border border-slate-150 dark:border-slate-900/60 rounded-2xl p-5 space-y-4">
+                <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800">
+                  <span className="text-xs font-bold text-slate-400 uppercase">Seu Nível Inicial</span>
+                  <span className="px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-500 rounded-full text-xs font-black uppercase">
+                    {computedProfile.nivel}
+                  </span>
+                </div>
+
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed italic">
+                  "{computedProfile.text}"
+                </p>
+
+                {/* Exercises of the plan */}
+                <div className="space-y-3 pt-2">
+                  <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest block">Metas de Repetições Sugeridas</span>
+                  
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="bg-slate-50 dark:bg-slate-950 p-3 rounded-xl border border-slate-100 dark:border-slate-900 text-center">
+                      <span className="text-[10px] text-slate-400 font-bold block uppercase mb-1">Flexões</span>
+                      <span className="text-xl font-black text-blue-500">{computedProfile.flexoes}</span>
+                      <span className="text-[9px] text-slate-400 block mt-0.5">reps/série</span>
+                    </div>
+
+                    <div className="bg-slate-50 dark:bg-slate-950 p-3 rounded-xl border border-slate-100 dark:border-slate-900 text-center">
+                      <span className="text-[10px] text-slate-400 font-bold block uppercase mb-1">Agacham.</span>
+                      <span className="text-xl font-black text-blue-500">{computedProfile.agachamentos}</span>
+                      <span className="text-[9px] text-slate-400 block mt-0.5">reps/série</span>
+                    </div>
+
+                    <div className="bg-slate-50 dark:bg-slate-950 p-3 rounded-xl border border-slate-100 dark:border-slate-900 text-center">
+                      <span className="text-[10px] text-slate-400 font-bold block uppercase mb-1">Prancha</span>
+                      <span className="text-xl font-black text-blue-500">{computedProfile.prancha}s</span>
+                      <span className="text-[9px] text-slate-400 block mt-0.5">segundos</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Additional metrics */}
+                <div className="flex justify-between items-center text-[10.5px] font-mono text-slate-400 pt-3 border-t border-slate-100 dark:border-slate-800">
+                  <span className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-blue-500" /> {cronogramaDias.length} treinos/semana</span>
+                  <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-blue-500" /> Período: {cronogramaJanela}</span>
                 </div>
               </div>
             </div>
 
-            <button
-              id="btn-begin-journey-final"
-              onClick={handleBeginGame}
-              className="w-full py-4 bg-cyan-400 hover:bg-cyan-300 text-black font-display font-black tracking-[0.2em] uppercase rounded-none shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all duration-200 cursor-pointer text-sm"
-            >
-              COMEÇAR ⚔️
-            </button>
+            <div className="space-y-3 pt-6 shrink-0">
+              <button
+                onClick={handleBeginProgram}
+                className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm tracking-wide uppercase rounded-xl transition-all cursor-pointer shadow-lg shadow-emerald-500/10 active:scale-[0.98]"
+              >
+                COMEÇAR MEU TREINO AGORA!
+              </button>
+              <p className="text-[10px] text-slate-500 text-center leading-relaxed">
+                Suas informações serão salvas localmente e um ciclo de 10 dias de acompanhamento começará hoje.
+              </p>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

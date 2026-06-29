@@ -89,8 +89,8 @@ self.addEventListener('message', (event) => {
           const title = backgroundPayload.notification?.title || '⚔️ Alerta do Sistema FitnessRPG';
           const options = {
             body: backgroundPayload.notification?.body || 'Treine hoje para manter o seu bônus de streak!',
-            icon: '/assets/images/fitness_rpg_exact_logo_1782332014254.jpg',
-            badge: '/assets/images/fitness_rpg_exact_logo_1782332014254.jpg',
+            icon: '/assets/images/blue_crest_logo_1782655072782.jpg',
+            badge: '/assets/images/blue_crest_logo_1782655072782.jpg',
             vibrate: [200, 100, 200],
             data: backgroundPayload.data || {}
           };
@@ -111,8 +111,8 @@ self.addEventListener('message', (event) => {
     const title = payload?.title || '⚔️ Treino de Jinwoo Pendente!';
     const options = {
       body: payload?.body || 'Seu horário preferido de treino está ativo. Vá ao painel!',
-      icon: '/assets/images/fitness_rpg_exact_logo_1782332014254.jpg',
-      badge: '/assets/images/fitness_rpg_exact_logo_1782332014254.jpg',
+      icon: '/assets/images/blue_crest_logo_1782655072782.jpg',
+      badge: '/assets/images/blue_crest_logo_1782655072782.jpg',
       vibrate: [100, 50, 100],
       data: { url: '/' }
     };

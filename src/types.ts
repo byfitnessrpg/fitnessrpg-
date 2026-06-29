@@ -14,6 +14,7 @@ export interface Exercise {
   xp: number;
   diff: 'Fácil' | 'Médio' | 'Difícil' | 'Épico' | 'Lendário';
   steps: string[];
+  isPremium?: boolean;
 }
 
 export interface WeeklyMission {
@@ -23,6 +24,18 @@ export interface WeeklyMission {
   xp: number;
   diff: string;
   total: number;
+}
+
+export interface EliteMission {
+  id: string;
+  title: string;
+  desc: string;
+  xp: number;
+  medalId: string;
+  medalTitle: string;
+  medalIcon: string;
+  target: number;
+  type: 'flexoes' | 'streak' | 'agachamentos' | 'all_weekly';
 }
 
 export interface SpecialMission {
@@ -108,6 +121,10 @@ export interface GameState {
   completedRecoveryToday?: string[];
   notificacoes_ativas?: boolean;
   notificacoes_token?: string;
+  isPremium?: boolean;
+  completedElite?: string[];
+  eliteFlexoes?: number;
+  eliteAgachamentos?: number;
 }
 
 export interface Friend {
@@ -117,6 +134,7 @@ export interface Friend {
   level: number;
   weeklyXP: number;
   streak: number;
+  isPremium?: boolean;
 }
 
 export interface FriendChallenge {
@@ -138,4 +156,6 @@ export interface RankingPlayer {
   level: number;
   xp: number;
   isMe?: boolean;
+  isPremium?: boolean;
 }
+

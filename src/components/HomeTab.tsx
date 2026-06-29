@@ -194,8 +194,8 @@ export const HomeTab: React.FC<HomeTabProps> = ({
   const int = gameState.int || 10;
   const waterIntake = gameState.waterIntake !== undefined ? gameState.waterIntake : 0;
   const waterGoal = gameState.waterGoal || 2000;
-  const charClass = gameState.charClass || 'Caçador';
-  const charName = gameState.charName || 'Mcfly';
+  const charClass = gameState.charClass || 'Calistenia';
+  const charName = gameState.charName || 'Atleta';
   const statPoints = gameState.statPoints || 0;
 
   // Rest day detection based on Cronograma
@@ -438,7 +438,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                 <label className={`block text-[10px] font-mono font-extrabold tracking-widest uppercase mb-1.5 ${
                   isLight ? 'text-slate-500' : 'text-slate-400'
                 }`}>
-                  Nome do Caçador
+                  Nome de Perfil
                 </label>
                 <input
                   type="text"
@@ -458,10 +458,10 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                 <label className={`block text-[10px] font-mono font-extrabold tracking-widest uppercase mb-1.5 ${
                   isLight ? 'text-slate-500' : 'text-slate-400'
                 }`}>
-                  Selecione sua Classe de RPG
+                  Foco de Treino Principal
                 </label>
                 <div className="grid grid-cols-3 gap-2">
-                  {['Caçador', 'Arqueiro', 'Guerreiro', 'Mago', 'Assassino'].map((c) => {
+                  {['Calistenia', 'Cardio', 'Força', 'Resistência', 'Foco & Core'].map((c) => {
                     const isSelected = selectedClass === c;
                     return (
                       <button
@@ -549,9 +549,9 @@ export const HomeTab: React.FC<HomeTabProps> = ({
           {/* HP Bar */}
           <div className="space-y-1">
             <div className="flex justify-between items-center text-[10px] font-mono">
-              <span className="font-bold text-red-500 flex items-center gap-1.5 uppercase tracking-wider">
-                <Heart className="w-3.5 h-3.5 fill-red-500 text-red-500" />
-                HP (VIGOR)
+              <span className="font-bold text-sky-500 flex items-center gap-1.5 uppercase tracking-wider">
+                <Heart className="w-3.5 h-3.5 fill-sky-500 text-sky-500" />
+                VIGOR FÍSICO
               </span>
               <span className={`font-black transition-colors ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>{currentHP}%</span>
             </div>
@@ -561,7 +561,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${currentHP}%` }}
-                className="h-full bg-gradient-to-r from-red-600 to-rose-500 rounded-sm shadow-[0_0_8px_rgba(239,68,68,0.4)]"
+                className="h-full bg-gradient-to-r from-sky-500 to-blue-600 rounded-sm shadow-[0_0_8px_rgba(14,165,233,0.4)]"
               />
             </div>
           </div>
@@ -571,7 +571,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
             <div className="flex justify-between items-center text-[10px] font-mono">
               <span className="font-bold text-sky-400 flex items-center gap-1.5 uppercase tracking-wider">
                 <Zap className="w-3.5 h-3.5 fill-sky-400 text-sky-400" />
-                MP (ENERGIA)
+                RESERVA DE ENERGIA
               </span>
               <span className={`font-black transition-colors ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>{currentMP}%</span>
             </div>
@@ -639,13 +639,13 @@ export const HomeTab: React.FC<HomeTabProps> = ({
           isLight ? 'bg-slate-50/50 border-slate-200/60 text-slate-800' : 'bg-black/40 border border-slate-900/80 text-slate-300'
         }`}>
           <div className={`flex justify-between items-center pb-2 border-b ${isLight ? 'border-slate-200/60' : 'border-slate-900/40'}`}>
-            <span className="text-slate-500">Classe:</span>
+            <span className="text-slate-500">Foco:</span>
             <span className={`font-extrabold ${isLight ? 'text-slate-900' : 'text-white'}`}>{charClass}</span>
           </div>
           <div className={`flex justify-between items-center pb-2 border-b ${isLight ? 'border-slate-200/60' : 'border-slate-900/40'}`}>
-            <span className="text-slate-500">Título:</span>
+            <span className="text-slate-500">Categoria:</span>
             <span className="text-sky-500 font-extrabold uppercase tracking-wider">
-              {level >= 20 ? 'CAÇADOR DE MONSTROS' : level >= 8 ? 'SOBREVIVENTE' : 'JOGADOR'}
+              {level >= 20 ? 'ATLETA ELITE' : level >= 10 ? 'ATLETA AVANÇADO' : level >= 5 ? 'ATLETA CONSISTENTE' : 'PRATICANTE'}
             </span>
           </div>
           <div className="flex justify-between items-center">
@@ -674,7 +674,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
             <span className={`text-sm font-black tracking-widest uppercase font-display ${
               isLight ? 'text-slate-800' : 'text-white'
             }`}>
-              {isTrainingDay ? '⚔️ MISSÃO PROGRAMADA' : '🛌 MISSÃO DE RECUPERAÇÃO'}
+              {isTrainingDay ? '💪 TREINO PROGRAMADO' : '🛌 RECUPERAÇÃO ATIVA'}
             </span>
           </div>
           {/* Live countdown timer */}
@@ -696,7 +696,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
         <p className={`text-[10px] font-mono mt-1 mb-5 uppercase tracking-wide ${
           isLight ? 'text-slate-400 font-bold' : 'text-slate-500'
         }`}>
-          {isTrainingDay ? 'SISTEMA ATIVO DE MISSÕES PROGRAMADAS' : 'SISTEMA ATIVO DE REGENERAÇÃO'}
+          {isTrainingDay ? 'SISTEMA ATIVO DE TREINO DIÁRIO' : 'SISTEMA ATIVO DE REGENERAÇÃO'}
         </p>
 
         {/* Quest Items List - Interactive click to start */}
@@ -842,7 +842,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
           }`}>
             <AlertTriangle className="w-4.5 h-4.5 text-red-500 shrink-0 mt-0.5 animate-pulse" />
             <p className="text-[10px] leading-relaxed font-semibold font-mono uppercase tracking-wider">
-              AVISO - O não cumprimento desta quest dentro do limite de tempo resultará em penalidade apropriada.
+              DICA - A consistência diária é a chave para o progresso físico e mental. Mantenha o foco!
             </p>
           </div>
         ) : (
@@ -853,7 +853,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
           }`}>
             <Sparkles className="w-4.5 h-4.5 text-teal-500 shrink-0 mt-0.5 animate-pulse" />
             <p className="text-[10px] leading-relaxed font-semibold font-mono uppercase tracking-wider">
-              A recuperação também faz parte da evolução. Complete apenas as atividades que desejar e volte amanhã para sua próxima missão.
+              A recuperação também faz parte da evolução. Complete apenas as atividades que desejar e volte amanhã para seu próximo treino.
             </p>
           </div>
         )}
@@ -870,7 +870,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
               }`}
             >
               <Play className="w-4 h-4 fill-current" />
-              Iniciar Quest
+              Iniciar Treino
             </button>
           ) : (
             <div className={`w-full py-3.5 text-center rounded-xl text-xs uppercase tracking-wider font-mono border transition-all ${
@@ -878,7 +878,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                 ? 'bg-emerald-50 border-emerald-300 text-emerald-700 font-bold' 
                 : 'bg-emerald-950/20 border-emerald-500/30 text-emerald-400'
             }`}>
-              ✓ QUEST COMPLETA COM SUCESSO
+              ✓ TREINO CONCLUÍDO COM SUCESSO
             </div>
           )
         ) : (
@@ -939,17 +939,17 @@ export const HomeTab: React.FC<HomeTabProps> = ({
         </motion.div>
       )}
 
-      {/* 2. DYNAMIC POWER LEVEL RATING RAMP - SOLO LEVELING TOTAL COMBAT RATING */}
+      {/* 2. DYNAMIC POWER LEVEL RATING RAMP - CALISFIT ATHLETIC POWER RATING */}
       <div className={`mx-4 border rounded-2xl p-4 flex items-center justify-between relative overflow-hidden transition-all duration-300 ${
         isLight 
           ? 'bg-white border-slate-200/80 shadow-sm' 
-          : 'bg-gradient-to-r from-[#07060a] via-[#0d0a14] to-[#07060a] border-slate-900 shadow-md'
+          : 'bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border-slate-900 shadow-md'
       }`}>
-        <div className="absolute right-0 top-0 w-24 h-24 bg-purple-500/5 rounded-full blur-xl pointer-events-none" />
+        <div className="absolute right-0 top-0 w-24 h-24 bg-sky-500/10 rounded-full blur-xl pointer-events-none" />
         <div className="space-y-0.5">
           <span className={`text-[10px] font-mono font-extrabold tracking-widest uppercase transition-colors ${
-            isLight ? 'text-purple-700' : 'text-purple-400'
-          }`}>PODER TOTAL DO CAÇADOR</span>
+            isLight ? 'text-sky-600 font-bold' : 'text-sky-400 font-bold'
+          }`}>ÍNDICE DE RENDIMENTO FÍSICO</span>
           <p className={`text-xs transition-colors ${isLight ? 'text-slate-500 font-medium' : 'text-slate-400'}`}>
             Desenvolva seus status treinando diariamente
           </p>
@@ -962,13 +962,13 @@ export const HomeTab: React.FC<HomeTabProps> = ({
             transition={{ duration: 0.3 }}
             className={`text-4xl font-extrabold font-display bg-clip-text text-transparent tracking-tight font-mono leading-none ${
               isLight 
-                ? 'bg-gradient-to-r from-amber-600 via-yellow-500 to-amber-700' 
-                : 'bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 drop-shadow-[0_0_12px_rgba(245,158,11,0.25)]'
+                ? 'bg-gradient-to-r from-sky-600 via-blue-500 to-sky-700' 
+                : 'bg-gradient-to-r from-sky-400 via-blue-300 to-sky-500 drop-shadow-[0_0_12px_rgba(56,189,248,0.25)]'
             }`}
           >
             {totalPower}
           </motion.div>
-          <span className="text-[9px] font-mono font-extrabold text-amber-500 tracking-wider">PODER DE COMBATE</span>
+          <span className="text-[9px] font-mono font-extrabold text-sky-500 tracking-wider">PONTUAÇÃO FITNESS</span>
         </div>
       </div>
 
@@ -1002,7 +1002,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
             </span>
             <span className={`text-[10.5px] leading-snug block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
               {waterIntake >= waterGoal 
-                ? 'Excelente! Seu guerreiro está pronto com hidratação de 100%.'
+                ? 'Excelente! Seu corpo está pronto com hidratação de 100%.'
                 : 'Beba água regularmente para manter seus atributos em nível máximo durante os treinos.'}
             </span>
           </div>

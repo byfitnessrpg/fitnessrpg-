@@ -61,9 +61,9 @@ export const initializeNotifications = async (): Promise<{ token: string | null;
         onMessage(messaging, (payload) => {
           console.log('[Notifications] Mensagem FCM recebida em primeiro plano:', payload);
           if (payload.notification) {
-            new Notification(payload.notification.title || '⚔️ FitnessRPG', {
+            new Notification(payload.notification.title || '✨ Fitness Evolution', {
               body: payload.notification.body,
-              icon: '/assets/images/fitness_rpg_exact_logo_1782332014254.jpg',
+              icon: '/assets/images/blue_crest_logo_1782655072782.jpg',
             });
           }
         });
@@ -126,7 +126,7 @@ export const triggerTestNotification = async (title: string, body: string) => {
   } else if ('Notification' in window && Notification.permission === 'granted') {
     new Notification(title, {
       body,
-      icon: '/assets/images/fitness_rpg_exact_logo_1782332014254.jpg',
+      icon: '/assets/images/blue_crest_logo_1782655072782.jpg',
     });
   }
 };

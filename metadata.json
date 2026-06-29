@@ -1,6 +1,6 @@
 {
-  "name": "Fitness RPG",
-  "description": "Um RPG de fitness gamificado para treinar em casa, subir de nível e desbloquear conquistas.",
+  "name": "Fitness Evolution",
+  "description": "Um aplicativo moderno e premium de calistenia, treinos em casa e evolução física focado em consistência e hábitos saudáveis.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

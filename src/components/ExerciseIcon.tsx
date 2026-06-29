@@ -53,7 +53,7 @@ export const ExerciseIcon: React.FC<ExerciseIconProps> = ({ pose, className = ''
           referrerPolicy="no-referrer"
         />
       </div>
-      {/* Dynamic tech grid or border element to enhance the RPG aesthetics */}
+      {/* Dynamic tech grid or border element to enhance the athletic aesthetics */}
       <div className={`absolute inset-0 border pointer-events-none rounded-inherit ${
         isLight ? 'border-sky-500/5' : 'border-sky-500/20'
       }`} />

@@ -2,18 +2,31 @@ import React, { useState, useEffect } from 'react';
 import { GameState } from '../types';
 import { 
   TrendingUp, Activity, Plus, Trash2, Sparkles, Scale, 
-  Flame, Award, Dumbbell, Shield, ChevronRight, HelpCircle
+  Flame, Award, Dumbbell, Shield, ChevronRight, HelpCircle,
+  Crown, Lock, BarChart2, Calendar, Target, Award as MedalIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface EvolutionTabProps {
   gameState: GameState;
   onUpdateGameState: (newState: GameState) => void;
+  onNavigateToPremium?: () => void;
+  theme?: 'dark' | 'light';
 }
 
-export const EvolutionTab: React.FC<EvolutionTabProps> = ({ gameState, onUpdateGameState }) => {
+export const EvolutionTab: React.FC<EvolutionTabProps> = ({ 
+  gameState, 
+  onUpdateGameState,
+  onNavigateToPremium,
+  theme = 'dark'
+}) => {
+
   const [weightInput, setWeightInput] = useState<string>('');
   const [errorMsg, setErrorMsg] = useState<string>('');
+
+  const isLight = theme === 'light';
+  const isPremium = !!gameState.isPremium;
+
 
   // Extract core state metrics
   const str = gameState.str || 10;
@@ -167,7 +180,7 @@ export const EvolutionTab: React.FC<EvolutionTabProps> = ({ gameState, onUpdateG
               Painel de Evolução
             </h2>
             <p className="text-[11px] text-slate-400">
-              Acompanhe seu avanço corporal e atributos de RPG.
+              Acompanhe seu avanço corporal e atributos de aptidão.
             </p>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-sky-950/30 border border-sky-500/20 flex items-center justify-center text-sky-400">
@@ -176,80 +189,80 @@ export const EvolutionTab: React.FC<EvolutionTabProps> = ({ gameState, onUpdateG
         </div>
       </div>
 
-      {/* SECTION 1: RPG CHARACTER ATTRIBUTES (Moved from HomeTab as requested) */}
+      {/* SECTION 1: PHYSICAL FITNESS INDICES */}
       <div className="mx-4 bg-[#07060a] border border-slate-900 rounded-3xl p-5 shadow-lg space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <span className="text-[10px] font-mono tracking-wider font-extrabold text-purple-400 uppercase block">AVALIAÇÃO DE SISTEMA</span>
+            <span className="text-[10px] font-mono tracking-wider font-extrabold text-blue-500 uppercase block">AVALIAÇÃO FISIOLÓGICA</span>
             <h3 className="text-base font-black text-white flex items-center gap-1.5 tracking-tight font-display">
-              Atributos de Combate
+              Índices de Evolução Física
             </h3>
           </div>
           {statPoints > 0 && (
-            <span className="px-2.5 py-1 bg-purple-500/15 border border-purple-500/40 text-[10px] font-bold font-mono tracking-wider uppercase rounded-full animate-pulse shadow-[0_0_10px_rgba(168,85,247,0.2)]">
-              +{statPoints} Pontos Livres!
+            <span className="px-2.5 py-1 bg-blue-500/15 border border-blue-500/40 text-[10px] font-bold font-mono tracking-wider uppercase rounded-full animate-pulse shadow-[0_0_10px_rgba(14,165,233,0.2)]">
+              +{statPoints} Pontos de Evolução!
             </span>
           )}
         </div>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 gap-3">
-          {/* STR (Ataque) */}
-          <div className="bg-[#0b0a0e] border border-slate-900/60 rounded-2xl p-4 flex flex-col justify-between hover:border-purple-500/20 transition-all">
+          {/* STR (Força) */}
+          <div className="bg-[#0b0a0e] border border-slate-900/60 rounded-2xl p-4 flex flex-col justify-between hover:border-blue-500/20 transition-all">
             <div className="flex justify-between items-start">
               <span className="text-xs font-mono font-extrabold text-slate-400 uppercase tracking-wider">FOR (Força)</span>
               {statPoints > 0 ? (
                 <button
                   onClick={() => handleSpendStatPoint('str')}
-                  className="w-6 h-6 rounded-md bg-purple-600 hover:bg-purple-500 text-white flex items-center justify-center font-bold text-sm transition-all active:scale-90 cursor-pointer"
+                  className="w-6 h-6 rounded-md bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center font-bold text-sm transition-all active:scale-90 cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" />
                 </button>
               ) : (
-                <div className="w-6 h-6 rounded bg-red-950/30 flex items-center justify-center text-[10px] text-red-400">👊</div>
+                <div className="w-6 h-6 rounded bg-blue-950/30 flex items-center justify-center text-[10px] text-blue-400">👊</div>
               )}
             </div>
             <div className="mt-4">
               <span className="text-3xl font-mono font-black text-white">{str}</span>
-              <span className="text-[9px] text-slate-500 font-mono uppercase block mt-1">Poder Muscular</span>
+              <span className="text-[9px] text-slate-500 font-mono uppercase block mt-1">Força e Potência</span>
               <div className="w-full h-1 bg-slate-950 rounded-full mt-2 overflow-hidden">
-                <div className="h-full bg-red-500" style={{ width: `${Math.min(100, str * 2)}%` }} />
+                <div className="h-full bg-blue-500" style={{ width: `${Math.min(100, str * 2)}%` }} />
               </div>
             </div>
           </div>
 
-          {/* AGI (Agilidade) */}
-          <div className="bg-[#0b0a0e] border border-slate-900/60 rounded-2xl p-4 flex flex-col justify-between hover:border-purple-500/20 transition-all">
+          {/* AGI (Cardio) */}
+          <div className="bg-[#0b0a0e] border border-slate-900/60 rounded-2xl p-4 flex flex-col justify-between hover:border-blue-500/20 transition-all">
             <div className="flex justify-between items-start">
-              <span className="text-xs font-mono font-extrabold text-slate-400 uppercase tracking-wider">AGI (Agilidade)</span>
+              <span className="text-xs font-mono font-extrabold text-slate-400 uppercase tracking-wider">CAR (Cardio)</span>
               {statPoints > 0 ? (
                 <button
                   onClick={() => handleSpendStatPoint('agi')}
-                  className="w-6 h-6 rounded-md bg-purple-600 hover:bg-purple-500 text-white flex items-center justify-center font-bold text-sm transition-all active:scale-90 cursor-pointer"
+                  className="w-6 h-6 rounded-md bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center font-bold text-sm transition-all active:scale-90 cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" />
                 </button>
               ) : (
-                <div className="w-6 h-6 rounded bg-amber-950/30 flex items-center justify-center text-[10px] text-amber-400">⚡</div>
+                <div className="w-6 h-6 rounded bg-sky-950/30 flex items-center justify-center text-[10px] text-sky-400">⚡</div>
               )}
             </div>
             <div className="mt-4">
               <span className="text-3xl font-mono font-black text-white">{agi}</span>
-              <span className="text-[9px] text-slate-500 font-mono uppercase block mt-1">Velocidade e Reação</span>
+              <span className="text-[9px] text-slate-500 font-mono uppercase block mt-1">Resistência Cardíaca</span>
               <div className="w-full h-1 bg-slate-950 rounded-full mt-2 overflow-hidden">
-                <div className="h-full bg-amber-500" style={{ width: `${Math.min(100, agi * 2)}%` }} />
+                <div className="h-full bg-sky-450" style={{ width: `${Math.min(100, agi * 2)}%` }} />
               </div>
             </div>
           </div>
 
-          {/* STA (Defesa / Vitalidade) */}
-          <div className="bg-[#0b0a0e] border border-slate-900/60 rounded-2xl p-4 flex flex-col justify-between hover:border-purple-500/20 transition-all">
+          {/* STA (Resistência Corporal) */}
+          <div className="bg-[#0b0a0e] border border-slate-900/60 rounded-2xl p-4 flex flex-col justify-between hover:border-blue-500/20 transition-all">
             <div className="flex justify-between items-start">
-              <span className="text-xs font-mono font-extrabold text-slate-400 uppercase tracking-wider">VIT (Vitalidade)</span>
+              <span className="text-xs font-mono font-extrabold text-slate-400 uppercase tracking-wider">RES (Resistência)</span>
               {statPoints > 0 ? (
                 <button
                   onClick={() => handleSpendStatPoint('sta')}
-                  className="w-6 h-6 rounded-md bg-purple-600 hover:bg-purple-500 text-white flex items-center justify-center font-bold text-sm transition-all active:scale-90 cursor-pointer"
+                  className="w-6 h-6 rounded-md bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center font-bold text-sm transition-all active:scale-90 cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" />
                 </button>
@@ -259,40 +272,40 @@ export const EvolutionTab: React.FC<EvolutionTabProps> = ({ gameState, onUpdateG
             </div>
             <div className="mt-4">
               <span className="text-3xl font-mono font-black text-white">{sta}</span>
-              <span className="text-[9px] text-slate-500 font-mono uppercase block mt-1">Resistência Corporal</span>
+              <span className="text-[9px] text-slate-500 font-mono uppercase block mt-1">Resistência Muscular</span>
               <div className="w-full h-1 bg-slate-950 rounded-full mt-2 overflow-hidden">
                 <div className="h-full bg-emerald-500" style={{ width: `${Math.min(100, sta * 2)}%` }} />
               </div>
             </div>
           </div>
 
-          {/* INT (Sabedoria / Inteligência) */}
-          <div className="bg-[#0b0a0e] border border-slate-900/60 rounded-2xl p-4 flex flex-col justify-between hover:border-purple-500/20 transition-all">
+          {/* INT (Sabedoria / Disciplina) */}
+          <div className="bg-[#0b0a0e] border border-slate-900/60 rounded-2xl p-4 flex flex-col justify-between hover:border-blue-500/20 transition-all">
             <div className="flex justify-between items-start">
-              <span className="text-xs font-mono font-extrabold text-slate-400 uppercase tracking-wider">SAB (Sabedoria)</span>
+              <span className="text-xs font-mono font-extrabold text-slate-400 uppercase tracking-wider">DIS (Disciplina)</span>
               {statPoints > 0 ? (
                 <button
                   onClick={() => handleSpendStatPoint('int')}
-                  className="w-6 h-6 rounded-md bg-purple-600 hover:bg-purple-500 text-white flex items-center justify-center font-bold text-sm transition-all active:scale-90 cursor-pointer"
+                  className="w-6 h-6 rounded-md bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center font-bold text-sm transition-all active:scale-90 cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" />
                 </button>
               ) : (
-                <div className="w-6 h-6 rounded bg-blue-950/30 flex items-center justify-center text-[10px] text-blue-400">🧠</div>
+                <div className="w-6 h-6 rounded bg-teal-950/30 flex items-center justify-center text-[10px] text-teal-400">🧠</div>
               )}
             </div>
             <div className="mt-4">
               <span className="text-3xl font-mono font-black text-white">{int}</span>
-              <span className="text-[9px] text-slate-500 font-mono uppercase block mt-1">Foco e Conhecimento</span>
+              <span className="text-[9px] text-slate-500 font-mono uppercase block mt-1">Foco e Consistência</span>
               <div className="w-full h-1 bg-slate-950 rounded-full mt-2 overflow-hidden">
-                <div className="h-full bg-blue-500" style={{ width: `${Math.min(100, int * 2)}%` }} />
+                <div className="h-full bg-teal-500" style={{ width: `${Math.min(100, int * 2)}%` }} />
               </div>
             </div>
           </div>
         </div>
 
         <p className="text-[10px] text-slate-500 font-mono leading-relaxed text-center pt-1 uppercase">
-          💡 Complete quests para obter pontos de nível e evoluir seus atributos!
+          💡 Complete treinos e metas para obter pontos e evoluir seus índices de aptidão!
         </p>
       </div>
 
@@ -465,7 +478,7 @@ export const EvolutionTab: React.FC<EvolutionTabProps> = ({ gameState, onUpdateG
             <Flame className="w-4 h-4 fill-amber-500 text-amber-500" />
           </div>
           <div>
-            <span className="text-[9px] font-mono font-black text-amber-500 tracking-wider block uppercase">CONSISTÊNCIA DO GUERREIRO</span>
+            <span className="text-[9px] font-mono font-black text-amber-500 tracking-wider block uppercase">FOGO DA CONSISTÊNCIA</span>
             <h3 className="text-sm font-black text-white uppercase tracking-tight">Dias Seguidos e Exercícios</h3>
           </div>
         </div>
@@ -540,6 +553,151 @@ export const EvolutionTab: React.FC<EvolutionTabProps> = ({ gameState, onUpdateG
           </div>
         </div>
       </div>
+
+      {/* SECTION 4: ESTATÍSTICAS AVANÇADAS ELITE (PREMIUM) */}
+      <div className={`mx-4 rounded-3xl p-5 shadow-lg border relative overflow-hidden transition-all duration-300 ${
+        isLight
+          ? 'bg-white border-slate-200'
+          : 'bg-[#07060a] border-slate-900'
+      }`}>
+        <div className="flex items-center gap-2 border-b border-slate-900/50 pb-3 mb-4">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border border-yellow-500/30 flex items-center justify-center text-yellow-500">
+            <BarChart2 className="w-4 h-4 text-yellow-500" />
+          </div>
+          <div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[9px] font-mono font-black text-yellow-500 tracking-wider block uppercase">RELATÓRIO DE PRECISÃO</span>
+              <span className="bg-gradient-to-r from-yellow-500 to-amber-500 text-black text-[7px] font-extrabold px-1.5 py-0.5 rounded-full uppercase tracking-wider font-mono">
+                PREMIUM 👑
+              </span>
+            </div>
+            <h3 className={`text-sm font-black uppercase tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
+              Estatísticas Avançadas
+            </h3>
+          </div>
+        </div>
+
+        {/* Outer relative container so we can overlay easily */}
+        <div className="relative">
+          {/* Glassmorphic Lock Overlay for Free Users */}
+          {!isPremium && (
+            <div className="absolute inset-x-0 -inset-y-2 z-20 backdrop-blur-[6px] bg-black/85 rounded-2xl flex flex-col items-center justify-center text-center p-6 space-y-3.5 border border-yellow-500/15">
+              <div className="w-12 h-12 bg-yellow-500/20 rounded-full flex items-center justify-center border border-yellow-500/30 text-yellow-500">
+                <Lock className="w-5 h-5 text-yellow-500 animate-pulse" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="text-xs font-black text-yellow-500 uppercase tracking-widest font-mono">Precisão Avançada Bloqueada</h4>
+                <p className="text-[10px] text-slate-400 font-mono max-w-xs mx-auto leading-relaxed">
+                  Faça o upgrade para o plano Premium para desbloquear gráficos de consistência, contagem detalhada de todos os tipos de exercícios realizados, XP acumulado e relatórios avançados de evolução semanal e mensal!
+                </p>
+              </div>
+              <button
+                onClick={onNavigateToPremium}
+                className="py-2.5 px-5 rounded-xl bg-gradient-to-r from-yellow-500 via-amber-400 to-yellow-600 text-black font-black font-mono text-[9px] uppercase tracking-widest hover:brightness-110 active:scale-95 transition-all shadow-[0_4px_12px_rgba(234,179,8,0.3)] cursor-pointer"
+              >
+                Ativar Estatísticas Avançadas 👑
+              </button>
+            </div>
+          )}
+
+          {/* Bento Grid layout */}
+          <div className="grid grid-cols-2 gap-3 pb-2">
+            {/* Box 1: Total Exercícios */}
+            <div className={`rounded-2xl p-3.5 flex flex-col justify-between border ${
+              isLight ? 'bg-slate-50 border-slate-100' : 'bg-[#0b0a0e] border-slate-900/60'
+            }`}>
+              <div className="flex items-center gap-1.5 text-slate-500">
+                <Target className="w-3.5 h-3.5 text-sky-400" />
+                <span className="text-[8px] font-mono font-black uppercase tracking-wider">Treinos Totais</span>
+              </div>
+              <div className="mt-1.5 flex items-baseline gap-1">
+                <span className={`text-2xl font-black font-mono ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                  {gameState.totalMissions || 0}
+                </span>
+                <span className="text-[9px] text-slate-500 font-bold uppercase font-mono">contratos</span>
+              </div>
+            </div>
+
+            {/* Box 2: Exercício Mais Praticado */}
+            <div className={`rounded-2xl p-3.5 flex flex-col justify-between border ${
+              isLight ? 'bg-slate-50 border-slate-100' : 'bg-[#0b0a0e] border-slate-900/60'
+            }`}>
+              <div className="flex items-center gap-1.5 text-slate-500">
+                <Dumbbell className="w-3.5 h-3.5 text-red-500" />
+                <span className="text-[8px] font-mono font-black uppercase tracking-wider">Mais Praticado</span>
+              </div>
+              <div className="mt-1.5">
+                <span className="text-xs font-black text-yellow-500 uppercase font-mono tracking-tight block truncate">
+                  {gameState.totalFlexoes >= gameState.totalAgacham ? "Flexão Diamante" : "Agachamento Jump"}
+                </span>
+                <span className="text-[8px] text-slate-500 font-bold uppercase font-mono block mt-0.5">
+                  Foco em {(gameState.totalFlexoes || 0) >= (gameState.totalAgacham || 0) ? "Membros Superiores" : "Membros Inferiores"}
+                </span>
+              </div>
+            </div>
+
+            {/* Box 3: Sequência Média */}
+            <div className={`rounded-2xl p-3.5 flex flex-col justify-between border ${
+              isLight ? 'bg-slate-50 border-slate-100' : 'bg-[#0b0a0e] border-slate-900/60'
+            }`}>
+              <div className="flex items-center gap-1.5 text-slate-500">
+                <Calendar className="w-3.5 h-3.5 text-amber-500" />
+                <span className="text-[8px] font-mono font-black uppercase tracking-wider">Sequência Média</span>
+              </div>
+              <div className="mt-1.5 flex items-baseline gap-1">
+                <span className={`text-2xl font-black font-mono ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                  {Math.round((gameState.streak || 0) * 0.8 + 2)}
+                </span>
+                <span className="text-[9px] text-slate-500 font-bold uppercase font-mono">dias</span>
+              </div>
+            </div>
+
+            {/* Box 4: XP Semanal Acumulado */}
+            <div className={`rounded-2xl p-3.5 flex flex-col justify-between border ${
+              isLight ? 'bg-slate-50 border-slate-100' : 'bg-[#0b0a0e] border-slate-900/60'
+            }`}>
+              <div className="flex items-center gap-1.5 text-slate-500">
+                <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+                <span className="text-[8px] font-mono font-black uppercase tracking-wider">XP Ganho p/ Semana</span>
+              </div>
+              <div className="mt-1.5 flex items-baseline gap-1">
+                <span className={`text-2xl font-black font-mono ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                  {gameState.weeklyXP || 0}
+                </span>
+                <span className="text-[9px] text-slate-500 font-bold uppercase font-mono">XP</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Evolution week trend lines & graphs (beautiful mockup SVG) */}
+          <div className={`rounded-2xl p-4 border space-y-3 mt-1 ${
+            isLight ? 'bg-slate-50 border-slate-100' : 'bg-[#0b0a0e] border-slate-900/60'
+          }`}>
+            <div className="flex justify-between items-center pb-2 border-b border-slate-900/40">
+              <span className="text-[9px] font-mono font-black text-slate-400 uppercase tracking-widest block">Evolução Semanal e Mensal</span>
+              <span className="text-[8px] font-mono text-emerald-400 font-extrabold uppercase">Alta consistência (+12%)</span>
+            </div>
+
+            {/* SVG graph mockup */}
+            <div className="h-20 w-full flex items-end justify-between gap-1 pt-2">
+              {[60, 45, 80, 55, 95, 70, 100].map((h, i) => (
+                <div key={i} className="flex-1 flex flex-col items-center gap-1.5">
+                  <div className="w-full bg-slate-950 rounded-md h-12 flex items-end overflow-hidden">
+                    <motion.div 
+                      initial={{ height: 0 }}
+                      animate={{ height: `${h}%` }}
+                      transition={{ duration: 1, delay: i * 0.1 }}
+                      className="w-full bg-gradient-to-t from-yellow-500 to-amber-400 rounded-t-md"
+                    />
+                  </div>
+                  <span className="text-[8px] font-mono text-slate-500">Sem {i + 1}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
+

@@ -1,6 +1,6 @@
 import React from 'react';
-import { LogOut, Swords, Shield, Sun, Moon } from 'lucide-react';
-import fitnessRpgLogo from '../assets/images/fitness_rpg_exact_logo_1782332014254.jpg';
+import { LogOut, Swords, Shield, Sun, Moon, Crown } from 'lucide-react';
+import fitnessRpgLogo from '../assets/images/blue_crest_logo_1782655072782.jpg';
 
 interface HeaderProps {
   email: string | null;
@@ -8,9 +8,19 @@ interface HeaderProps {
   activeTab: string;
   theme?: 'dark' | 'light';
   onToggleTheme?: () => void;
+  isPremium?: boolean;
+  onNavigateToPremium?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ email, onLogout, activeTab, theme = 'dark', onToggleTheme }) => {
+export const Header: React.FC<HeaderProps> = ({ 
+  email, 
+  onLogout, 
+  activeTab, 
+  theme = 'dark', 
+  onToggleTheme,
+  isPremium = false,
+  onNavigateToPremium
+}) => {
   // Generate current week dates or a static high-fidelity list modeled after the reference mockup
   // Today's date info
   const today = new Date();
@@ -29,21 +39,21 @@ export const Header: React.FC<HeaderProps> = ({ email, onLogout, activeTab, them
     };
   });
 
-  // Calculate high-fidelity title based on active tab matching references (e.g. TRAINING, ARISE AI, RANKING)
+  // Calculate high-fidelity title based on active tab matching references (e.g. TRAINING, EVOLUTION, RANKING)
   const getHeaderTitle = () => {
     switch (activeTab) {
       case 'home':
-        return 'SISTEMA PRINCIPAL';
+        return 'PAINEL INICIAL';
       case 'missions':
-        return 'TREINAMENTO';
+        return 'TREINOS & METAS';
       case 'achievements':
-        return 'CONQUISTAS';
+        return 'CONQUISTAS & RECORDES';
       case 'ranking':
-        return 'LIGA DOS AMIGOS';
+        return 'RANKING DE ATLETAS';
       case 'profile':
-        return 'PERFIL DO CAÇADOR';
+        return 'MEU PERFIL FITNESS';
       default:
-        return 'SISTEMA PRINCIPAL';
+        return 'EVOLUTION';
     }
   };
 
@@ -65,7 +75,7 @@ export const Header: React.FC<HeaderProps> = ({ email, onLogout, activeTab, them
           }`}>
             <img 
               src={fitnessRpgLogo} 
-              alt="Fitness RPG Logo" 
+              alt="Fitness Evolution Logo" 
               className="w-full h-full object-cover" 
               referrerPolicy="no-referrer" 
             />
@@ -81,6 +91,22 @@ export const Header: React.FC<HeaderProps> = ({ email, onLogout, activeTab, them
 
         {/* Right HUD metrics: theme toggle & logout */}
         <div className="flex items-center gap-2">
+          {onNavigateToPremium && (
+            <button
+              onClick={onNavigateToPremium}
+              title={isPremium ? 'Membro Premium Ativo 👑' : 'Seja Premium 👑'}
+              className={`w-8 h-8 rounded-lg border flex items-center justify-center transition-all duration-200 active:scale-90 ${
+                isPremium
+                  ? 'bg-gradient-to-r from-yellow-500/15 via-amber-500/10 to-yellow-600/15 border-yellow-500/40 text-yellow-500 shadow-[0_0_12px_rgba(234,179,8,0.25)] animate-pulse'
+                  : isLight
+                  ? 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-400 hover:text-slate-600'
+                  : 'bg-slate-950/20 hover:bg-slate-950/40 border-slate-900/30 text-slate-500 hover:text-slate-300'
+              }`}
+            >
+              <Crown className="w-4 h-4 fill-current text-yellow-500" />
+            </button>
+          )}
+
           {onToggleTheme && (
             <button
               onClick={onToggleTheme}
@@ -98,7 +124,7 @@ export const Header: React.FC<HeaderProps> = ({ email, onLogout, activeTab, them
           {email && (
             <button
               onClick={onLogout}
-              title="Sair da arena"
+              title="Sair"
               className={`w-8 h-8 rounded-lg border flex items-center justify-center transition-all duration-200 active:scale-90 ${
                 isLight
                   ? 'bg-red-50 hover:bg-red-100 border-red-200 text-red-500'

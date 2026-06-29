@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from './lib/supabase';
 import { Exercise, GameState, WeeklyMission, SpecialMission, Achievement } from './types';
-import { EXERCISES, WEEKLY_MISSIONS, SPECIAL_MISSIONS, ACHIEVEMENTS } from './data';
+import { EXERCISES, WEEKLY_MISSIONS, SPECIAL_MISSIONS, ACHIEVEMENTS, PREMIUM_EXERCISES, ELITE_MISSIONS } from './data';
 import { Header } from './components/Header';
 import { XPBar } from './components/XPBar';
 import { BottomNav } from './components/BottomNav';
 import { HomeTab } from './components/HomeTab';
 import { MissionsTab } from './components/MissionsTab';
 import { AchievementsTab } from './components/AchievementsTab';
-import { RankingTab } from './components/RankingTab';
+import { RankingTab, getCurrentRank } from './components/RankingTab';
 import { ProfileTab } from './components/ProfileTab';
 import { EvolutionTab } from './components/EvolutionTab';
+import { PremiumBenefitsScreen } from './components/PremiumBenefitsScreen';
+
 import { MissionScreen } from './components/MissionScreen';
 import { RecoveryMissionScreen } from './components/RecoveryMissionScreen';
 import { RECOVERY_ACTIVITIES } from './components/HomeTab';
@@ -24,23 +26,23 @@ export const OATH_OPTIONS = [
   {
     id: 'soul_mirror',
     icon: '🛡️',
-    title: 'O Espelho da Alma',
-    quote: 'Sua força no jogo é um reflexo exato do seu suor no mundo real. Trapacear nas missões é apenas sabotar o seu próprio herói. Treine de verdade, vença de verdade!',
-    effect: 'Conexão Espiritual Ativa'
+    title: 'Foco e Honestidade',
+    quote: 'Seu progresso na tela é um reflexo exato do seu esforço no mundo real. Não pule séries, treine com dedicação para construir sua melhor versão de verdade.',
+    effect: 'Integridade de Treino'
   },
   {
     id: 'warrior_way',
-    icon: '⚔️',
-    title: 'O Caminho do Guerreiro',
-    quote: 'Não existem atalhos para se tornar uma lenda do fitness. Cada clique sem esforço legítimo enfraquece o seu caráter. Sua energia física real é o verdadeiro poder do seu avatar!',
-    effect: 'Energia Vital Legítima'
+    icon: '🔥',
+    title: 'Compromisso de Consistência',
+    quote: 'Não existem atalhos para a evolução física. Cada dia de treino legítimo molda sua disciplina e fortalece sua mente. Sua consistência é sua força!',
+    effect: 'Consistência Ativa'
   },
   {
     id: 'stats_pact',
-    icon: '🔥',
-    title: 'O Pacto dos Atributos',
-    quote: 'Seus músculos são o controle; a tela é apenas o reflexo. Concluir missões falsamente não altera sua realidade. Eleve seus atributos na vida real e veja sua armadura brilhar!',
-    effect: 'Pacto da Força Verdadeira'
+    icon: '⚡',
+    title: 'Conexão Mente e Corpo',
+    quote: 'O aplicativo é seu mapa, mas seus músculos fazem a jornada. Treine com postura correta, respeite seus limites e celebre cada evolução diária real.',
+    effect: 'Evolução Real Garantida'
   }
 ];
 
@@ -61,7 +63,7 @@ const generateFriendCode = (name?: string) => {
 const ensureFriendSystemState = (state: GameState): GameState => {
   const updated = { ...state };
   if (!updated.friendCode) {
-    updated.friendCode = generateFriendCode(updated.charName || 'CAÇADOR');
+    updated.friendCode = generateFriendCode(updated.charName || 'ATLETA');
   }
   
   // Start with empty friends or filter out the mock ones to clean up the existing local state
@@ -157,7 +159,7 @@ const DEFAULT_STATE: GameState = {
   int: 10,
   waterIntake: 0,
   waterGoal: 2000,
-  charClass: 'Caçador',
+  charClass: 'Calistenia',
   charName: '',
   statPoints: 0,
   chosenOath: '',
@@ -180,13 +182,13 @@ export default function App() {
   const [activeRecoveryActivityId, setActiveRecoveryActivityId] = useState<string | null>(null);
   const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
-    return (localStorage.getItem('fitnessRPG_theme') as 'dark' | 'light') || 'dark';
+    return (localStorage.getItem('fitness_evolution_theme') as 'dark' | 'light') || 'dark';
   });
 
   const toggleTheme = () => {
     setTheme(prev => {
       const next = prev === 'dark' ? 'light' : 'dark';
-      localStorage.setItem('fitnessRPG_theme', next);
+      localStorage.setItem('fitness_evolution_theme', next);
       return next;
     });
   };
@@ -201,7 +203,7 @@ export default function App() {
   const [selectedOathId, setSelectedOathId] = useState<string>('soul_mirror');
   const [showAssessment, setShowAssessment] = useState<boolean>(false);
   const [showAssessmentAnnouncement, setShowAssessmentAnnouncement] = useState<boolean>(() => {
-    return localStorage.getItem('fitnessRPG_dismissedAssessment') !== 'true';
+    return localStorage.getItem('fitness_evolution_dismissedAssessment') !== 'true';
   });
 
   // Formula matching exactly: Math.floor(100 * Math.pow(lv, 1.5))
@@ -221,7 +223,7 @@ export default function App() {
     const params = new URLSearchParams(window.location.search);
     const refCode = params.get('ref');
     if (refCode) {
-      localStorage.setItem('fitnessRPG_referrer', refCode.trim().toUpperCase());
+      localStorage.setItem('fitness_evolution_referrer', refCode.trim().toUpperCase());
     }
 
     return () => {
@@ -309,7 +311,7 @@ export default function App() {
         // No profile, create a default one
         const newProfile = {
           id: currentUser.id,
-          nome: currentUser.user_metadata?.char_name || currentUser.email?.split('@')[0] || 'Guerreiro',
+          nome: currentUser.user_metadata?.char_name || currentUser.email?.split('@')[0] || 'Atleta',
           xp: 0,
           nivel: 1,
           moedas: 0,
@@ -332,7 +334,7 @@ export default function App() {
       }
 
       // Check local cache too
-      const cached = localStorage.getItem('fitnessRPG_state');
+      const cached = localStorage.getItem('fitness_evolution_state');
       const loadedLocal = cached ? JSON.parse(cached) : {};
 
       // Parse metadata from profile_pic JSON
@@ -378,11 +380,11 @@ export default function App() {
       // Resolving codes and referrers
       let resolvedFriendCode = dbFriendCode || loadedLocal.friendCode || '';
       if (!resolvedFriendCode) {
-        resolvedFriendCode = generateFriendCode(profile.nome || loadedLocal.charName || 'CAÇADOR');
+        resolvedFriendCode = generateFriendCode(profile.nome || loadedLocal.charName || 'ATLETA');
       }
 
       let resolvedInvitedBy = dbInvitedBy || loadedLocal.invitedBy || '';
-      const localReferrer = localStorage.getItem('fitnessRPG_referrer');
+      const localReferrer = localStorage.getItem('fitness_evolution_referrer');
 
       if (!resolvedInvitedBy && localReferrer) {
         const cleanReferrer = localReferrer.trim().toUpperCase();
@@ -398,7 +400,7 @@ export default function App() {
 
             if (refCheck && refCheck.length > 0) {
               resolvedInvitedBy = cleanReferrer;
-              localStorage.removeItem('fitnessRPG_referrer');
+              localStorage.removeItem('fitness_evolution_referrer');
             } else {
               console.warn(`Referral code ${cleanReferrer} does not exist in DB.`);
             }
@@ -407,7 +409,7 @@ export default function App() {
           }
         } else {
           console.warn("Self-referral is not allowed.");
-          localStorage.removeItem('fitnessRPG_referrer');
+          localStorage.removeItem('fitness_evolution_referrer');
         }
       }
 
@@ -449,7 +451,7 @@ export default function App() {
       const checkedState = checkDayReset(mergedState);
       const finalizedState = ensureFriendSystemState(checkedState);
       setGameState(finalizedState);
-      localStorage.setItem('fitnessRPG_state', JSON.stringify(finalizedState));
+      localStorage.setItem('fitness_evolution_state', JSON.stringify(finalizedState));
 
       // Trigger progress save immediately if resolved new values to update DB
       if (resolvedFriendCode !== dbFriendCode || resolvedInvitedBy !== dbInvitedBy) {
@@ -458,7 +460,7 @@ export default function App() {
 
     } catch (e) {
       console.warn('Erro ao carregar dados do Supabase. Carregando dados locais...', e);
-      const cached = localStorage.getItem('fitnessRPG_state');
+      const cached = localStorage.getItem('fitness_evolution_state');
       if (cached) {
         const parsed = JSON.parse(cached);
         const checked = checkDayReset(parsed);
@@ -528,7 +530,7 @@ export default function App() {
   // Sync / Save states to local & Supabase
   const saveProgress = async (updatedState: GameState) => {
     try {
-      localStorage.setItem('fitnessRPG_state', JSON.stringify(updatedState));
+      localStorage.setItem('fitness_evolution_state', JSON.stringify(updatedState));
 
       if (user) {
         // Bundled metadata inside the profile_pic column
@@ -560,7 +562,7 @@ export default function App() {
           .from('profiles')
           .upsert({
             id: user.id,
-            nome: updatedState.charName || user.email?.split('@')[0] || 'Guerreiro',
+            nome: updatedState.charName || user.email?.split('@')[0] || 'Atleta',
             xp: updatedState.xp,
             nivel: updatedState.level,
             streak: updatedState.streak,
@@ -576,7 +578,7 @@ export default function App() {
     }
   };
 
-  // Scaled exercise target value based on completed total missions and consecutive days streak
+  // Scaled exercise target value based on completed total missions, consecutive days streak, and progressive rank difficulty
   const getScaledTarget = (ex: Exercise) => {
     let baseTarget = ex.base;
     let maxCap = Infinity;
@@ -601,6 +603,17 @@ export default function App() {
       const range = ex.max - ex.base;
       baseTarget = Math.floor(ex.base + range * factor);
     }
+
+    // Rank-based progressive difficulty multiplier
+    const userRank = getCurrentRank(gameState.totalXP || 0);
+    let rankMultiplier = 1.0;
+    if (userRank.letter === 'D') rankMultiplier = 1.15;
+    else if (userRank.letter === 'C') rankMultiplier = 1.30;
+    else if (userRank.letter === 'B') rankMultiplier = 1.45;
+    else if (userRank.letter === 'A') rankMultiplier = 1.60;
+    else if (userRank.letter === 'S') rankMultiplier = 1.80;
+
+    baseTarget = Math.floor(baseTarget * rankMultiplier);
     
     // A cada 2 dias consecutivos de streak, adiciona 5% de bônus de intensidade
     const streakSteps = Math.floor((gameState.streak || 0) / 2);
@@ -609,11 +622,12 @@ export default function App() {
     let finalTarget = Math.floor(baseTarget * intensityBonusFactor);
 
     // CRITICAL: The daily mission target MUST NOT exceed approximately 80% of their actual capacity (maxCap)
-    // to leave room for evolution and avoid frustration, unless their initial capability was zero/extremely low
+    // to leave room for evolution and avoid frustration, unless their initial capability was zero/extremely low.
+    // The cap scales dynamically with rank multiplier as user gains power and advances.
     if (maxCap !== Infinity && maxCap > 0) {
       const safeMaxLimit = Math.max(
         ex.base, // Ensure we at least do the exercise's baseline requirement
-        Math.round(maxCap * 0.8) // Strictly cap at 80% of initial capacity
+        Math.round(maxCap * 0.8 * rankMultiplier) // Cap scales progressively with rank!
       );
       finalTarget = Math.min(finalTarget, safeMaxLimit);
     }
@@ -642,7 +656,7 @@ export default function App() {
 
   const handleReset = async () => {
     if (window.confirm('Tem certeza de que deseja resetar toda a sua jornada? Seus dados serão perdidos.')) {
-      localStorage.removeItem('fitnessRPG_state');
+      localStorage.removeItem('fitness_evolution_state');
       setGameState(DEFAULT_STATE);
       await saveProgress(DEFAULT_STATE);
       showToastMsg('Histórico de treino resetado com sucesso!');
@@ -946,10 +960,17 @@ export default function App() {
             onCompleteRecoveryActivity={handleCompleteRecoveryActivity}
             onStartRecoveryActivity={(id) => setActiveRecoveryActivityId(id)}
             theme={theme}
+            onNavigateToPremium={() => setActiveTab('premium')}
           />
         );
       case 'achievements':
-        return <AchievementsTab gameState={gameState} />;
+        return (
+          <AchievementsTab 
+            gameState={gameState} 
+            theme={theme}
+            onNavigateToPremium={() => setActiveTab('premium')}
+          />
+        );
       case 'ranking':
         return (
           <RankingTab
@@ -968,6 +989,8 @@ export default function App() {
               setGameState(newState);
               saveProgress(newState);
             }}
+            theme={theme}
+            onNavigateToPremium={() => setActiveTab('premium')}
           />
         );
       case 'profile':
@@ -981,11 +1004,23 @@ export default function App() {
               saveProgress(newState);
             }}
             onTriggerReassessment={() => setShowReassessment(true)}
+            onNavigateToPremium={() => setActiveTab('premium')}
             user={user}
             onLogout={handleLogout}
             onLoginTrigger={() => setViewingAuth(true)}
             theme={theme}
             onToggleTheme={toggleTheme}
+          />
+        );
+      case 'premium':
+        return (
+          <PremiumBenefitsScreen
+            gameState={gameState}
+            onUpdateGameState={(newState) => {
+              setGameState(newState);
+              saveProgress(newState);
+            }}
+            theme={theme}
           />
         );
       default:
@@ -1028,7 +1063,7 @@ export default function App() {
                 <div className="w-12 h-12 rounded-full bg-emerald-950/20 border border-emerald-500/30 flex items-center justify-center text-2xl mx-auto">
                   🎉
                 </div>
-                <h3 className="text-lg font-black text-white">Mensagem do Fitness RPG</h3>
+                <h3 className="text-lg font-black text-white">Mensagem do Fitness Evolution</h3>
                 <p className="text-xs text-slate-400 leading-relaxed">{customModal.msg}</p>
                 <button
                   onClick={() => setCustomModal({ show: false, msg: '' })}
@@ -1111,6 +1146,8 @@ export default function App() {
         activeTab={activeTab}
         theme={theme}
         onToggleTheme={toggleTheme}
+        isPremium={!!gameState.isPremium}
+        onNavigateToPremium={() => setActiveTab('premium')}
       />
 
       <XPBar
@@ -1140,10 +1177,10 @@ export default function App() {
                   ⚠️ SALVAR PROGRESSO NA NUVEM
                 </span>
                 <h4 className="text-xs font-extrabold text-white uppercase tracking-tight leading-none mb-1">
-                  Vínculo de Caçador Pendente!
+                  Perfil na Nuvem Pendente!
                 </h4>
                 <p className="text-[10px] text-slate-300 leading-relaxed font-mono">
-                  Sua avaliação foi concluída! Para não perder seus atributos e Rank, crie uma conta para eternizar seus dados no servidor!
+                  Sua avaliação foi concluída! Para não perder sua evolução e Rank de Aptidão, crie uma conta para salvar seus dados com segurança!
                 </p>
               </div>
             </div>
@@ -1151,7 +1188,7 @@ export default function App() {
               onClick={() => setViewingAuth(true)}
               className="w-full py-2 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-black text-[10px] font-black font-mono tracking-widest uppercase rounded-lg shadow-md transition-all duration-200 active:scale-95 cursor-pointer shrink-0"
             >
-              💾 SALVAR ATRIBUTOS NO CADASTRO
+              💾 SALVAR PROGRESSO NO CADASTRO
             </button>
           </motion.div>
         )}
@@ -1170,13 +1207,13 @@ export default function App() {
               </div>
               <div className="space-y-1 border-none bg-transparent">
                 <span className="text-[9px] font-mono font-black text-cyan-400 tracking-widest uppercase block leading-none mb-1">
-                  📢 NOVA ATUALIZAÇÃO DO JOGADOR
+                  📢 NOVO RECURSO DE EVOLUÇÃO
                 </span>
                 <h4 className="text-xs font-extrabold text-white uppercase tracking-tight leading-none mb-1">
-                  Avaliação Física de Rank Disponível!
+                  Avaliação Física de Aptidão Disponível!
                 </h4>
                 <p className="text-[10px] text-slate-300 leading-relaxed font-mono">
-                  A nova atualização do sistema de treino está ativa. Faça o teste físico agora para calibrar seu Rank de Caçador!
+                  A nova calibração do sistema de treino está ativa. Faça o teste físico agora para calibrar seu nível de aptidão!
                 </p>
               </div>
             </div>
@@ -1184,7 +1221,7 @@ export default function App() {
               onClick={() => setShowAssessment(true)}
               className="w-full py-2 bg-cyan-400 hover:bg-cyan-300 text-black text-[10px] font-black font-mono tracking-widest uppercase rounded-lg shadow-md transition-all duration-200 active:scale-95 cursor-pointer shrink-0"
             >
-              ⚔️ INICIAR MINHA AVALIAÇÃO AGORA
+              ✨ INICIAR MINHA AVALIAÇÃO AGORA
             </button>
           </motion.div>
         )}
@@ -1357,33 +1394,33 @@ export default function App() {
               
               <div className="flex items-center gap-3 border-b border-slate-800 pb-3">
                 <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
-                  <Scroll className="w-5 h-5 animate-pulse" />
+                  <Flame className="w-5 h-5 animate-pulse" />
                 </div>
                 <div>
                   <span className="text-[9px] font-mono font-black text-cyan-400 tracking-widest uppercase block animate-pulse">
-                    ATUALIZAÇÃO DE SISTEMA DISPONÍVEL
+                    NOVA RECOMENDAÇÃO DISPONÍVEL
                   </span>
                   <h3 className="text-sm font-black text-white tracking-tight uppercase">
-                    Avaliação Física de Caçador
+                    Avaliação de Aptidão Física
                   </h3>
                 </div>
               </div>
 
               <div className="space-y-3">
                 <p className="text-[11px] text-slate-300 leading-relaxed">
-                  Guerreiro, o Sistema de Treinamento de Caçador recebeu uma <strong>Grande Atualização de Aptidão</strong>! 
+                  Bem-vindo ao CalisFit! O sistema recebeu uma <strong>ferramenta inteligente de Calibração Física</strong> para otimizar seus treinos.
                 </p>
                 <div className="bg-[#040912]/80 border border-cyan-500/10 p-3.5 rounded-2xl space-y-2">
-                  <span className="text-[9px] font-mono font-bold text-cyan-400 uppercase tracking-widest block border-b border-cyan-500/15 pb-1">PATCH NOTES (V1.2)</span>
+                  <span className="text-[9px] font-mono font-bold text-cyan-400 uppercase tracking-widest block border-b border-cyan-500/15 pb-1">FUNCIONALIDADES (V1.2)</span>
                   <ul className="text-[10px] text-slate-300 space-y-1.5 font-mono list-disc list-inside">
-                    <li>Atribuição de <strong>Rank Oficial (E a S-Rank)</strong></li>
-                    <li>Cálculo de metas diárias de exercícios</li>
-                    <li>Ganho otimizado de XP de Caçador</li>
-                    <li>Duração automática e controle de reavaliação</li>
+                    <li>Níveis de Aptidão Neuromuscular Personalizados</li>
+                    <li>Cálculo de metas de exercícios personalizadas</li>
+                    <li>Ganho de XP otimizado pela sua dedicação</li>
+                    <li>Calendário e cronograma de reavaliações</li>
                   </ul>
                 </div>
                 <p className="text-[11px] text-slate-400 leading-relaxed italic">
-                  "Sua força real determina seu Rank de Caçador. Responda com precisão para receber suas missões diárias calibradas."
+                  "Sua capacidade física real determina seu ponto de partida. Responda com precisão para calibrar suas metas de calistenia."
                 </p>
               </div>
 
@@ -1395,12 +1432,12 @@ export default function App() {
                   }}
                   className="w-full py-3.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black text-xs font-black font-mono tracking-widest uppercase rounded-xl shadow-lg shadow-cyan-900/30 transition-all duration-200 cursor-pointer text-center block"
                 >
-                  ⚔️ INICIAR MINHA AVALIAÇÃO
+                  ✨ INICIAR MINHA AVALIAÇÃO
                 </button>
                 <button
                   onClick={() => {
                     setShowAssessmentAnnouncement(false);
-                    localStorage.setItem('fitnessRPG_dismissedAssessment', 'true');
+                    localStorage.setItem('fitness_evolution_dismissedAssessment', 'true');
                   }}
                   className="w-full py-3 border border-slate-800 hover:bg-slate-900/50 text-slate-400 text-[10px] font-bold font-mono tracking-widest uppercase rounded-xl transition-all duration-200 cursor-pointer"
                 >
